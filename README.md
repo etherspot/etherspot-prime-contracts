@@ -1,1 +1,0 @@
-# etherspot-lite-contracts
