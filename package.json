@@ -1,0 +1,36 @@
+{
+  "name": "etherspot-lite-contracts",
+  "version": "1.0.0",
+  "description": "Etherspot account abstraction contracts (eip-4337 compliant)",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/etherspot/etherspot-lite-contracts.git"
+  },
+  "keywords": [
+    "etherspot",
+    "account-abstraction",
+    "eip-4337"
+  ],
+  "author": "Etherspot",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/etherspot/etherspot-lite-contracts/issues"
+  },
+  "homepage": "https://github.com/etherspot/etherspot-lite-contracts#readme",
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
+    "@openzeppelin/contracts": "^4.8.1"
+  },
+  "devDependencies": {
+    "@thehubbleproject/bls": "^0.5.1",
+    "hardhat-preprocessor": "^0.1.5"
+  }
+}
