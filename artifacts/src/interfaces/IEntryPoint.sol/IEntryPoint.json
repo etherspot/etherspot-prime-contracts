@@ -24,6 +24,16 @@
           "internalType": "uint64",
           "name": "validBefore",
           "type": "uint64"
+        },
+        {
+          "internalType": "bool",
+          "name": "targetSuccess",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "targetResult",
+          "type": "bytes"
         }
       ],
       "name": "ExecutionResult",
@@ -936,6 +946,16 @@
           "internalType": "struct UserOperation",
           "name": "op",
           "type": "tuple"
+        },
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "targetCallData",
+          "type": "bytes"
         }
       ],
       "name": "simulateHandleOp",

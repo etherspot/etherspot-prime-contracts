@@ -26,11 +26,43 @@
   },
   "homepage": "https://github.com/etherspot/etherspot-lite-contracts#readme",
   "dependencies": {
+    "@account-abstraction/contracts": "^0.4.0",
+    "@ethereumjs/tx": "^4.0.2",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
     "@nomicfoundation/hardhat-toolbox": "^2.0.1",
-    "@openzeppelin/contracts": "^4.8.1"
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@openzeppelin/contracts": "^4.8.1",
+    "@typechain/ethers-v5": "^10.2.0",
+    "@typechain/hardhat": "^6.1.5",
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.13.0",
+    "@typescript-eslint/eslint-plugin": "^5.51.0",
+    "@typescript-eslint/parser": "^5.51.0",
+    "eslint": "^8.33.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-config-standard-with-typescript": "^34.0.0",
+    "eslint-plugin": "^1.0.1",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-standard": "^5.0.0",
+    "hardhat-tracer": "^1.2.1",
+    "promise": "^8.3.0",
+    "typechain": "^8.1.1",
+    "typescript": "^4.9.5"
   },
   "devDependencies": {
+    "@etherspot/contracts": "^1.9.52",
+    "@nomiclabs/hardhat-etherscan": "^3.1.5",
+    "@openzeppelin/test-helpers": "^0.5.16",
     "@thehubbleproject/bls": "^0.5.1",
+    "ethereumjs-util": "^7.1.5",
+    "ethereumjs-wallet": "^1.0.2",
+    "hardhat-deploy": "^0.11.23",
+    "hardhat-deploy-ethers": "^0.3.0-beta.13",
     "hardhat-preprocessor": "^0.1.5"
+  },
+  "resolutions": {
+    "hardhat/**/@ethereumjs/tx": "3.5.0"
   }
 }

@@ -1,6 +1,3 @@
-/* eslint-disable prefer-rest-params */
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
-/* eslint-disable @typescript-eslint/camelcase */
 import { ethers } from 'hardhat';
 import { arrayify, hexConcat, keccak256, parseEther } from 'ethers/lib/utils';
 import {
@@ -15,17 +12,16 @@ import {
   EntryPoint,
   EntryPoint__factory,
   IERC20,
+  IEntryPoint,
   EtherspotAccount,
   EtherspotAccountFactory__factory,
   EtherspotAccount__factory,
   EtherspotAccountFactory,
   TestAggregatedAccountFactory,
 } from '../../typechain-types';
-import { UserOpsPerAggregatorStruct } from '../../typechain-types/src/interfaces/IEntryPoint';
 import { BytesLike } from '@ethersproject/bytes';
-import { JsonRpcProvider } from 'ethers/node_modules/@ethersproject/providers';
 import { expect } from 'chai';
-import { Create2Factory } from './Create2Factory';
+import { Create2Factory } from '../../src/samples/Create2Factory';
 import { debugTransaction } from './debugTx';
 import { UserOperation } from '../UserOperation';
 
@@ -40,7 +36,7 @@ export const tostr = (x: any): string => (x != null ? x.toString() : 'null');
 export function tonumber(x: any): number {
   try {
     return parseFloat(x.toString());
-  } catch (e) {
+  } catch (e: any) {
     console.log('=== failed to parseFloat:', x, e.message);
     return NaN;
   }
@@ -170,36 +166,6 @@ const panicCodes: { [key: number]: string } = {
   0x51: 'zero-initialized variable of internal function type',
 };
 
-export function decodeRevertReason(
-  data: string,
-  nullIfNoMatch = true
-): string | null {
-  const methodSig = data.slice(0, 10);
-  const dataParams = '0x' + data.slice(10);
-
-  if (methodSig === '0x08c379a0') {
-    const [err] = ethers.utils.defaultAbiCoder.decode(['string'], dataParams);
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    return `Error(${err})`;
-  } else if (methodSig === '0x00fa072b') {
-    const [opindex, paymaster, msg] = ethers.utils.defaultAbiCoder.decode(
-      ['uint256', 'address', 'string'],
-      dataParams
-    );
-    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-    return `FailedOp(${opindex}, ${
-      paymaster !== AddressZero ? paymaster : 'none'
-    }, ${msg})`;
-  } else if (methodSig === '0x4e487b71') {
-    const [code] = ethers.utils.defaultAbiCoder.decode(['uint256'], dataParams);
-    return `Panic(${panicCodes[code] ?? code} + ')`;
-  }
-  if (!nullIfNoMatch) {
-    return data;
-  }
-  return null;
-}
-
 // rethrow "cleaned up" exception.
 // - stack trace goes back to method (or catch) line, not inner provider
 // - attempt to parse revert data (needed for geth)
@@ -231,7 +197,37 @@ export function rethrow(): (e: Error) => void {
   };
 }
 
-let currentNode = '';
+export function decodeRevertReason(
+  data: string,
+  nullIfNoMatch = true
+): string | null {
+  const methodSig = data.slice(0, 10);
+  const dataParams = '0x' + data.slice(10);
+
+  if (methodSig === '0x08c379a0') {
+    const [err] = ethers.utils.defaultAbiCoder.decode(['string'], dataParams);
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    return `Error(${err})`;
+  } else if (methodSig === '0x00fa072b') {
+    const [opindex, paymaster, msg] = ethers.utils.defaultAbiCoder.decode(
+      ['uint256', 'address', 'string'],
+      dataParams
+    );
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    return `FailedOp(${opindex}, ${
+      paymaster !== AddressZero ? paymaster : 'none'
+    }, ${msg})`;
+  } else if (methodSig === '0x4e487b71') {
+    const [code] = ethers.utils.defaultAbiCoder.decode(['uint256'], dataParams);
+    return `Panic(${panicCodes[code] ?? code} + ')`;
+  }
+  if (!nullIfNoMatch) {
+    return data;
+  }
+  return null;
+}
+
+let currentNode: string = '';
 
 // basic geth support
 // - by default, has a single account. our code needs more.
@@ -331,7 +327,8 @@ export function simulationResultCatch(e: any): any {
 }
 
 /**
- * process exception of ValidationResultWithAggregation * usage: entryPoint.simulationResult(..).catch(simulationResultWithAggregation)
+ * process exception of ValidationResultWithAggregation
+ * usage: entryPoint.simulationResult(..).catch(simulationResultWithAggregation)
  */
 export function simulationResultWithAggregationCatch(e: any): any {
   if (e.errorName !== 'ValidationResultWithAggregation') {
@@ -341,7 +338,7 @@ export function simulationResultWithAggregationCatch(e: any): any {
 }
 
 export async function deployEntryPoint(
-  provider: JsonRpcProvider = ethers.provider
+  provider = ethers.provider
 ): Promise<EntryPoint> {
   const create2factory = new Create2Factory(provider);
   const epf = new EntryPoint__factory(provider.getSigner());
@@ -361,7 +358,7 @@ export async function isDeployed(addr: string): Promise<boolean> {
 // internal helper function: create a UserOpsPerAggregator structure, with no aggregator or signature
 export function userOpsWithoutAgg(
   userOps: UserOperation[]
-): UserOpsPerAggregatorStruct[] {
+): IEntryPoint.UserOpsPerAggregatorStruct[] {
   return [
     {
       userOps,

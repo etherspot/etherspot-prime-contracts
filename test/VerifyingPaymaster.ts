@@ -13,7 +13,7 @@ import {
   createAccountOwner,
   createAddress,
   deployEntryPoint,
-  // simulationResultCatch,
+  simulationResultCatch,
 } from './helpers/testUtils';
 import { fillAndSign } from './UserOp';
 import { arrayify, hexConcat, parseEther } from 'ethers/lib/utils';
@@ -97,10 +97,8 @@ describe('EntryPoint with VerifyingPaymaster', function () {
       it('should return signature error (no revert) on wrong signer signature', async () => {
         const ret = await entryPoint.callStatic
           .simulateValidation(wrongSigUserOp)
-          .catch((e) => {
-            return e.message.split(',')[2].replace(' ', '');
-          });
-        expect(ret).eq('true');
+          .catch(simulationResultCatch);
+        expect(ret.returnInfo.sigFailed).to.be.true;
       });
 
       it('handleOp revert on signature failure in handleOps', async () => {
@@ -128,10 +126,9 @@ describe('EntryPoint with VerifyingPaymaster', function () {
         accountOwner,
         entryPoint
       );
-      await entryPoint.callStatic.simulateValidation(userOp).catch((e) => {
-        const customError = JSON.stringify(e);
-        expect(customError).to.include('ValidationResult');
-      });
+      await entryPoint.callStatic
+        .simulateValidation(userOp)
+        .catch(simulationResultCatch);
     });
   });
 });

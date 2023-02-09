@@ -9,12 +9,11 @@ import { AddressZero, callDataCost, rethrow } from './helpers/testUtils';
 import {
   ecsign,
   toRpcSig,
-  // eslint-disable-next-line @typescript-eslint/camelcase
   keccak256 as keccak256_buffer,
 } from 'ethereumjs-util';
 import { EntryPoint } from '../typechain-types';
 import { UserOperation } from './UserOperation';
-import { Create2Factory } from './helpers/Create2Factory';
+import { Create2Factory } from '../src/samples/Create2Factory';
 
 function encode(
   typevalues: Array<{ type: string; val: any }>,
@@ -223,9 +222,7 @@ export async function fillUserOp(
         if (provider == null) throw new Error('no entrypoint/provider');
         op1.sender = await entryPoint!.callStatic
           .getSenderAddress(op1.initCode!)
-          .catch((e) => {
-            return e.message.split('"')[1];
-          });
+          .catch((e) => e.errorArgs.sender);
       }
     }
     if (op1.verificationGasLimit == null) {

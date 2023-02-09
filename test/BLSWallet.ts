@@ -21,7 +21,7 @@ import {
   deployEntryPoint,
   fund,
   ONE_ETH,
-  // simulationResultWithAggregationCatch,
+  simulationResultWithAggregationCatch,
 } from './helpers/testUtils';
 import { DefaultsForUserOp, fillUserOp } from './UserOp';
 import { expect } from 'chai';
@@ -49,7 +49,7 @@ describe('bls account', function () {
     ).deploy();
     blsAgg = await new BLSSignatureAggregator__factory(
       {
-        'src/4337_wallet/bls/lib/BLSOpen.sol:BLSOpen': BLSOpenLib.address,
+        'src/bls/lib/BLSOpen.sol:BLSOpen': BLSOpenLib.address,
       },
       ethers.provider.getSigner()
     ).deploy();
@@ -196,9 +196,7 @@ describe('bls account', function () {
       const verifier = new BlsVerifier(BLS_DOMAIN);
       const senderAddress = await entrypoint.callStatic
         .getSenderAddress(initCode)
-        .catch((e) => {
-          return e.message.split('"')[1];
-        });
+        .catch((e) => e.errorArgs.sender);
       await fund(senderAddress, '0.01');
       const userOp = await fillUserOp(
         {
@@ -212,19 +210,26 @@ describe('bls account', function () {
       const sigParts = signer3.sign(requestHash);
       userOp.signature = hexConcat(sigParts);
 
-      const aggregatorInfo = await entrypoint.callStatic
+      // const aggregatorInfo: any = await entrypoint.callStatic
+      //   .simulateValidation(userOp)
+      //   .catch((e) => {
+      //     const actualAggregator = e.message.split('"')[3];
+      //     const stake = e.message.split('"')[4].slice(3, 22);
+      //     const unstakeDelaySec = parseInt(
+      //       e.message.split('"')[4].slice(24, 25)
+      //     );
+      //     return [actualAggregator, stake, unstakeDelaySec];
+      //   });
+      // expect(aggregatorInfo[0]).to.eq(blsAgg.address);
+      // expect(aggregatorInfo[1]).to.eq(ONE_ETH);
+      // expect(aggregatorInfo[2]).to.eq(2);
+
+      const { aggregatorInfo } = await entrypoint.callStatic
         .simulateValidation(userOp)
-        .catch((e) => {
-          const actualAggregator = e.message.split('"')[3];
-          const stake = e.message.split('"')[4].slice(3, 22);
-          const unstakeDelaySec = parseInt(
-            e.message.split('"')[4].slice(24, 25)
-          );
-          return [actualAggregator, stake, unstakeDelaySec];
-        });
-      expect(aggregatorInfo[0]).to.eq(blsAgg.address);
-      expect(aggregatorInfo[1]).to.eq(ONE_ETH);
-      expect(aggregatorInfo[2]).to.eq(2);
+        .catch(simulationResultWithAggregationCatch);
+      expect(aggregatorInfo.actualAggregator).to.eq(blsAgg.address);
+      expect(aggregatorInfo.stakeInfo.stake).to.eq(ONE_ETH);
+      expect(aggregatorInfo.stakeInfo.unstakeDelaySec).to.eq(2);
 
       const [signature] = defaultAbiCoder.decode(
         ['bytes32[2]'],

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/camelcase */
 import './helpers/aa.init';
 import { BigNumber, Event, Wallet } from 'ethers';
 import { expect } from 'chai';
@@ -40,10 +39,10 @@ import {
   createAddress,
   getAccountAddress,
   HashZero,
-  // simulationResultCatch,
+  simulationResultCatch,
   createAccount,
   getAggregatedAccountInitCode,
-  // simulationResultWithAggregationCatch,
+  simulationResultWithAggregationCatch,
 } from './helpers/testUtils';
 import { DefaultsForUserOp, fillAndSign, getUserOpHash } from './UserOp';
 import { UserOperation } from './UserOperation';
@@ -304,12 +303,10 @@ describe('EntryPoint', function () {
         accountOwner,
         entryPoint
       );
-      const sigFailed = await entryPoint.callStatic
+      const { returnInfo } = await entryPoint.callStatic
         .simulateValidation(op)
-        .catch((e) => {
-          return e.message.split(',')[2].replace(' ', '');
-        });
-      expect(sigFailed).eq('true');
+        .catch(simulationResultCatch);
+      expect(returnInfo.sigFailed).to.be.true;
     });
 
     it('should revert if wallet not deployed (and no initcode)', async () => {
@@ -345,10 +342,9 @@ describe('EntryPoint', function () {
         entryPoint
       );
       await fund(account1);
-      await entryPoint.callStatic.simulateValidation(op).catch((e) => {
-        const customError = JSON.stringify(e);
-        expect(customError).to.include('ValidationResult');
-      });
+      await entryPoint.callStatic
+        .simulateValidation(op)
+        .catch(simulationResultCatch);
     });
 
     it('should return empty context if no paymaster', async () => {
@@ -357,16 +353,10 @@ describe('EntryPoint', function () {
         accountOwner1,
         entryPoint
       );
-      const paymasterContext = await entryPoint.callStatic
+      const { returnInfo } = await entryPoint.callStatic
         .simulateValidation(op)
-        .catch((e) => {
-          return e.message
-            .split(',')[5]
-            .replace(']', '')
-            .replace(' ', '')
-            .replaceAll('"', '');
-        });
-      expect(paymasterContext).to.eql('0x');
+        .catch(simulationResultCatch);
+      expect(returnInfo.paymasterContext).to.eql('0x');
     });
 
     it('should return stake of sender', async () => {
@@ -378,7 +368,7 @@ describe('EntryPoint', function () {
         entryPoint.address
       );
       await fund(account2);
-      await account2.executeTransaction(
+      await account2.execute(
         entryPoint.address,
         stakeValue,
         entryPoint.interface.encodeFunctionData('addStake', [unstakeDelay])
@@ -388,12 +378,12 @@ describe('EntryPoint', function () {
         ethersSigner,
         entryPoint
       );
-      await entryPoint.callStatic.simulateValidation(op).catch((e) => {
-        const customError = JSON.stringify(e);
-        expect(customError).to.include(
-          'ValidationResult',
-          `[${stakeValue}, ${unstakeDelay}]`
-        );
+      const result = await entryPoint.callStatic
+        .simulateValidation(op)
+        .catch(simulationResultCatch);
+      expect(result.senderInfo).to.eql({
+        stake: stakeValue,
+        unstakeDelaySec: unstakeDelay,
       });
     });
 
@@ -436,9 +426,7 @@ describe('EntryPoint', function () {
       );
       const sender = await entryPoint.callStatic
         .getSenderAddress(initCode)
-        .catch((e) => {
-          return e.message.split('"')[1];
-        });
+        .catch((e) => e.errorArgs.sender);
       const op0 = await fillAndSign(
         {
           initCode,
@@ -487,10 +475,9 @@ describe('EntryPoint', function () {
       );
       await fund(op1.sender);
 
-      await entryPoint.callStatic.simulateValidation(op1).catch((e) => {
-        const customError = JSON.stringify(e);
-        expect(customError).to.include('ValidationResult');
-      });
+      await entryPoint.callStatic
+        .simulateValidation(op1)
+        .catch(simulationResultCatch);
     });
 
     it('should not call initCode from entrypoint', async () => {
@@ -505,11 +492,7 @@ describe('EntryPoint', function () {
         {
           initCode: hexConcat([
             account.address,
-            account.interface.encodeFunctionData('executeTransaction', [
-              sender,
-              0,
-              '0x',
-            ]),
+            account.interface.encodeFunctionData('execute', [sender, 0, '0x']),
           ]),
           sender,
         },
@@ -559,42 +542,41 @@ describe('EntryPoint', function () {
       const counter = await new TestCounter__factory(ethersSigner).deploy();
 
       const count = counter.interface.encodeFunctionData('count');
-      const callData = account.interface.encodeFunctionData(
-        'executeTransaction',
-        [counter.address, 0, count]
-      );
+      const callData = account.interface.encodeFunctionData('execute', [
+        counter.address,
+        0,
+        count,
+      ]);
       // deliberately broken signature.. simulate should work with it too.
       const userOp = await fillAndSign(
         {
           sender: account.address,
           callData,
-          maxFeePerGas: 1, // gasprice=gas...
         },
         accountOwner1,
         entryPoint
       );
 
       const ret = await entryPoint.callStatic
-        .simulateHandleOp(userOp)
-        .catch((e) => {
-          const preOpGas = e.message
-            .split(',')[0]
-            .split('(')[1]
-            .replace('"', '');
-          const totGas = e.message.split(',')[1].replace(' ', '');
-          return [preOpGas, totGas];
-        });
-      // TODO: we can't directly check simulation called the wallet's execute.
-      // need to do call tracing and parse emitted events
-      // we "hack" it by reporting out gas used, which is expected to be more than just verification
-      console.log('preOpGas=', ret[0], 'total gas=', ret[1]);
+        .simulateHandleOp(
+          userOp,
+          counter.address,
+          counter.interface.encodeFunctionData('counters', [account.address])
+        )
+        .catch((e) => e.errorArgs);
+
+      const [countResult] = counter.interface.decodeFunctionResult(
+        'counters',
+        ret.targetResult
+      );
+      expect(countResult).to.eql(1);
+      expect(ret.targetSuccess).to.be.true;
+
+      // actual counter is zero
+      expect(await counter.counters(account.address)).to.eql(0);
     });
   });
 
-  /////////////////////////
-  /////////////////////////
-  /////////////////////////
-  /////////////////////////
   describe('flickering account validation', () => {
     it('should prevent leakage of basefee', async () => {
       const maliciousAccount = await new MaliciousAccount__factory(
@@ -635,7 +617,7 @@ describe('EntryPoint', function () {
         ).to.revertedWith('Revert after first validation');
         // if we get here, it means the userOp passed first sim and reverted second
         expect.fail(null, null, 'should fail on first simulation');
-      } catch (e) {
+      } catch (e: any) {
         expect(e.message).to.include('Revert after first validation');
       }
     });
@@ -691,7 +673,7 @@ describe('EntryPoint', function () {
         const beneficiaryAddress = createAddress();
         try {
           await entryPoint.simulateValidation(badOp, { gasLimit: 1e6 });
-        } catch (e) {
+        } catch (e: any) {
           if ((e as Error).message.includes('ValidationResult')) {
             const tx = await entryPoint.handleOps([badOp], beneficiaryAddress, {
               gasLimit: 1e6,
@@ -722,7 +704,7 @@ describe('EntryPoint', function () {
         const beneficiaryAddress = createAddress();
         try {
           await entryPoint.simulateValidation(badOp, { gasLimit: 1e6 });
-        } catch (e) {
+        } catch (e: any) {
           if ((e as Error).message.includes('ValidationResult')) {
             const tx = await entryPoint.handleOps([badOp], beneficiaryAddress, {
               gasLimit: 1e6,
@@ -738,10 +720,6 @@ describe('EntryPoint', function () {
     });
   });
 
-  /////////////////////////
-  /////////////////////////
-  /////////////////////////
-  /////////////////////////
   describe('without paymaster (account pays in eth)', () => {
     describe('#handleOps', () => {
       let counter: TestCounter;
@@ -749,12 +727,11 @@ describe('EntryPoint', function () {
       before(async () => {
         counter = await new TestCounter__factory(ethersSigner).deploy();
         const count = await counter.populateTransaction.count();
-        accountExecFromEntryPoint =
-          await account.populateTransaction.executeTransaction(
-            counter.address,
-            0,
-            count.data!
-          );
+        accountExecFromEntryPoint = await account.populateTransaction.execute(
+          counter.address,
+          0,
+          count.data!
+        );
       });
 
       it('should revert on signature failure', async () => {
@@ -823,12 +800,11 @@ describe('EntryPoint', function () {
           iterations,
           ''
         );
-        const accountExec =
-          await account.populateTransaction.executeTransaction(
-            counter.address,
-            0,
-            count.data!
-          );
+        const accountExec = await account.populateTransaction.execute(
+          counter.address,
+          0,
+          count.data!
+        );
         const op = await fillAndSign(
           {
             sender: account.address,
@@ -879,12 +855,11 @@ describe('EntryPoint', function () {
           iterations,
           ''
         );
-        const accountExec =
-          await account.populateTransaction.executeTransaction(
-            counter.address,
-            0,
-            count.data!
-          );
+        const accountExec = await account.populateTransaction.execute(
+          counter.address,
+          0,
+          count.data!
+        );
         const op = await fillAndSign(
           {
             sender: account.address,
@@ -1135,7 +1110,6 @@ describe('EntryPoint', function () {
         );
 
         expect(await ethers.provider.getBalance(op.sender)).to.eq(0);
-
         await expect(
           entryPoint.callStatic.handleOps([op], beneficiaryAddress, {
             gasLimit: 1e7,
@@ -1231,7 +1205,7 @@ describe('EntryPoint', function () {
         counter = await new TestCounter__factory(ethersSigner).deploy();
         const count = await counter.populateTransaction.count();
         accountExecCounterFromEntryPoint =
-          await account.populateTransaction.executeTransaction(
+          await account.populateTransaction.execute(
             counter.address,
             0,
             count.data!
@@ -1275,15 +1249,13 @@ describe('EntryPoint', function () {
 
         await entryPoint.callStatic
           .simulateValidation(op2, { gasPrice: 1e9 })
-          .catch((e) => {
-            const customError = JSON.stringify(e);
-            expect(customError).to.include('ValidationResult');
-          });
+          .catch(simulationResultCatch);
 
         await fund(op1.sender);
         await fund(account2.address);
         await entryPoint
           .handleOps([op1!, op2], beneficiaryAddress)
+          .catch(rethrow())
           .then(async (r) => r!.wait());
         // console.log(ret.events!.map(e=>({ev:e.event, ...objdump(e.args!)})))
       });
@@ -1562,9 +1534,7 @@ describe('EntryPoint', function () {
             );
             addr = await entryPoint.callStatic
               .getSenderAddress(initCode)
-              .catch((e) => {
-                return e.message.split('"')[1];
-              });
+              .catch((e) => e.errorArgs.sender);
             await ethersSigner.sendTransaction({
               to: addr,
               value: parseEther('0.1'),
@@ -1582,16 +1552,14 @@ describe('EntryPoint', function () {
             await aggregator.addStake(entryPoint.address, 3, {
               value: TWO_ETH,
             });
-            await entryPoint.callStatic
+            const { aggregatorInfo } = await entryPoint.callStatic
               .simulateValidation(userOp)
-              .catch((e) => {
-                const customError = JSON.stringify(e);
-                expect(customError).to.include('ValidationResult');
-                expect(customError).to.include(
-                  `${aggregator.address}`,
-                  `[${TWO_ETH}, ${3}]`
-                );
-              });
+              .catch(simulationResultWithAggregationCatch);
+            expect(aggregatorInfo.actualAggregator).to.equal(
+              aggregator.address
+            );
+            expect(aggregatorInfo.stakeInfo.stake).to.equal(TWO_ETH);
+            expect(aggregatorInfo.stakeInfo.unstakeDelaySec).to.equal(3);
           });
           it('should create account in handleOps', async () => {
             await aggregator.validateUserOpSignature(userOp);
@@ -1627,12 +1595,11 @@ describe('EntryPoint', function () {
         });
         counter = await new TestCounter__factory(ethersSigner).deploy();
         const count = await counter.populateTransaction.count();
-        accountExecFromEntryPoint =
-          await account.populateTransaction.executeTransaction(
-            counter.address,
-            0,
-            count.data!
-          );
+        accountExecFromEntryPoint = await account.populateTransaction.execute(
+          counter.address,
+          0,
+          count.data!
+        );
       });
 
       it('should fail with nonexistent paymaster', async () => {
@@ -1725,13 +1692,14 @@ describe('EntryPoint', function () {
           entryPoint
         );
 
-        await entryPoint.callStatic.simulateValidation(op).catch((e) => {
-          const customError = JSON.stringify(e);
-          expect(customError).to.include(
-            'ValidationResult',
-            `[${paymasterStake}, ${globalUnstakeDelaySec}]`
-          );
-        });
+        const { paymasterInfo } = await entryPoint.callStatic
+          .simulateValidation(op)
+          .catch(simulationResultCatch);
+        const { stake: simRetStake, unstakeDelaySec: simRetDelay } =
+          paymasterInfo;
+
+        expect(simRetStake).to.eql(paymasterStake);
+        expect(simRetDelay).to.eql(globalUnstakeDelaySec);
       });
     });
 
@@ -1768,13 +1736,9 @@ describe('EntryPoint', function () {
           );
           const ret = await entryPoint.callStatic
             .simulateValidation(userOp)
-            .catch((e) => {
-              const validAfter = e.message.split(',')[3].replace(' ', '');
-              const validUntil = e.message.split(',')[4].replace(' ', '');
-              return [validAfter, validUntil];
-            });
-          expect(ret[0]).to.eql(100);
-          expect(ret[1]).to.eql(now + 60 - 1);
+            .catch(simulationResultCatch);
+          expect(ret.returnInfo.validUntil).to.eql(now + 60 - 1);
+          expect(ret.returnInfo.validAfter).to.eql(100);
         });
 
         it('should not reject expired owner', async () => {
@@ -1789,13 +1753,9 @@ describe('EntryPoint', function () {
           );
           const ret = await entryPoint.callStatic
             .simulateValidation(userOp)
-            .catch((e) => {
-              const validAfter = e.message.split(',')[3].replace(' ', '');
-              const validUntil = e.message.split(',')[4].replace(' ', '');
-              return [validAfter, validUntil];
-            });
-          expect(ret[1]).eql(now - 60 - 1);
-          expect(ret[0]).to.eql(123);
+            .catch(simulationResultCatch);
+          expect(ret.returnInfo.validUntil).eql(now - 60 - 1);
+          expect(ret.returnInfo.validAfter).to.eql(123);
         });
       });
 
@@ -1829,13 +1789,9 @@ describe('EntryPoint', function () {
           );
           const ret = await entryPoint.callStatic
             .simulateValidation(userOp)
-            .catch((e) => {
-              const validAfter = e.message.split(',')[3].replace(' ', '');
-              const validUntil = e.message.split(',')[4].replace(' ', '');
-              return [validAfter, validUntil];
-            });
-          expect(ret[1]).to.eql(now + 60 - 1);
-          expect(ret[0]).to.eql(123);
+            .catch(simulationResultCatch);
+          expect(ret.returnInfo.validUntil).to.eql(now + 60 - 1);
+          expect(ret.returnInfo.validAfter).to.eql(123);
         });
 
         it('should not reject expired paymaster request', async () => {
@@ -1853,13 +1809,9 @@ describe('EntryPoint', function () {
           );
           const ret = await entryPoint.callStatic
             .simulateValidation(userOp)
-            .catch((e) => {
-              const validAfter = e.message.split(',')[3].replace(' ', '');
-              const validUntil = e.message.split(',')[4].replace(' ', '');
-              return [validAfter, validUntil];
-            });
-          expect(ret[1]).to.eql(now - 60 - 1);
-          expect(ret[0]).to.eql(321);
+            .catch(simulationResultCatch);
+          expect(ret.returnInfo.validUntil).to.eql(now - 60 - 1);
+          expect(ret.returnInfo.validAfter).to.eql(321);
         });
 
         // helper method
@@ -1900,32 +1852,30 @@ describe('EntryPoint', function () {
             );
             const ret = await entryPoint.callStatic
               .simulateValidation(userOp)
-              .catch((e) => {
-                return e.message.split(', ');
-              });
-            return ret;
+              .catch(simulationResultCatch);
+            return ret.returnInfo;
           }
 
           // sessionOwner has a range of 100.. now+60
           it('should use lower "after" value of paymaster', async () => {
-            const ret = await simulateWithPaymasterParams(10, 1000);
-            const validAfter = ret.at(3);
-            expect(validAfter).to.eql(100);
+            expect(
+              (await simulateWithPaymasterParams(10, 1000)).validAfter
+            ).to.eql(100);
           });
           it('should use lower "after" value of account', async () => {
-            const ret = await simulateWithPaymasterParams(200, 1000);
-            const validAfter = ret.at(3);
-            expect(validAfter).to.eql(200);
+            expect(
+              (await simulateWithPaymasterParams(200, 1000)).validAfter
+            ).to.eql(200);
           });
           it('should use higher "until" value of paymaster', async () => {
-            const ret = await simulateWithPaymasterParams(10, 400);
-            const validUntil = ret.at(4);
-            expect(validUntil).to.eql(399);
+            expect(
+              (await simulateWithPaymasterParams(10, 400)).validUntil
+            ).to.eql(399);
           });
           it('should use higher "until" value of account', async () => {
-            const ret = await simulateWithPaymasterParams(200, 600);
-            const validUntil = ret.at(4);
-            expect(validUntil).to.eql(499);
+            expect(
+              (await simulateWithPaymasterParams(200, 600)).validUntil
+            ).to.eql(499);
           });
 
           it('handleOps should revert on expired paymaster request', async () => {

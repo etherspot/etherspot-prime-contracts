@@ -1,3 +1,6 @@
+# OS
+.DS_Store
+
 # Compiler files
 cache/
 out/
@@ -12,4 +15,27 @@ docs/
 
 # Dotenv file
 .env
+
+# Node modules
 node_modules
+
+# Hardhat
+.hardhat
+
+# IDEs
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+
+# Coverage
+coverage

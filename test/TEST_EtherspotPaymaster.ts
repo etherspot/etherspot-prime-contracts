@@ -14,7 +14,7 @@ import {
   createAccountOwner,
   createAddress,
   deployEntryPoint,
-  // simulationResultCatch,
+  simulationResultCatch,
 } from './helpers/testUtils';
 import { fillAndSign } from './UserOp';
 import { arrayify, hexConcat, parseEther } from 'ethers/lib/utils';
@@ -23,13 +23,16 @@ import { UserOperation } from './UserOperation';
 describe('EntryPoint with EtherspotPaymaster', function () {
   let entryPoint: EntryPoint;
   let accountOwner: Wallet;
+  let accOwner: Wallet;
   const ethersSigner = ethers.provider.getSigner();
   let account: EtherspotAccount;
+  let acc1: EtherspotAccount;
   let offchainSigner: Wallet;
-  let paym, acc;
-
+  let paym: any;
+  let acc: any;
   let paymaster: EtherspotPaymaster;
-  before(async () => {
+
+  beforeEach(async () => {
     [paym, acc] = await ethers.getSigners();
 
     this.timeout(20000);
@@ -37,6 +40,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
 
     offchainSigner = createAccountOwner();
     accountOwner = createAccountOwner();
+    accOwner = createAccountOwner();
 
     paymaster = await new EtherspotPaymaster__factory(ethersSigner).deploy(
       entryPoint.address
@@ -47,6 +51,11 @@ describe('EntryPoint with EtherspotPaymaster', function () {
     ({ proxy: account } = await createAccount(
       ethersSigner,
       accountOwner.address,
+      entryPoint.address
+    ));
+    ({ proxy: acc1 } = await createAccount(
+      ethersSigner,
+      accOwner.address,
       entryPoint.address
     ));
   });
@@ -66,7 +75,6 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       );
     });
     it('should successfully whitelist and account', async () => {
-      console.log(await paymaster.whitelist(paym.address, account.address));
       await expect(paymaster.connect(paym).addToWhitelist(account.address))
         .to.emit(paymaster, 'AddedToWhitelist')
         .withArgs(paym.address, account.address);
@@ -81,15 +89,12 @@ describe('EntryPoint with EtherspotPaymaster', function () {
     });
     it('should revert if trying to remove account that is not whitelisted', async () => {
       await expect(
-        paymaster.removeFromWhitelist(account.address)
-      ).to.be.revertedWith(
-        'EtherspotPaymaster:: EtherspotPaymaster:: Account is not whitelisted'
-      );
+        paymaster.connect(paym).removeFromWhitelist(account.address)
+      ).to.be.revertedWith('EtherspotPaymaster:: Account is not whitelisted');
     });
     it('should successfully remove whitelisted account', async () => {
       const tx = await paymaster.connect(paym).addToWhitelist(account.address);
       tx.wait(2);
-      console.log(await paymaster.whitelist(paym.address, account.address));
       await expect(paymaster.connect(paym).removeFromWhitelist(account.address))
         .to.emit(paymaster, 'RemovedFromWhitelist')
         .withArgs(paym.address, account.address);
@@ -146,10 +151,8 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       it('should return signature error (no revert) on wrong signer signature', async () => {
         const ret = await entryPoint.callStatic
           .simulateValidation(wrongSigUserOp)
-          .catch((e) => {
-            return e.message.split(',')[2].replace(' ', '');
-          });
-        expect(ret).eq('true');
+          .catch(simulationResultCatch);
+        expect(ret.returnInfo.sigFailed).to.be.true;
       });
 
       it('handleOp revert on signature failure in handleOps', async () => {
@@ -177,10 +180,34 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         accountOwner,
         entryPoint
       );
-      await entryPoint.callStatic.simulateValidation(userOp).catch((e) => {
-        const customError = JSON.stringify(e);
-        expect(customError).to.include('ValidationResult');
-      });
+      await entryPoint.callStatic
+        .simulateValidation(userOp)
+        .catch(simulationResultCatch);
+    });
+
+    it('succeed with whitelisted signature', async () => {
+      await paymaster.connect(accOwner).addToWhitelist(account.address);
+
+      const userOp2 = await fillAndSign(
+        {
+          sender: acc1.address,
+        },
+        accOwner,
+        entryPoint
+      );
+      const hash = await paymaster.getHash(userOp2);
+      const sig = await accountOwner.signMessage(arrayify(hash));
+      const userOp = await fillAndSign(
+        {
+          ...userOp2,
+          paymasterAndData: hexConcat([paymaster.address, sig]),
+        },
+        accOwner,
+        entryPoint
+      );
+      await entryPoint.callStatic
+        .simulateValidation(userOp)
+        .catch(simulationResultCatch);
     });
   });
 });

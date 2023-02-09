@@ -8,6 +8,7 @@ pragma solidity ^0.8.12;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "@etherspot/contracts/src/personal/PersonalAccountRegistry.sol";
 import "./core/BaseAccount.sol";
 
 /**
@@ -16,7 +17,12 @@ import "./core/BaseAccount.sol";
  *  has execute, eth handling methods
  *  has a single signer that can send requests through the entryPoint.
  */
-contract EtherspotAccount is BaseAccount, UUPSUpgradeable, Initializable {
+contract EtherspotAccount is
+    BaseAccount,
+    UUPSUpgradeable,
+    Initializable,
+    PersonalAccountRegistry // TODO: check what interaction should take place here - issue with col version compat
+{
     using ECDSA for bytes32;
 
     //explicit sizes of nonce, to fit a single storage cell with "owner"
@@ -61,7 +67,7 @@ contract EtherspotAccount is BaseAccount, UUPSUpgradeable, Initializable {
     /**
      * execute a transaction (called directly from owner, not by entryPoint)
      */
-    function executeTransaction(
+    function execute(
         address dest,
         uint256 value,
         bytes calldata func

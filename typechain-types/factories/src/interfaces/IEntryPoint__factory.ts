@@ -32,6 +32,16 @@ const _abi = [
         name: "validBefore",
         type: "uint64",
       },
+      {
+        internalType: "bool",
+        name: "targetSuccess",
+        type: "bool",
+      },
+      {
+        internalType: "bytes",
+        name: "targetResult",
+        type: "bytes",
+      },
     ],
     name: "ExecutionResult",
     type: "error",
@@ -943,6 +953,16 @@ const _abi = [
         internalType: "struct UserOperation",
         name: "op",
         type: "tuple",
+      },
+      {
+        internalType: "address",
+        name: "target",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "targetCallData",
+        type: "bytes",
       },
     ],
     name: "simulateHandleOp",

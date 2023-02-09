@@ -86,12 +86,12 @@
 //       before(async () => {
 //         counter = await new TestCounter__factory(ethersSigner).deploy();
 //         const count = await counter.populateTransaction.count();
-//         execCounterCount = await account.populateTransaction.executeTransaction(
+//         execCounterCount = await account.populateTransaction.execute(
 //           counter.address,
 //           0,
 //           count.data!,
 //         );
-//         accountExecCounterFromEntryPoint = await account.populateTransaction.executeTransaction(
+//         accountExecCounterFromEntryPoint = await account.populateTransaction.execute(
 //           counter.address,
 //           0,
 //           count.data!,
@@ -199,7 +199,7 @@
 //         }
 
 //         const waster = await counter.populateTransaction.gasWaster(40, "");
-//         const accountExecFromEntryPoint_waster: PopulatedTransaction = await account.populateTransaction.executeTransaction(
+//         const accountExecFromEntryPoint_waster: PopulatedTransaction = await account.populateTransaction.execute(
 //           counter.address,
 //           0,
 //           waster.data!,
@@ -233,7 +233,7 @@
 //           0,
 //           "1".repeat(16384),
 //         );
-//         const accountExecFromEntryPoint_waster: PopulatedTransaction = await account.populateTransaction.executeTransaction(
+//         const accountExecFromEntryPoint_waster: PopulatedTransaction = await account.populateTransaction.execute(
 //           counter.address,
 //           0,
 //           waster.data!,

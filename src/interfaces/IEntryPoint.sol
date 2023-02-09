@@ -135,7 +135,7 @@ interface IEntryPoint is IStakeManager {
 
     /**
      * Successful result from simulateValidation.
-     * @param returnInfo gas and deadlines returned values
+     * @param returnInfo gas and time-range returned values
      * @param senderInfo stake information about the sender
      * @param factoryInfo stake information about the factor (if any)
      * @param paymasterInfo stake information about the paymaster (if any)
@@ -149,7 +149,7 @@ interface IEntryPoint is IStakeManager {
 
     /**
      * Successful result from simulateValidation, if the account returns a signature aggregator
-     * @param returnInfo gas and deadlines returned values
+     * @param returnInfo gas and time-range returned values
      * @param senderInfo stake information about the sender
      * @param factoryInfo stake information about the factor (if any)
      * @param paymasterInfo stake information about the paymaster (if any)
@@ -206,17 +206,29 @@ interface IEntryPoint is IStakeManager {
 
     /**
      * simulate full execution of a UserOperation (including both validation and target execution)
-     * this method will always revert. it performs full validation of the UserOperation, but ignores
-     * signature error.
+     * this method will always revert with "ExecutionResult".
+     * it performs full validation of the UserOperation, but ignores signature error.
+     * an optional target address is called after the userop succeeds, and its value is returned
+     * (before the entire call is reverted)
      * Note that in order to collect the the success/failure of the target call, it must be executed
      * with trace enabled to track the emitted events.
+     * @param op the UserOperation to simulate
+     * @param target if nonzero, a target address to call after userop simulation. If called, the targetSuccess and targetResult
+     *        are set to the return from that call.
+     * @param targetCallData callData to pass to target address
      */
-    function simulateHandleOp(UserOperation calldata op) external;
+    function simulateHandleOp(
+        UserOperation calldata op,
+        address target,
+        bytes calldata targetCallData
+    ) external;
 
     error ExecutionResult(
         uint256 preOpGas,
         uint256 paid,
         uint64 validAfter,
-        uint64 validBefore
+        uint64 validBefore,
+        bool targetSuccess,
+        bytes targetResult
     );
 }

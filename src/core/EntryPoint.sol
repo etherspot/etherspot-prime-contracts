@@ -205,7 +205,11 @@ contract EntryPoint is IEntryPoint, StakeManager {
         _compensate(beneficiary, collected);
     }
 
-    function simulateHandleOp(UserOperation calldata op) external override {
+    function simulateHandleOp(
+        UserOperation calldata op,
+        address target,
+        bytes calldata targetCallData
+    ) external override {
         UserOpInfo memory opInfo;
 
         (
@@ -220,7 +224,20 @@ contract EntryPoint is IEntryPoint, StakeManager {
 
         numberMarker();
         uint256 paid = _executeUserOp(0, op, opInfo);
-        revert ExecutionResult(opInfo.preOpGas, paid, validAfter, validUntil);
+        numberMarker();
+        bool targetSuccess;
+        bytes memory targetResult;
+        if (target != address(0)) {
+            (targetSuccess, targetResult) = target.call(targetCallData);
+        }
+        revert ExecutionResult(
+            opInfo.preOpGas,
+            paid,
+            validAfter,
+            validUntil,
+            targetSuccess,
+            targetResult
+        );
     }
 
     //a memory copy of UserOp fields (except that dynamic byte arrays: callData, initCode and signature
@@ -396,7 +413,7 @@ contract EntryPoint is IEntryPoint, StakeManager {
 
     function _getRequiredPrefund(MemoryUserOp memory mUserOp)
         internal
-        view
+        pure
         returns (uint256 requiredPrefund)
     {
         unchecked {
