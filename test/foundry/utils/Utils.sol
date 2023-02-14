@@ -32,4 +32,30 @@ contract Utils is Test {
         uint256 targetBlock = block.number + numBlocks;
         vm.roll(targetBlock);
     }
+
+    function concat(string memory a, string memory b)
+        public
+        pure
+        returns (string memory)
+    {
+        return string(abi.encodePacked(a, " ", b));
+    }
+
+    function stringToHex(bytes memory buffer)
+        public
+        pure
+        returns (string memory)
+    {
+        // Fixed buffer size for hexadecimal convertion
+        bytes memory converted = new bytes(buffer.length * 2);
+
+        bytes memory _base = "0123456789abcdef";
+
+        for (uint256 i = 0; i < buffer.length; i++) {
+            converted[i * 2] = _base[uint8(buffer[i]) / _base.length];
+            converted[i * 2 + 1] = _base[uint8(buffer[i]) % _base.length];
+        }
+
+        return string(abi.encodePacked("0x", converted));
+    }
 }

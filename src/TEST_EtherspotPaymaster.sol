@@ -7,6 +7,7 @@ import "./core/BasePaymaster.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {Whitelist} from "./Whitelist.sol";
 
 /**
  * A sample paymaster that uses external service to decide whether to pay for the UserOp.
@@ -17,67 +18,12 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  * - the paymaster signs to agree to PAY for GAS.
  * - the wallet signs to prove identity and account ownership.
  */
-contract EtherspotPaymaster is BasePaymaster {
+contract EtherspotPaymaster is BasePaymaster, Whitelist {
     using ECDSA for bytes32;
     using SafeERC20 for IERC20;
     using UserOperationLib for UserOperation;
 
-    // struct Beneficiary {
-    //     address beneficiary;
-    //     address token;
-    //     uint256 allowance;
-    // }
-
-    mapping(address => mapping(address => bool)) public whitelist;
-
-    // mapping(address => Beneficiary) private paymasters;
-
-    error EtherspotPaymaster_BeneficiaryCannotBeZeroAddress();
-    error EtherspotPaymaster_InvalidBeneficiary();
-    error EtherspotPaymaster_BalanceLessThanDeposit();
-    error EtherspotPaymaster_WithdrawGreaterThanBalance();
-    event AddedToWhitelist(address paymaster, address account);
-    event RemovedFromWhitelist(address paymaster, address account);
-    event AllowanceDeposited(
-        address paymaster,
-        address beneficiary,
-        address token,
-        uint256 amount
-    );
-    event AllowanceWithdrawn(
-        address paymaster,
-        address beneficiary,
-        address token,
-        uint256 amount
-    );
-
     constructor(IEntryPoint _entryPoint) BasePaymaster(_entryPoint) {}
-
-    function addToWhitelist(address _account) external {
-        require(
-            _account != address(0),
-            "EtherspotPaymaster:: Account cannot be address(0)"
-        );
-        require(
-            !whitelist[msg.sender][_account],
-            "EtherspotPaymaster:: Account is already whitelisted"
-        );
-        whitelist[msg.sender][_account] = true;
-        emit AddedToWhitelist(msg.sender, _account);
-    }
-
-    function removeFromWhitelist(address _account) external {
-        require(
-            _account != address(0),
-            "EtherspotPaymaster:: Account cannot be address(0)"
-        );
-        require(
-            whitelist[msg.sender][_account],
-            "EtherspotPaymaster:: Account is not whitelisted"
-        );
-        whitelist[msg.sender][_account] = false;
-        emit RemovedFromWhitelist(msg.sender, _account);
-    }
 
     /**
      * return the hash we're going to sign off-chain (and validate on-chain)
@@ -140,7 +86,7 @@ contract EtherspotPaymaster is BasePaymaster {
             paymasterAndData[20:]
         );
 
-        if (!whitelist[extSig][sig]) return ("", 1);
+        if (!_check(extSig, sig)) return ("", 1);
 
         //don't revert on signature failure: return SIG_VALIDATION_FAILED
         // if (

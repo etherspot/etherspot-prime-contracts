@@ -8,7 +8,7 @@ pragma solidity ^0.8.12;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "@etherspot/contracts/src/personal/PersonalAccountRegistry.sol";
+// import "@etherspot/contracts/src/personal/PersonalAccountRegistry.sol";
 import "./core/BaseAccount.sol";
 
 /**
@@ -20,8 +20,8 @@ import "./core/BaseAccount.sol";
 contract EtherspotAccount is
     BaseAccount,
     UUPSUpgradeable,
-    Initializable,
-    PersonalAccountRegistry // TODO: check what interaction should take place here - issue with col version compat
+    Initializable
+    // PersonalAccountRegistry // TODO: check what interaction should take place here - issue with col version compat
 {
     using ECDSA for bytes32;
 

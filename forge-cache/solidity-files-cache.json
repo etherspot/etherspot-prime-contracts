@@ -750,7 +750,7 @@
       "versionRequirement": "^0.8.0",
       "artifacts": {
         "Ownable": {
-          "0.8.12+commit.f00d7308.Darwin.appleclang": "Ownable.sol/Ownable.json"
+          "0.8.18+commit.87f61d96.Darwin.appleclang": "Ownable.sol/Ownable.0.8.18.json"
         }
       }
     },
@@ -1254,7 +1254,7 @@
       "versionRequirement": "^0.8.0",
       "artifacts": {
         "Context": {
-          "0.8.12+commit.f00d7308.Darwin.appleclang": "Context.sol/Context.json"
+          "0.8.18+commit.87f61d96.Darwin.appleclang": "Context.sol/Context.0.8.18.json"
         }
       }
     },
@@ -1517,8 +1517,8 @@
       }
     },
     "src/EtherspotAccount.sol": {
-      "lastModificationDate": 1675865227383,
-      "contentHash": "7fb553c4082caad81edf2443a6c770d8",
+      "lastModificationDate": 1675963458561,
+      "contentHash": "e8e538b0b6abeca4a179150f438eaa76",
       "sourceName": "src/EtherspotAccount.sol",
       "solcConfig": {
         "settings": {
@@ -1574,8 +1574,8 @@
       }
     },
     "src/TEST_EtherspotPaymaster.sol": {
-      "lastModificationDate": 1675695489263,
-      "contentHash": "432df26e2cea07b0db79c437ddc2b256",
+      "lastModificationDate": 1676040597707,
+      "contentHash": "cf4c112f39e06669b70c9b9602412ede",
       "sourceName": "src/TEST_EtherspotPaymaster.sol",
       "solcConfig": {
         "settings": {
@@ -1615,6 +1615,7 @@
         "node_modules/@openzeppelin/contracts/utils/Strings.sol",
         "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
         "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "src/Whitelist.sol",
         "src/core/BasePaymaster.sol",
         "src/interfaces/IAggregator.sol",
         "src/interfaces/IEntryPoint.sol",
@@ -1626,6 +1627,49 @@
       "artifacts": {
         "EtherspotPaymaster": {
           "0.8.12+commit.f00d7308.Darwin.appleclang": "TEST_EtherspotPaymaster.sol/EtherspotPaymaster.json"
+        }
+      }
+    },
+    "src/Whitelist.sol": {
+      "lastModificationDate": 1676046277911,
+      "contentHash": "7c165a20729ef14998b2226996c7ebe0",
+      "sourceName": "src/Whitelist.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "node_modules/@openzeppelin/contracts/access/Ownable.sol",
+        "node_modules/@openzeppelin/contracts/utils/Context.sol"
+      ],
+      "versionRequirement": "^0.8.12",
+      "artifacts": {
+        "Whitelist": {
+          "0.8.18+commit.87f61d96.Darwin.appleclang": "Whitelist.sol/Whitelist.0.8.18.json"
         }
       }
     },
@@ -2252,8 +2296,8 @@
       }
     },
     "test/foundry/TEST_EtherspotPaymaster.t.sol": {
-      "lastModificationDate": 1675876055813,
-      "contentHash": "6697aa9075bc2b5d69412c1f53326067",
+      "lastModificationDate": 1676309790286,
+      "contentHash": "7de2a1b2e3d2a0c073c5c71acdba774c",
       "sourceName": "test/foundry/TEST_EtherspotPaymaster.t.sol",
       "solcConfig": {
         "settings": {
@@ -2319,6 +2363,7 @@
         "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
         "src/EtherspotAccount.sol",
         "src/TEST_EtherspotPaymaster.sol",
+        "src/Whitelist.sol",
         "src/core/BaseAccount.sol",
         "src/core/BasePaymaster.sol",
         "src/core/EntryPoint.sol",
@@ -2333,6 +2378,7 @@
         "src/interfaces/UserOperation.sol",
         "src/samples/EtherspotAccountFactory.sol",
         "src/utils/Exec.sol",
+        "test/foundry/utils/UserOp.sol",
         "test/foundry/utils/Utils.sol"
       ],
       "versionRequirement": "^0.8.12",
@@ -2342,9 +2388,112 @@
         }
       }
     },
+    "test/foundry/Whitelist.t.sol": {
+      "lastModificationDate": 1676290866453,
+      "contentHash": "705347ac57db9be265b2ae31652c68a4",
+      "sourceName": "test/foundry/Whitelist.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/lib/ds-test/src/test.sol",
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/StdAssertions.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdError.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Test.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "lib/forge-std/src/interfaces/IMulticall3.sol",
+        "node_modules/@openzeppelin/contracts/access/Ownable.sol",
+        "node_modules/@openzeppelin/contracts/utils/Context.sol",
+        "src/Whitelist.sol",
+        "test/foundry/utils/Utils.sol"
+      ],
+      "versionRequirement": "^0.8.12",
+      "artifacts": {
+        "WhitelistTest": {
+          "0.8.18+commit.87f61d96.Darwin.appleclang": "Whitelist.t.sol/WhitelistTest.json"
+        }
+      }
+    },
+    "test/foundry/utils/UserOp.sol": {
+      "lastModificationDate": 1676310016905,
+      "contentHash": "426aed24a8e485c840dd0b4ceec1cb28",
+      "sourceName": "test/foundry/utils/UserOp.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "lib/forge-std/src/console.sol",
+        "src/interfaces/UserOperation.sol"
+      ],
+      "versionRequirement": "^0.8.12",
+      "artifacts": {
+        "UserOperationHelper": {
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "UserOp.sol/UserOperationHelper.json"
+        }
+      }
+    },
     "test/foundry/utils/Utils.sol": {
-      "lastModificationDate": 1675696129477,
-      "contentHash": "74a8f1183436dc7885773750eb62a86f",
+      "lastModificationDate": 1676283709310,
+      "contentHash": "4f83ef655c6270ed670edef04b08d5c0",
       "sourceName": "test/foundry/utils/Utils.sol",
       "solcConfig": {
         "settings": {
