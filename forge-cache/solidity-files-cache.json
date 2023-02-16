@@ -750,7 +750,7 @@
       "versionRequirement": "^0.8.0",
       "artifacts": {
         "Ownable": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Ownable.sol/Ownable.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Ownable.sol/Ownable.json"
         }
       }
     },
@@ -1254,7 +1254,7 @@
       "versionRequirement": "^0.8.0",
       "artifacts": {
         "Context": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Context.sol/Context.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Context.sol/Context.json"
         }
       }
     },
@@ -1460,6 +1460,46 @@
       "artifacts": {
         "Math": {
           "0.8.12+commit.f00d7308.Darwin.appleclang": "Math.sol/Math.json"
+        }
+      }
+    },
+    "node_modules/hardhat/console.sol": {
+      "lastModificationDate": 1675694991849,
+      "contentHash": "4ff3cd2f6272c9a6516e9ee4f2b967d3",
+      "sourceName": "node_modules/hardhat/console.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": null,
+      "artifacts": {
+        "console": {
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "console.sol/console.json"
         }
       }
     },
@@ -1669,7 +1709,7 @@
       "versionRequirement": "^0.8.12",
       "artifacts": {
         "Whitelist": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Whitelist.sol/Whitelist.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Whitelist.sol/Whitelist.json"
         }
       }
     },
@@ -1768,8 +1808,8 @@
       }
     },
     "src/core/EntryPoint.sol": {
-      "lastModificationDate": 1675780228114,
-      "contentHash": "8f0ee807a933a2c45d9925f2621f460f",
+      "lastModificationDate": 1676479857359,
+      "contentHash": "75dd0e24ff433428daafe43f8ab228cd",
       "sourceName": "src/core/EntryPoint.sol",
       "solcConfig": {
         "settings": {
@@ -1800,6 +1840,7 @@
         }
       },
       "imports": [
+        "node_modules/hardhat/console.sol",
         "src/core/SenderCreator.sol",
         "src/core/StakeManager.sol",
         "src/interfaces/IAccount.sol",
@@ -2296,8 +2337,8 @@
       }
     },
     "test/foundry/TEST_EtherspotPaymaster.t.sol": {
-      "lastModificationDate": 1676309790286,
-      "contentHash": "7de2a1b2e3d2a0c073c5c71acdba774c",
+      "lastModificationDate": 1676480327320,
+      "contentHash": "380a12c101578d9b1aeafd57c746833e",
       "sourceName": "test/foundry/TEST_EtherspotPaymaster.t.sol",
       "solcConfig": {
         "settings": {
@@ -2361,6 +2402,7 @@
         "node_modules/@openzeppelin/contracts/utils/Strings.sol",
         "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
         "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "node_modules/hardhat/console.sol",
         "src/EtherspotAccount.sol",
         "src/TEST_EtherspotPaymaster.sol",
         "src/Whitelist.sol",
@@ -2389,8 +2431,8 @@
       }
     },
     "test/foundry/Whitelist.t.sol": {
-      "lastModificationDate": 1676290866453,
-      "contentHash": "705347ac57db9be265b2ae31652c68a4",
+      "lastModificationDate": 1676378021799,
+      "contentHash": "3889ebc7062757c143ead15401df5693",
       "sourceName": "test/foundry/Whitelist.t.sol",
       "solcConfig": {
         "settings": {
@@ -2420,37 +2462,17 @@
           "libraries": {}
         }
       },
-      "imports": [
-        "lib/forge-std/lib/ds-test/src/test.sol",
-        "lib/forge-std/src/Base.sol",
-        "lib/forge-std/src/StdAssertions.sol",
-        "lib/forge-std/src/StdChains.sol",
-        "lib/forge-std/src/StdCheats.sol",
-        "lib/forge-std/src/StdError.sol",
-        "lib/forge-std/src/StdJson.sol",
-        "lib/forge-std/src/StdMath.sol",
-        "lib/forge-std/src/StdStorage.sol",
-        "lib/forge-std/src/StdUtils.sol",
-        "lib/forge-std/src/Test.sol",
-        "lib/forge-std/src/Vm.sol",
-        "lib/forge-std/src/console.sol",
-        "lib/forge-std/src/console2.sol",
-        "lib/forge-std/src/interfaces/IMulticall3.sol",
-        "node_modules/@openzeppelin/contracts/access/Ownable.sol",
-        "node_modules/@openzeppelin/contracts/utils/Context.sol",
-        "src/Whitelist.sol",
-        "test/foundry/utils/Utils.sol"
-      ],
-      "versionRequirement": "^0.8.12",
+      "imports": [],
+      "versionRequirement": null,
       "artifacts": {
-        "WhitelistTest": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Whitelist.t.sol/WhitelistTest.json"
+        "Whitelist.t": {
+          "0.8.18+commit.87f61d96.Darwin.appleclang": "Whitelist.t.sol/Whitelist.t.json"
         }
       }
     },
     "test/foundry/utils/UserOp.sol": {
-      "lastModificationDate": 1676310016905,
-      "contentHash": "426aed24a8e485c840dd0b4ceec1cb28",
+      "lastModificationDate": 1676471916034,
+      "contentHash": "7b1fba6bf185b3029218e5eab790b539",
       "sourceName": "test/foundry/utils/UserOp.sol",
       "solcConfig": {
         "settings": {
@@ -2492,8 +2514,8 @@
       }
     },
     "test/foundry/utils/Utils.sol": {
-      "lastModificationDate": 1676283709310,
-      "contentHash": "4f83ef655c6270ed670edef04b08d5c0",
+      "lastModificationDate": 1676388093914,
+      "contentHash": "4dd200fdd078adee1c249070c1a34049",
       "sourceName": "test/foundry/utils/Utils.sol",
       "solcConfig": {
         "settings": {

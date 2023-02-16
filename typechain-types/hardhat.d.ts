@@ -145,6 +145,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IStakeManager__factory>;
     getContractFactory(
+      name: "IWhitelist",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IWhitelist__factory>;
+    getContractFactory(
       name: "EtherspotAccountFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.EtherspotAccountFactory__factory>;
@@ -212,6 +216,10 @@ declare module "hardhat/types/runtime" {
       name: "VerifyingPaymaster",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.VerifyingPaymaster__factory>;
+    getContractFactory(
+      name: "Whitelist",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Whitelist__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -379,6 +387,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IStakeManager>;
     getContractAt(
+      name: "IWhitelist",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IWhitelist>;
+    getContractAt(
       name: "EtherspotAccountFactory",
       address: string,
       signer?: ethers.Signer
@@ -463,6 +476,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.VerifyingPaymaster>;
+    getContractAt(
+      name: "Whitelist",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Whitelist>;
 
     // default types
     getContractFactory(

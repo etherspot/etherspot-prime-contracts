@@ -59,4 +59,45 @@ contract EtherspotPaymasterTest is Test {
         paym.remove(address(bob));
         assertFalse(paym.check(address(alice), address(bob)));
     }
+
+    // #validatePaymasterOp
+    function test_RevertWhen_NoSignature() public {
+        // add Alice's EA account to offchain_signer as a sponsee for gas payments
+        vm.prank(offchain_signer);
+        paym.add(address(aliceEA));
+        assertTrue(paym.check(address(offchain_signer), address(aliceEA)));
+
+        // get default UserOp - pass in alice EtherspotAccount as userOp.sender
+        UserOperation memory userOp = userop.helper_DefaultUserOpGen(
+            address(aliceEA)
+        );
+
+        //hex paym addr and data and concat
+        string memory a = utils.stringToHex(
+            abi.encodePacked(address(paym), "0x1234")
+        );
+        userOp.paymasterAndData = bytes(a);
+
+        // get hash of userop
+        bytes32 hash = ep.getUserOpHash(userOp);
+        console.logBytes32(hash);
+
+        // sign - sender is Alice's AA, signer is offchain_signer
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(2, hash);
+        userOp.signature = abi.encodePacked(r, s, v);
+        assertEq(address(offchain_signer), ecrecover(hash, v, r, s));
+
+        // expect revert message
+        vm.expectRevert("invalid signature length in paymasterAndData");
+
+        // simulate
+        ep.simulateValidation(userOp);
+
+        // TODO:
+        // INCORRECT REVERTION - AA30: paymaster not deployed.
+        // from EntryPoint.sol - _simulateFindAggregator (l509) - paymaster.code.length = 0 (not same addr as deployed paymaster)
+        // paymaster addr from revert: 0x3539393161326466313561386636613235366433 - NOT correct:
+        // issue I think is coming from paymasterAndData assignment (l79)
+        // userOp.paymasterAndData = 0x35393931613264663135613866366132353664336563353165393932353463643366623537366139333037383331333233333334
+    }
 }

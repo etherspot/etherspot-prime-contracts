@@ -16,7 +16,7 @@ import {
   simulationResultCatch,
 } from './helpers/testUtils';
 import { fillAndSign } from './UserOp';
-import { arrayify, hexConcat, parseEther } from 'ethers/lib/utils';
+import { arrayify, hexConcat, parseEther, hexlify } from 'ethers/lib/utils';
 import { UserOperation } from './UserOperation';
 
 describe('EntryPoint with VerifyingPaymaster', function () {
@@ -57,6 +57,21 @@ describe('EntryPoint with VerifyingPaymaster', function () {
         accountOwner,
         entryPoint
       );
+      let result = '0x';
+      console.log('Paymaster addr:', paymaster.address);
+      const a = hexConcat([paymaster.address]);
+      result += hexlify(paymaster.address).substring(2);
+      console.log('Paymaster addr hexed:', a);
+      console.log('result so far:', result);
+      const b = hexConcat(['0x1234']);
+      result += hexlify('0x1234').substring(2);
+      console.log('result so far:', result);
+      console.log('0x1234 hexed:', b);
+      console.log(
+        'VerifyingPaymster test - paymasterAndData:',
+        userOp.paymasterAndData
+      );
+
       await expect(
         entryPoint.callStatic.simulateValidation(userOp)
       ).to.be.revertedWith('invalid signature length in paymasterAndData');

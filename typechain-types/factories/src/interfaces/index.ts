@@ -9,3 +9,4 @@ export { IEntryPoint__factory } from "./IEntryPoint__factory";
 export { IOracle__factory } from "./IOracle__factory";
 export { IPaymaster__factory } from "./IPaymaster__factory";
 export { IStakeManager__factory } from "./IStakeManager__factory";
+export { IWhitelist__factory } from "./IWhitelist__factory";

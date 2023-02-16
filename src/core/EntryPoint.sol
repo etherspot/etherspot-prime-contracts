@@ -16,6 +16,7 @@ import "../interfaces/IEntryPoint.sol";
 import "../utils/Exec.sol";
 import "./StakeManager.sol";
 import "./SenderCreator.sol";
+import "hardhat/console.sol";
 
 contract EntryPoint is IEntryPoint, StakeManager {
     using UserOperationLib for UserOperation;
@@ -499,6 +500,10 @@ contract EntryPoint is IEntryPoint, StakeManager {
             // it would revert anyway. but give a meaningful message
             revert("AA20 account not deployed");
         }
+        console.log(
+            "EntryPoint.sol - paymaster.code.length:",
+            paymaster.code.length
+        );
         if (paymaster != address(0) && paymaster.code.length == 0) {
             // it would revert anyway. but give a meaningful message
             revert("AA30 paymaster not deployed");

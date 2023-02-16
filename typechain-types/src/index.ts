@@ -17,3 +17,4 @@ export type { BLSAccount } from "./BLSAccount";
 export type { DepositPaymaster } from "./DepositPaymaster";
 export type { EtherspotAccount } from "./EtherspotAccount";
 export type { VerifyingPaymaster } from "./VerifyingPaymaster";
+export type { Whitelist } from "./Whitelist";

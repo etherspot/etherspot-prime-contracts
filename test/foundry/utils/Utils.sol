@@ -56,6 +56,16 @@ contract Utils is Test {
             converted[i * 2 + 1] = _base[uint8(buffer[i]) % _base.length];
         }
 
-        return string(abi.encodePacked("0x", converted));
+        return string(converted);
+    }
+
+    function stringToHexBytes2(bytes[] memory _data)
+        public
+        pure
+        returns (bytes memory)
+    {
+        bytes memory data1 = bytes(stringToHex(_data[0]));
+        bytes memory data2 = bytes(stringToHex(_data[1]));
+        return bytes(abi.encodePacked("0x", data1, data2));
     }
 }

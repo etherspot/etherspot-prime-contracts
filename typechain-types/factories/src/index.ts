@@ -11,3 +11,4 @@ export { BLSAccount__factory } from "./BLSAccount__factory";
 export { DepositPaymaster__factory } from "./DepositPaymaster__factory";
 export { EtherspotAccount__factory } from "./EtherspotAccount__factory";
 export { VerifyingPaymaster__factory } from "./VerifyingPaymaster__factory";
+export { Whitelist__factory } from "./Whitelist__factory";

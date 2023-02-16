@@ -9,3 +9,4 @@ export type { IEntryPoint } from "./IEntryPoint";
 export type { IOracle } from "./IOracle";
 export type { IPaymaster } from "./IPaymaster";
 export type { IStakeManager } from "./IStakeManager";
+export type { IWhitelist } from "./IWhitelist";

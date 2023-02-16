@@ -70,15 +70,18 @@ export type UserOperationStructOutput = [
 
 export interface EtherspotPaymasterInterface extends utils.Interface {
   functions: {
+    "add(address)": FunctionFragment;
+    "addBatch(address[])": FunctionFragment;
     "addStake(uint32)": FunctionFragment;
-    "addToWhitelist(address)": FunctionFragment;
+    "check(address,address)": FunctionFragment;
     "deposit()": FunctionFragment;
     "entryPoint()": FunctionFragment;
     "getDeposit()": FunctionFragment;
     "getHash((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes))": FunctionFragment;
     "owner()": FunctionFragment;
     "postOp(uint8,bytes,uint256)": FunctionFragment;
-    "removeFromWhitelist(address)": FunctionFragment;
+    "remove(address)": FunctionFragment;
+    "removeBatch(address[])": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setEntryPoint(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -91,15 +94,18 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "add"
+      | "addBatch"
       | "addStake"
-      | "addToWhitelist"
+      | "check"
       | "deposit"
       | "entryPoint"
       | "getDeposit"
       | "getHash"
       | "owner"
       | "postOp"
-      | "removeFromWhitelist"
+      | "remove"
+      | "removeBatch"
       | "renounceOwnership"
       | "setEntryPoint"
       | "transferOwnership"
@@ -111,12 +117,20 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
   ): FunctionFragment;
 
   encodeFunctionData(
+    functionFragment: "add",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addBatch",
+    values: [PromiseOrValue<string>[]]
+  ): string;
+  encodeFunctionData(
     functionFragment: "addStake",
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "addToWhitelist",
-    values: [PromiseOrValue<string>]
+    functionFragment: "check",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(functionFragment: "deposit", values?: undefined): string;
   encodeFunctionData(
@@ -141,8 +155,12 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "removeFromWhitelist",
+    functionFragment: "remove",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "removeBatch",
+    values: [PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -181,19 +199,19 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
 
+  decodeFunctionResult(functionFragment: "add", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "addBatch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "addStake", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "addToWhitelist",
-    data: BytesLike
-  ): Result;
+  decodeFunctionResult(functionFragment: "check", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "entryPoint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getHash", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "postOp", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "remove", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "removeFromWhitelist",
+    functionFragment: "removeBatch",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -224,19 +242,33 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "withdrawTo", data: BytesLike): Result;
 
   events: {
+    "AddedBatchToWhitelist(address,address[])": EventFragment;
     "AddedToWhitelist(address,address)": EventFragment;
-    "AllowanceDeposited(address,address,address,uint256)": EventFragment;
-    "AllowanceWithdrawn(address,address,address,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
+    "RemovedBatchFromWhitelist(address,address[])": EventFragment;
     "RemovedFromWhitelist(address,address)": EventFragment;
+    "WhitelistInitialized(address,string)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "AddedBatchToWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AddedToWhitelist"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AllowanceDeposited"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "AllowanceWithdrawn"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RemovedBatchFromWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemovedFromWhitelist"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WhitelistInitialized"): EventFragment;
 }
+
+export interface AddedBatchToWhitelistEventObject {
+  paymaster: string;
+  accounts: string[];
+}
+export type AddedBatchToWhitelistEvent = TypedEvent<
+  [string, string[]],
+  AddedBatchToWhitelistEventObject
+>;
+
+export type AddedBatchToWhitelistEventFilter =
+  TypedEventFilter<AddedBatchToWhitelistEvent>;
 
 export interface AddedToWhitelistEventObject {
   paymaster: string;
@@ -250,34 +282,6 @@ export type AddedToWhitelistEvent = TypedEvent<
 export type AddedToWhitelistEventFilter =
   TypedEventFilter<AddedToWhitelistEvent>;
 
-export interface AllowanceDepositedEventObject {
-  paymaster: string;
-  beneficiary: string;
-  token: string;
-  amount: BigNumber;
-}
-export type AllowanceDepositedEvent = TypedEvent<
-  [string, string, string, BigNumber],
-  AllowanceDepositedEventObject
->;
-
-export type AllowanceDepositedEventFilter =
-  TypedEventFilter<AllowanceDepositedEvent>;
-
-export interface AllowanceWithdrawnEventObject {
-  paymaster: string;
-  beneficiary: string;
-  token: string;
-  amount: BigNumber;
-}
-export type AllowanceWithdrawnEvent = TypedEvent<
-  [string, string, string, BigNumber],
-  AllowanceWithdrawnEventObject
->;
-
-export type AllowanceWithdrawnEventFilter =
-  TypedEventFilter<AllowanceWithdrawnEvent>;
-
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
   newOwner: string;
@@ -290,6 +294,18 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
+export interface RemovedBatchFromWhitelistEventObject {
+  paymaster: string;
+  accounts: string[];
+}
+export type RemovedBatchFromWhitelistEvent = TypedEvent<
+  [string, string[]],
+  RemovedBatchFromWhitelistEventObject
+>;
+
+export type RemovedBatchFromWhitelistEventFilter =
+  TypedEventFilter<RemovedBatchFromWhitelistEvent>;
+
 export interface RemovedFromWhitelistEventObject {
   paymaster: string;
   account: string;
@@ -301,6 +317,18 @@ export type RemovedFromWhitelistEvent = TypedEvent<
 
 export type RemovedFromWhitelistEventFilter =
   TypedEventFilter<RemovedFromWhitelistEvent>;
+
+export interface WhitelistInitializedEventObject {
+  owner: string;
+  version: string;
+}
+export type WhitelistInitializedEvent = TypedEvent<
+  [string, string],
+  WhitelistInitializedEventObject
+>;
+
+export type WhitelistInitializedEventFilter =
+  TypedEventFilter<WhitelistInitializedEvent>;
 
 export interface EtherspotPaymaster extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -329,15 +357,26 @@ export interface EtherspotPaymaster extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    add(
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    addBatch(
+      _accounts: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     addStake(
       unstakeDelaySec: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    addToWhitelist(
+    check(
+      _sponsor: PromiseOrValue<string>,
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
 
     deposit(
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -361,8 +400,13 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    removeFromWhitelist(
+    remove(
       _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    removeBatch(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -411,15 +455,26 @@ export interface EtherspotPaymaster extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
+  add(
+    _account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addBatch(
+    _accounts: PromiseOrValue<string>[],
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   addStake(
     unstakeDelaySec: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  addToWhitelist(
+  check(
+    _sponsor: PromiseOrValue<string>,
     _account: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   deposit(
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
@@ -443,8 +498,13 @@ export interface EtherspotPaymaster extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  removeFromWhitelist(
+  remove(
     _account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  removeBatch(
+    _accounts: PromiseOrValue<string>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -493,15 +553,26 @@ export interface EtherspotPaymaster extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    add(
+      _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addBatch(
+      _accounts: PromiseOrValue<string>[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     addStake(
       unstakeDelaySec: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    addToWhitelist(
+    check(
+      _sponsor: PromiseOrValue<string>,
       _account: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<boolean>;
 
     deposit(overrides?: CallOverrides): Promise<void>;
 
@@ -523,8 +594,13 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    removeFromWhitelist(
+    remove(
       _account: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    removeBatch(
+      _accounts: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -570,40 +646,23 @@ export interface EtherspotPaymaster extends BaseContract {
   };
 
   filters: {
+    "AddedBatchToWhitelist(address,address[])"(
+      paymaster?: PromiseOrValue<string> | null,
+      accounts?: PromiseOrValue<string>[] | null
+    ): AddedBatchToWhitelistEventFilter;
+    AddedBatchToWhitelist(
+      paymaster?: PromiseOrValue<string> | null,
+      accounts?: PromiseOrValue<string>[] | null
+    ): AddedBatchToWhitelistEventFilter;
+
     "AddedToWhitelist(address,address)"(
-      paymaster?: null,
-      account?: null
+      paymaster?: PromiseOrValue<string> | null,
+      account?: PromiseOrValue<string> | null
     ): AddedToWhitelistEventFilter;
     AddedToWhitelist(
-      paymaster?: null,
-      account?: null
+      paymaster?: PromiseOrValue<string> | null,
+      account?: PromiseOrValue<string> | null
     ): AddedToWhitelistEventFilter;
-
-    "AllowanceDeposited(address,address,address,uint256)"(
-      paymaster?: null,
-      beneficiary?: null,
-      token?: null,
-      amount?: null
-    ): AllowanceDepositedEventFilter;
-    AllowanceDeposited(
-      paymaster?: null,
-      beneficiary?: null,
-      token?: null,
-      amount?: null
-    ): AllowanceDepositedEventFilter;
-
-    "AllowanceWithdrawn(address,address,address,uint256)"(
-      paymaster?: null,
-      beneficiary?: null,
-      token?: null,
-      amount?: null
-    ): AllowanceWithdrawnEventFilter;
-    AllowanceWithdrawn(
-      paymaster?: null,
-      beneficiary?: null,
-      token?: null,
-      amount?: null
-    ): AllowanceWithdrawnEventFilter;
 
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
@@ -614,25 +673,54 @@ export interface EtherspotPaymaster extends BaseContract {
       newOwner?: PromiseOrValue<string> | null
     ): OwnershipTransferredEventFilter;
 
+    "RemovedBatchFromWhitelist(address,address[])"(
+      paymaster?: PromiseOrValue<string> | null,
+      accounts?: PromiseOrValue<string>[] | null
+    ): RemovedBatchFromWhitelistEventFilter;
+    RemovedBatchFromWhitelist(
+      paymaster?: PromiseOrValue<string> | null,
+      accounts?: PromiseOrValue<string>[] | null
+    ): RemovedBatchFromWhitelistEventFilter;
+
     "RemovedFromWhitelist(address,address)"(
-      paymaster?: null,
-      account?: null
+      paymaster?: PromiseOrValue<string> | null,
+      account?: PromiseOrValue<string> | null
     ): RemovedFromWhitelistEventFilter;
     RemovedFromWhitelist(
-      paymaster?: null,
-      account?: null
+      paymaster?: PromiseOrValue<string> | null,
+      account?: PromiseOrValue<string> | null
     ): RemovedFromWhitelistEventFilter;
+
+    "WhitelistInitialized(address,string)"(
+      owner?: null,
+      version?: null
+    ): WhitelistInitializedEventFilter;
+    WhitelistInitialized(
+      owner?: null,
+      version?: null
+    ): WhitelistInitializedEventFilter;
   };
 
   estimateGas: {
+    add(
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addBatch(
+      _accounts: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     addStake(
       unstakeDelaySec: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    addToWhitelist(
+    check(
+      _sponsor: PromiseOrValue<string>,
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     deposit(
@@ -657,8 +745,13 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    removeFromWhitelist(
+    remove(
       _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    removeBatch(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -706,14 +799,25 @@ export interface EtherspotPaymaster extends BaseContract {
   };
 
   populateTransaction: {
+    add(
+      _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addBatch(
+      _accounts: PromiseOrValue<string>[],
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     addStake(
       unstakeDelaySec: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    addToWhitelist(
+    check(
+      _sponsor: PromiseOrValue<string>,
       _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     deposit(
@@ -738,8 +842,13 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    removeFromWhitelist(
+    remove(
       _account: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removeBatch(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

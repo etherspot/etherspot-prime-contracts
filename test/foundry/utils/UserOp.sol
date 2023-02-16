@@ -19,7 +19,7 @@ contract UserOperationHelper {
         defaultUserOp.preVerificationGas = 21000;
         defaultUserOp.maxFeePerGas = 0;
         defaultUserOp.maxPriorityFeePerGas = 1e9;
-        defaultUserOp.paymasterAndData = "0x";
+        defaultUserOp.paymasterAndData;
         defaultUserOp.signature = "0x";
         return defaultUserOp;
     }
