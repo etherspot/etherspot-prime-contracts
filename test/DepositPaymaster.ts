@@ -12,7 +12,7 @@ import {
   TestCounter__factory,
   TestToken,
   TestToken__factory,
-} from '../typechain-types';
+} from '../typings';
 import {
   AddressZero,
   createAddress,

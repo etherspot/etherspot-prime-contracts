@@ -18,7 +18,7 @@ import {
   EtherspotAccount__factory,
   EtherspotAccountFactory,
   TestAggregatedAccountFactory,
-} from '../../typechain-types';
+} from '../../typings';
 import { BytesLike } from '@ethersproject/bytes';
 import { expect } from 'chai';
 import { Create2Factory } from '../../src/samples/Create2Factory';

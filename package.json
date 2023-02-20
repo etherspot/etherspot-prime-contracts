@@ -29,6 +29,7 @@
   "bugs": {
     "url": "https://github.com/etherspot/etherspot-lite-contracts/issues"
   },
+  "types": "./dist/index.d.ts",
   "dependencies": {
     "@account-abstraction/contracts": "^0.4.0",
     "@ethereumjs/tx": "^4.0.2",

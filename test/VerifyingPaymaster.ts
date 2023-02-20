@@ -7,7 +7,7 @@ import {
   EntryPoint,
   VerifyingPaymaster,
   VerifyingPaymaster__factory,
-} from '../typechain-types';
+} from '../typings';
 import {
   createAccount,
   createAccountOwner,

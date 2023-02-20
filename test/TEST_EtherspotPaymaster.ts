@@ -8,7 +8,7 @@ import {
   EtherspotPaymaster,
   EtherspotPaymaster__factory,
   EtherspotAccountFactory__factory,
-} from '../typechain-types';
+} from '../typings';
 import {
   AddressZero,
   createAccount,

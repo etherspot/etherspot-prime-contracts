@@ -51,6 +51,9 @@ const config: HardhatUserConfig = {
     sources: './src',
     cache: './cache_hardhat',
   },
+  typechain: {
+    outDir: 'typings',
+  },
 };
 
 export default config;

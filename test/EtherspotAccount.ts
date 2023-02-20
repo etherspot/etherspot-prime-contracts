@@ -7,7 +7,7 @@ import {
   EtherspotAccountFactory__factory,
   TestUtil,
   TestUtil__factory,
-} from '../typechain-types';
+} from '../typings';
 import {
   AddressZero,
   createAddress,

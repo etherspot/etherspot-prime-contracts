@@ -21,7 +21,7 @@ import {
   TestSignatureAggregator__factory,
   MaliciousAccount__factory,
   TestWarmColdAccount__factory,
-} from '../typechain-types';
+} from '../typings';
 import {
   AddressZero,
   createAccountOwner,

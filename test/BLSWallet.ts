@@ -15,7 +15,7 @@ import {
   BLSAccountFactory,
   BLSAccountFactory__factory,
   EntryPoint,
-} from '../typechain-types';
+} from '../typings';
 import { ethers } from 'hardhat';
 import {
   deployEntryPoint,
