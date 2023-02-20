@@ -1,5 +1,5 @@
 {
-  "name": "etherspot-lite-contracts",
+  "name": "@etherspot/lite-contracts",
   "version": "1.0.0",
   "description": "Etherspot account abstraction contracts (eip-4337 compliant)",
   "main": "index.js",
@@ -25,10 +25,10 @@
   ],
   "author": "Etherspot",
   "license": "MIT",
+  "homepage": "https://etherspot.dev",
   "bugs": {
     "url": "https://github.com/etherspot/etherspot-lite-contracts/issues"
   },
-  "homepage": "https://github.com/etherspot/etherspot-lite-contracts#readme",
   "dependencies": {
     "@account-abstraction/contracts": "^0.4.0",
     "@ethereumjs/tx": "^4.0.2",

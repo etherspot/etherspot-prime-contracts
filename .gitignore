@@ -3,6 +3,8 @@
 
 # Compiler files
 cache/
+cache-hardhat/
+forge-cache/
 out/
 
 # Ignores development broadcast logs
@@ -41,4 +43,4 @@ node_modules
 coverage
 
 # Artifacts
-artifacts
+artifacts/
