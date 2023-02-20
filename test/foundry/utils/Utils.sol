@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity >=0.8.0;
 
+import {strings} from "./Strings.sol";
+
 import {Test} from "forge-std/Test.sol";
 
+import "hardhat/console.sol";
+
 contract Utils is Test {
+    using strings for *;
+
     bytes32 internal nextUser = keccak256(abi.encodePacked("user address"));
 
     function getNextUserAddress() external returns (address payable) {
@@ -67,5 +73,17 @@ contract Utils is Test {
         bytes memory data1 = bytes(stringToHex(_data[0]));
         bytes memory data2 = bytes(stringToHex(_data[1]));
         return bytes(abi.encodePacked("0x", data1, data2));
+    }
+
+    function makeInvalidSig(string calldata _string, uint256 _times)
+        external
+        pure
+        returns (string memory)
+    {
+        string memory newStr = "0x";
+        for (uint256 ii; ii <= _times; ++ii) {
+            newStr = newStr.toSlice().concat(_string.toSlice());
+        }
+        return newStr;
     }
 }

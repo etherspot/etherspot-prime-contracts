@@ -9,6 +9,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Whitelist} from "./Whitelist.sol";
 
+import "hardhat/console.sol";
+
 /**
  * A sample paymaster that uses external service to decide whether to pay for the UserOp.
  * The paymaster trusts an external signer to sign the transaction.
@@ -23,7 +25,22 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
     using SafeERC20 for IERC20;
     using UserOperationLib for UserOperation;
 
+    mapping(address => uint256) public sponsorFunds;
+
     constructor(IEntryPoint _entryPoint) BasePaymaster(_entryPoint) {}
+
+    function depositFunds() public payable {
+        require(
+            msg.sender.balance >= msg.value,
+            "EtherspotPaymaster:: Not enough balance"
+        );
+        entryPoint.depositTo{value: msg.value}(address(this));
+        sponsorFunds[msg.sender] += msg.value;
+    }
+
+    function checkSponsorFunds(address _sponsor) public view returns (uint256) {
+        return sponsorFunds[_sponsor];
+    }
 
     /**
      * return the hash we're going to sign off-chain (and validate on-chain)
@@ -86,15 +103,18 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
             paymasterAndData[20:]
         );
 
-        if (!_check(extSig, sig)) return ("", 1);
-
         //don't revert on signature failure: return SIG_VALIDATION_FAILED
-        // if (
-        //     verifyingSigner !=
-        //     hash.toEthSignedMessageHash().recover(paymasterAndData[20:])
-        // ) {
-        //     return ("", 1);
-        // }
+        if (!_check(extSig, sig)) {
+            return ("", 1);
+        }
+
+        // check sponsor has enough funds deposited to pay for gas
+        require(
+            checkSponsorFunds(extSig) >= requiredPreFund,
+            "EtherspotPaymaster:: Sponsor paymaster funds too low"
+        );
+
+        // TODO: how do we debit from deposited funds for specified sponsor
 
         //no need for other on-chain validation: entire UserOp should have been checked
         // by the external service prior to signing it.

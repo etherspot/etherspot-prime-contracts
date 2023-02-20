@@ -74,7 +74,9 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     "addBatch(address[])": FunctionFragment;
     "addStake(uint32)": FunctionFragment;
     "check(address,address)": FunctionFragment;
+    "checkSponsorFunds(address)": FunctionFragment;
     "deposit()": FunctionFragment;
+    "depositFunds()": FunctionFragment;
     "entryPoint()": FunctionFragment;
     "getDeposit()": FunctionFragment;
     "getHash((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes))": FunctionFragment;
@@ -84,6 +86,7 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     "removeBatch(address[])": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "setEntryPoint(address)": FunctionFragment;
+    "sponsorFunds(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "unlockStake()": FunctionFragment;
     "validatePaymasterUserOp((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes),bytes32,uint256)": FunctionFragment;
@@ -98,7 +101,9 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
       | "addBatch"
       | "addStake"
       | "check"
+      | "checkSponsorFunds"
       | "deposit"
+      | "depositFunds"
       | "entryPoint"
       | "getDeposit"
       | "getHash"
@@ -108,6 +113,7 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
       | "removeBatch"
       | "renounceOwnership"
       | "setEntryPoint"
+      | "sponsorFunds"
       | "transferOwnership"
       | "unlockStake"
       | "validatePaymasterUserOp"
@@ -132,7 +138,15 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     functionFragment: "check",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
+  encodeFunctionData(
+    functionFragment: "checkSponsorFunds",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(functionFragment: "deposit", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "depositFunds",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "entryPoint",
     values?: undefined
@@ -171,6 +185,10 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
+    functionFragment: "sponsorFunds",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [PromiseOrValue<string>]
   ): string;
@@ -203,7 +221,15 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "addBatch", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "addStake", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "check", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "checkSponsorFunds",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "depositFunds",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "entryPoint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "getHash", data: BytesLike): Result;
@@ -220,6 +246,10 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setEntryPoint",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "sponsorFunds",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -378,7 +408,16 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    checkSponsorFunds(
+      _sponsor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     deposit(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    depositFunds(
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -418,6 +457,11 @@ export interface EtherspotPaymaster extends BaseContract {
       _entryPoint: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
+
+    sponsorFunds(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -476,7 +520,16 @@ export interface EtherspotPaymaster extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
+  checkSponsorFunds(
+    _sponsor: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   deposit(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  depositFunds(
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -516,6 +569,11 @@ export interface EtherspotPaymaster extends BaseContract {
     _entryPoint: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
+
+  sponsorFunds(
+    arg0: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   transferOwnership(
     newOwner: PromiseOrValue<string>,
@@ -574,7 +632,14 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    checkSponsorFunds(
+      _sponsor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     deposit(overrides?: CallOverrides): Promise<void>;
+
+    depositFunds(overrides?: CallOverrides): Promise<void>;
 
     entryPoint(overrides?: CallOverrides): Promise<string>;
 
@@ -610,6 +675,11 @@ export interface EtherspotPaymaster extends BaseContract {
       _entryPoint: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    sponsorFunds(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     transferOwnership(
       newOwner: PromiseOrValue<string>,
@@ -723,7 +793,16 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    checkSponsorFunds(
+      _sponsor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     deposit(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    depositFunds(
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -762,6 +841,11 @@ export interface EtherspotPaymaster extends BaseContract {
     setEntryPoint(
       _entryPoint: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    sponsorFunds(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     transferOwnership(
@@ -820,7 +904,16 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    checkSponsorFunds(
+      _sponsor: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     deposit(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    depositFunds(
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -859,6 +952,11 @@ export interface EtherspotPaymaster extends BaseContract {
     setEntryPoint(
       _entryPoint: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    sponsorFunds(
+      arg0: PromiseOrValue<string>,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     transferOwnership(

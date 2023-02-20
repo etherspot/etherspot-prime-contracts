@@ -7,6 +7,7 @@ import {
   EntryPoint,
   EtherspotPaymaster,
   EtherspotPaymaster__factory,
+  EtherspotAccountFactory__factory,
 } from '../typechain-types';
 import {
   AddressZero,
@@ -23,24 +24,25 @@ import { UserOperation } from './UserOperation';
 describe('EntryPoint with EtherspotPaymaster', function () {
   let entryPoint: EntryPoint;
   let accountOwner: Wallet;
-  let accOwner: Wallet;
+  let wlaccOwner: Wallet;
   const ethersSigner = ethers.provider.getSigner();
   let account: EtherspotAccount;
-  let acc1: EtherspotAccount;
+  let wlaccount: EtherspotAccount;
   let offchainSigner: Wallet;
-  let paym: any;
-  let acc: any;
+  let funder: any;
+  let acc1: any;
+  let acc2: any;
   let paymaster: EtherspotPaymaster;
 
   beforeEach(async () => {
-    [paym, acc] = await ethers.getSigners();
+    [funder, acc1, acc2] = await ethers.getSigners();
 
     this.timeout(20000);
     entryPoint = await deployEntryPoint();
 
     offchainSigner = createAccountOwner();
     accountOwner = createAccountOwner();
-    accOwner = createAccountOwner();
+    wlaccOwner = createAccountOwner();
 
     paymaster = await new EtherspotPaymaster__factory(ethersSigner).deploy(
       entryPoint.address
@@ -53,51 +55,24 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       accountOwner.address,
       entryPoint.address
     ));
-    ({ proxy: acc1 } = await createAccount(
+    ({ proxy: wlaccount } = await createAccount(
       ethersSigner,
-      accOwner.address,
+      wlaccOwner.address,
       entryPoint.address
     ));
-  });
 
-  describe('#addToWhitelist', () => {
-    it('should revert if added account is address(0)', async () => {
-      await expect(paymaster.addToWhitelist(AddressZero)).to.be.revertedWith(
-        'EtherspotPaymaster:: Account cannot be address(0)'
-      );
-    });
-    it('should revert if trying to whitelist and already whitelisted account', async () => {
-      await paymaster.addToWhitelist(account.address);
-      await expect(
-        paymaster.addToWhitelist(account.address)
-      ).to.be.revertedWith(
-        'EtherspotPaymaster:: Account is already whitelisted'
-      );
-    });
-    it('should successfully whitelist and account', async () => {
-      await expect(paymaster.connect(paym).addToWhitelist(account.address))
-        .to.emit(paymaster, 'AddedToWhitelist')
-        .withArgs(paym.address, account.address);
+    await funder.sendTransaction({
+      to: offchainSigner.address,
+      value: ethers.utils.parseEther('10.0'),
     });
   });
 
-  describe('#removeFromWhitelist', () => {
-    it('should revert if added account is address(0)', async () => {
-      await expect(
-        paymaster.removeFromWhitelist(AddressZero)
-      ).to.be.revertedWith('EtherspotPaymaster:: Account cannot be address(0)');
-    });
-    it('should revert if trying to remove account that is not whitelisted', async () => {
-      await expect(
-        paymaster.connect(paym).removeFromWhitelist(account.address)
-      ).to.be.revertedWith('EtherspotPaymaster:: Account is not whitelisted');
-    });
-    it('should successfully remove whitelisted account', async () => {
-      const tx = await paymaster.connect(paym).addToWhitelist(account.address);
-      tx.wait(2);
-      await expect(paymaster.connect(paym).removeFromWhitelist(account.address))
-        .to.emit(paymaster, 'RemovedFromWhitelist')
-        .withArgs(paym.address, account.address);
+  describe('whitelist integration check', () => {
+    it('should be able to interact with whitelist', async () => {
+      await paymaster.connect(acc1).add(acc2.address);
+      expect(await paymaster.check(acc1.address, acc2.address)).to.be.true;
+      await paymaster.connect(acc1).remove(acc2.address);
+      expect(await paymaster.check(acc1.address, acc2.address)).to.be.false;
     });
   });
 
@@ -163,6 +138,11 @@ describe('EntryPoint with EtherspotPaymaster', function () {
     });
 
     it('succeed with valid signature', async () => {
+      await paymaster.connect(offchainSigner).add(account.address);
+      await paymaster
+        .connect(offchainSigner)
+        .depositFunds({ value: ethers.utils.parseEther('2.0') });
+
       const userOp1 = await fillAndSign(
         {
           sender: account.address,
@@ -170,8 +150,10 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         accountOwner,
         entryPoint
       );
+
       const hash = await paymaster.getHash(userOp1);
       const sig = await offchainSigner.signMessage(arrayify(hash));
+
       const userOp = await fillAndSign(
         {
           ...userOp1,
@@ -180,34 +162,94 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         accountOwner,
         entryPoint
       );
-      await entryPoint.callStatic
+
+      const ret = await entryPoint.callStatic
         .simulateValidation(userOp)
         .catch(simulationResultCatch);
+      expect(ret.returnInfo.sigFailed).to.be.false;
     });
 
-    it('succeed with whitelisted signature', async () => {
-      await paymaster.connect(accOwner).addToWhitelist(account.address);
-
+    it('should reject if not a whitelisted signature', async () => {
       const userOp2 = await fillAndSign(
         {
-          sender: acc1.address,
+          sender: account.address,
         },
-        accOwner,
+        accountOwner,
         entryPoint
       );
+
       const hash = await paymaster.getHash(userOp2);
-      const sig = await accountOwner.signMessage(arrayify(hash));
+      const sig = await offchainSigner.signMessage(arrayify(hash));
+
       const userOp = await fillAndSign(
         {
           ...userOp2,
           paymasterAndData: hexConcat([paymaster.address, sig]),
         },
-        accOwner,
+        accountOwner,
         entryPoint
       );
-      await entryPoint.callStatic
+
+      const ret = await entryPoint.callStatic
         .simulateValidation(userOp)
         .catch(simulationResultCatch);
+
+      expect(ret.returnInfo.sigFailed).to.be.true;
+    });
+
+    it('succeeds if whitelisted signature', async () => {
+      await paymaster
+        .connect(offchainSigner)
+        .depositFunds({ value: ethers.utils.parseEther('2.0') });
+      await paymaster.connect(offchainSigner).add(wlaccount.address);
+      const userOp2 = await fillAndSign(
+        {
+          sender: wlaccount.address,
+        },
+        wlaccOwner,
+        entryPoint
+      );
+
+      const hash = await paymaster.getHash(userOp2);
+      const sig = await offchainSigner.signMessage(arrayify(hash));
+
+      const userOp = await fillAndSign(
+        {
+          ...userOp2,
+          paymasterAndData: hexConcat([paymaster.address, sig]),
+        },
+        wlaccOwner,
+        entryPoint
+      );
+
+      const ret = await entryPoint.callStatic
+        .simulateValidation(userOp)
+        .catch(simulationResultCatch);
+      expect(ret.returnInfo.sigFailed).to.be.false;
     });
   });
+
+  describe('#depositFunds', () => {
+    it('fails if sponsor does not have enough balance', async () => {
+      await expect(
+        paymaster
+          .connect(offchainSigner)
+          .depositFunds({ value: ethers.utils.parseEther('1000000') })
+      ).to.be.revertedWith('EtherspotPaymaster:: Not enough balance');
+    });
+
+    it('should succeed in depositing funds', async () => {
+      const init = await paymaster.checkSponsorFunds(offchainSigner.address);
+      expect(init).to.equal(0);
+      await expect(() =>
+        paymaster
+          .connect(offchainSigner)
+          .depositFunds({ value: ethers.utils.parseEther('2.0') })
+      ).to.changeEtherBalance(offchainSigner, ethers.utils.parseEther('-2.0'));
+      const post = await paymaster.checkSponsorFunds(offchainSigner.address);
+      expect(post).to.equal(ethers.utils.parseEther('2.0'));
+    });
+  });
+
+  // TODO: testing for depositing, paying gas for a userOp and reducing deposited balance
 });

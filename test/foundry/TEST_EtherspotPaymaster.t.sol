@@ -61,7 +61,7 @@ contract EtherspotPaymasterTest is Test {
     }
 
     // #validatePaymasterOp
-    function test_RevertWhen_NoSignature() public {
+    function test_Revert_NoSignature() public {
         // add Alice's EA account to offchain_signer as a sponsee for gas payments
         vm.prank(offchain_signer);
         paym.add(address(aliceEA));
@@ -99,5 +99,122 @@ contract EtherspotPaymasterTest is Test {
         // paymaster addr from revert: 0x3539393161326466313561386636613235366433 - NOT correct:
         // issue I think is coming from paymasterAndData assignment (l79)
         // userOp.paymasterAndData = 0x35393931613264663135613866366132353664336563353165393932353463643366623537366139333037383331333233333334
+    }
+
+    function test_Revert_InvalidSignature() public {
+        // add Alice's EA account to offchain_signer as a sponsee for gas payments
+        vm.prank(offchain_signer);
+        paym.add(address(aliceEA));
+        assertTrue(paym.check(address(offchain_signer), address(aliceEA)));
+
+        // get default UserOp - pass in alice EtherspotAccount as userOp.sender
+        UserOperation memory userOp = userop.helper_DefaultUserOpGen(
+            address(aliceEA)
+        );
+
+        //hex paym addr and data and concat
+        string memory a = utils.stringToHex(
+            abi.encodePacked(address(paym), utils.makeInvalidSig("00", 65))
+        );
+        userOp.paymasterAndData = bytes(a);
+
+        // get hash of userop
+        bytes32 hash = ep.getUserOpHash(userOp);
+        console.logBytes32(hash);
+
+        // sign - sender is Alice's AA, signer is offchain_signer
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(2, hash);
+        userOp.signature = abi.encodePacked(r, s, v);
+        assertEq(address(offchain_signer), ecrecover(hash, v, r, s));
+
+        // expect revert message
+        vm.expectRevert("ECDSA: invalid signature");
+
+        // simulate
+        ep.simulateValidation(userOp);
+    }
+
+    // TODO:
+    // Not sure this can be tested as it would required checking tx receipt logs to see the sigFailed value
+    function test_Revert_WrongSignature() public {
+        // add Alice's EA account to offchain_signer as a sponsee for gas payments
+        vm.prank(offchain_signer);
+        paym.add(address(aliceEA));
+        assertTrue(paym.check(address(offchain_signer), address(aliceEA)));
+
+        // get default UserOp - pass in alice EtherspotAccount as userOp.sender
+        UserOperation memory userOp = userop.helper_DefaultUserOpGen(
+            address(aliceEA)
+        );
+
+        // sign - sender is Alice's AA, signer is offchain_signer
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(2, "0xdead");
+        userOp.signature = abi.encodePacked(r, s, v);
+        assertEq(address(offchain_signer), ecrecover("0xdead", v, r, s));
+
+        //hex paym addr and data and concat
+        string memory a = utils.stringToHex(
+            abi.encodePacked(address(paym), userOp.signature)
+        );
+        userOp.paymasterAndData = bytes(a);
+
+        // expect revert message
+        vm.expectRevert();
+
+        // simulate
+        ep.simulateValidation(userOp);
+    }
+
+    // it('succeed with valid signature', async () => {
+    //   const userOp1 = await fillAndSign(
+    //     {
+    //       sender: account.address,
+    //     },
+    //     accountOwner,
+    //     entryPoint
+    //   );
+    //   const hash = await paymaster.getHash(userOp1);
+    //   const sig = await offchainSigner.signMessage(arrayify(hash));
+    //   const userOp = await fillAndSign(
+    //     {
+    //       ...userOp1,
+    //       paymasterAndData: hexConcat([paymaster.address, sig]),
+    //     },
+    //     accountOwner,
+    //     entryPoint
+    //   );
+    //   await entryPoint.callStatic
+    //     .simulateValidation(userOp)
+    //     .catch(simulationResultCatch);
+    // });
+
+    function test_Success_ValidSig() public {
+        // add Alice's EA account to offchain_signer as a sponsee for gas payments
+        vm.prank(offchain_signer);
+        paym.add(address(aliceEA));
+        assertTrue(paym.check(address(offchain_signer), address(aliceEA)));
+
+        // get default UserOp - pass in alice EtherspotAccount as userOp.sender
+        UserOperation memory userOp = userop.helper_DefaultUserOpGen(
+            address(aliceEA)
+        );
+
+        // get hash of userop
+        bytes32 hash = ep.getUserOpHash(userOp);
+
+        // sign - sender is Alice's AA, signer is offchain_signer
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(2, hash);
+        bytes memory sig = abi.encodePacked(r, s, v);
+        userOp.signature = sig;
+        assertEq(address(offchain_signer), ecrecover(hash, v, r, s));
+
+        //hex paym addr and data and concat
+        string memory a = utils.stringToHex(
+            abi.encodePacked(address(paym), sig)
+        );
+        userOp.paymasterAndData = bytes(a);
+
+        // simulate
+        ep.simulateValidation(userOp);
     }
 }

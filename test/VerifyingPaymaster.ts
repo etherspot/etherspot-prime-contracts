@@ -141,9 +141,10 @@ describe('EntryPoint with VerifyingPaymaster', function () {
         accountOwner,
         entryPoint
       );
-      await entryPoint.callStatic
-        .simulateValidation(userOp)
-        .catch(simulationResultCatch);
+      await entryPoint.callStatic.simulateValidation(userOp).catch((e) => {
+        console.log(e);
+        return simulationResultCatch(e);
+      });
     });
   });
 });

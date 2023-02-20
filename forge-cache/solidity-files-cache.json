@@ -48,7 +48,7 @@
       "versionRequirement": ">=0.5.0",
       "artifacts": {
         "DSTest": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "test.sol/DSTest.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "test.sol/DSTest.json"
         }
       }
     },
@@ -91,13 +91,13 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "CommonBase": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Base.sol/CommonBase.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Base.sol/CommonBase.json"
         },
         "ScriptBase": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Base.sol/ScriptBase.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Base.sol/ScriptBase.json"
         },
         "TestBase": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Base.sol/TestBase.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Base.sol/TestBase.json"
         }
       }
     },
@@ -192,7 +192,7 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "StdAssertions": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdAssertions.sol/StdAssertions.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdAssertions.sol/StdAssertions.json"
         }
       }
     },
@@ -234,7 +234,7 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "StdChains": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdChains.sol/StdChains.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdChains.sol/StdChains.json"
         }
       }
     },
@@ -277,10 +277,10 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "StdCheats": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdCheats.sol/StdCheats.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdCheats.sol/StdCheats.json"
         },
         "StdCheatsSafe": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdCheats.sol/StdCheatsSafe.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdCheats.sol/StdCheatsSafe.json"
         }
       }
     },
@@ -320,7 +320,7 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "stdError": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdError.sol/stdError.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdError.sol/stdError.json"
         }
       }
     },
@@ -362,7 +362,7 @@
       "versionRequirement": ">=0.6.0, <0.9.0",
       "artifacts": {
         "stdJson": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdJson.sol/stdJson.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdJson.sol/stdJson.json"
         }
       }
     },
@@ -402,7 +402,7 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "stdMath": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdMath.sol/stdMath.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdMath.sol/stdMath.json"
         }
       }
     },
@@ -444,10 +444,10 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "stdStorage": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdStorage.sol/stdStorage.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdStorage.sol/stdStorage.json"
         },
         "stdStorageSafe": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdStorage.sol/stdStorageSafe.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdStorage.sol/stdStorageSafe.json"
         }
       }
     },
@@ -490,7 +490,7 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "StdUtils": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "StdUtils.sol/StdUtils.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "StdUtils.sol/StdUtils.json"
         }
       }
     },
@@ -545,7 +545,7 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "Test": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Test.sol/Test.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Test.sol/Test.json"
         }
       }
     },
@@ -585,10 +585,10 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "Vm": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Vm.sol/Vm.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Vm.sol/Vm.json"
         },
         "VmSafe": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "Vm.sol/VmSafe.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "Vm.sol/VmSafe.json"
         }
       }
     },
@@ -628,7 +628,7 @@
       "versionRequirement": ">=0.4.22, <0.9.0",
       "artifacts": {
         "console": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "console.sol/console.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "src/console.sol/console.json"
         }
       }
     },
@@ -668,7 +668,7 @@
       "versionRequirement": ">=0.4.22, <0.9.0",
       "artifacts": {
         "console2": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "console2.sol/console2.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "console2.sol/console2.json"
         }
       }
     },
@@ -708,7 +708,7 @@
       "versionRequirement": ">=0.6.2, <0.9.0",
       "artifacts": {
         "IMulticall3": {
-          "0.8.18+commit.87f61d96.Darwin.appleclang": "IMulticall3.sol/IMulticall3.0.8.18.json"
+          "0.8.12+commit.f00d7308.Darwin.appleclang": "IMulticall3.sol/IMulticall3.json"
         }
       }
     },
@@ -2337,8 +2337,8 @@
       }
     },
     "test/foundry/TEST_EtherspotPaymaster.t.sol": {
-      "lastModificationDate": 1676480327320,
-      "contentHash": "380a12c101578d9b1aeafd57c746833e",
+      "lastModificationDate": 1676547074489,
+      "contentHash": "95355146bd0ab7f8b8139eb5cc77535e",
       "sourceName": "test/foundry/TEST_EtherspotPaymaster.t.sol",
       "solcConfig": {
         "settings": {
@@ -2420,6 +2420,7 @@
         "src/interfaces/UserOperation.sol",
         "src/samples/EtherspotAccountFactory.sol",
         "src/utils/Exec.sol",
+        "test/foundry/utils/Strings.sol",
         "test/foundry/utils/UserOp.sol",
         "test/foundry/utils/Utils.sol"
       ],
@@ -2470,6 +2471,46 @@
         }
       }
     },
+    "test/foundry/utils/Strings.sol": {
+      "lastModificationDate": 1676544215092,
+      "contentHash": "57263268825262485c1bf6e2462861b9",
+      "sourceName": "test/foundry/utils/Strings.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "london",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.0",
+      "artifacts": {
+        "strings": {
+          "0.8.18+commit.87f61d96.Darwin.appleclang": "Strings.sol/strings.0.8.18.json"
+        }
+      }
+    },
     "test/foundry/utils/UserOp.sol": {
       "lastModificationDate": 1676471916034,
       "contentHash": "7b1fba6bf185b3029218e5eab790b539",
@@ -2514,8 +2555,8 @@
       }
     },
     "test/foundry/utils/Utils.sol": {
-      "lastModificationDate": 1676388093914,
-      "contentHash": "4dd200fdd078adee1c249070c1a34049",
+      "lastModificationDate": 1676544837594,
+      "contentHash": "c7510aa12953c1634faf3fd4fd939aab",
       "sourceName": "test/foundry/utils/Utils.sol",
       "solcConfig": {
         "settings": {
@@ -2560,7 +2601,9 @@
         "lib/forge-std/src/Vm.sol",
         "lib/forge-std/src/console.sol",
         "lib/forge-std/src/console2.sol",
-        "lib/forge-std/src/interfaces/IMulticall3.sol"
+        "lib/forge-std/src/interfaces/IMulticall3.sol",
+        "node_modules/hardhat/console.sol",
+        "test/foundry/utils/Strings.sol"
       ],
       "versionRequirement": ">=0.8.0",
       "artifacts": {
