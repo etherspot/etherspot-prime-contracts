@@ -15,6 +15,10 @@
     "url": "git+https://github.com/etherspot/etherspot-lite-contracts.git"
   },
   "keywords": [
+    "ether",
+    "ethereum",
+    "blockchain",
+    "solidity",
     "etherspot",
     "account-abstraction",
     "eip-4337"
