@@ -8,7 +8,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "test"
+    "build": "npm run build:dist && npm run build:ts",
+    "build:dist": "hardhat build-dist",
+    "build:ts": "tsc --project ./tsconfig.build.json",
+    "compile": "hardhat compile",
+    "coverage": "hardhat coverage",
+    "test": "hardhat test"
   },
   "repository": {
     "type": "git",
@@ -58,11 +63,14 @@
   },
   "devDependencies": {
     "@etherspot/contracts": "^1.9.52",
+    "@nomiclabs/hardhat-ethers": "npm:hardhat-deploy-ethers@^0.3.0-beta.13",
     "@nomiclabs/hardhat-etherscan": "^3.1.5",
     "@openzeppelin/test-helpers": "^0.5.16",
     "@thehubbleproject/bls": "^0.5.1",
     "ethereumjs-util": "^7.1.5",
     "ethereumjs-wallet": "^1.0.2",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.12.7",
     "hardhat-deploy": "^0.11.23",
     "hardhat-deploy-ethers": "^0.3.0-beta.13",
     "hardhat-preprocessor": "^0.1.5"

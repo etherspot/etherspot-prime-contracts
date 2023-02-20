@@ -1,13 +1,31 @@
-# Sample Hardhat Project
+# Etherspot Solidity contracts
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+[![NPM version][npm-image]][npm-url]
 
-Try running some of the following tasks:
+## Installation
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
+```bash
+$ npm i @etherspot/lite-contracts -S
 ```
+
+## Usage
+
+### Solidity
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.12;
+
+import "@etherspot/lite-contracts/src/EtherspotAccount.sol";
+
+// ...
+```
+
+## License
+
+MIT
+
+[npm-image]: https://badge.fury.io/js/%40etherspot%2Flite-contracts.svg
+[npm-url]: https://npmjs.org/package/@etherspot/lite-contracts
+
+
