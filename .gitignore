@@ -3,7 +3,7 @@
 
 # Compiler files
 cache/
-cache-hardhat/
+cache_hardhat/
 forge-cache/
 out/
 
