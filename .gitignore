@@ -44,3 +44,6 @@ coverage
 
 # Artifacts
 artifacts/
+
+# Testing
+contracts-exposed/

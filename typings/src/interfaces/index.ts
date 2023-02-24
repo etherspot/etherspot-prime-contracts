@@ -6,6 +6,7 @@ export type { IAggregatedAccount } from "./IAggregatedAccount";
 export type { IAggregator } from "./IAggregator";
 export type { ICreate2Deployer } from "./ICreate2Deployer";
 export type { IEntryPoint } from "./IEntryPoint";
+export type { IEtherspotPaymaster } from "./IEtherspotPaymaster";
 export type { IOracle } from "./IOracle";
 export type { IPaymaster } from "./IPaymaster";
 export type { IStakeManager } from "./IStakeManager";

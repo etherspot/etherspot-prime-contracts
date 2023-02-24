@@ -4,3 +4,4 @@
 export { EtherspotAccountFactory__factory } from "./EtherspotAccountFactory__factory";
 export { TestAggregatedAccount__factory } from "./TestAggregatedAccount__factory";
 export { TestAggregatedAccountFactory__factory } from "./TestAggregatedAccountFactory__factory";
+export { VerifyingPaymaster__factory } from "./VerifyingPaymaster__factory";

@@ -27,6 +27,17 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
 
     mapping(address => uint256) public sponsorFunds;
 
+    event SponsorSuccessful(
+        address paymaster,
+        address sender,
+        bytes userOpHash
+    );
+    event SponsorUnsuccessful(
+        address paymaster,
+        address sender,
+        bytes userOpHash
+    );
+
     constructor(IEntryPoint _entryPoint) BasePaymaster(_entryPoint) {}
 
     function depositFunds() public payable {
@@ -40,6 +51,10 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
 
     function checkSponsorFunds(address _sponsor) public view returns (uint256) {
         return sponsorFunds[_sponsor];
+    }
+
+    function _debitSponsor(address _sponsor, uint256 _amount) internal {
+        sponsorFunds[_sponsor] -= _amount;
     }
 
     /**
@@ -94,7 +109,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         // we only "require" it here so that the revert reason on invalid signature will be of "VerifyingPaymaster", and not "ECDSA"
         require(
             sigLength == 64 || sigLength == 65,
-            "VerifyingPaymaster: invalid signature length in paymasterAndData"
+            "EtherspotPaymaster: invalid signature length in paymasterAndData"
         );
 
         // check for valid paymaster
@@ -118,6 +133,24 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
 
         //no need for other on-chain validation: entire UserOp should have been checked
         // by the external service prior to signing it.
-        return ("", 0);
+        return (abi.encode(extSig, sig, userOp), 0);
+    }
+
+    function _postOp(
+        PostOpMode mode,
+        bytes calldata context,
+        uint256 actualGasCost
+    ) internal override {
+        (address paymaster, address sender, bytes memory userOpHash) = abi
+            .decode(context, (address, address, bytes));
+        if (
+            mode == IPaymaster.PostOpMode.opSucceeded ||
+            mode == IPaymaster.PostOpMode.opReverted
+        ) {
+            _debitSponsor(paymaster, actualGasCost);
+            emit SponsorSuccessful(paymaster, sender, userOpHash);
+        } else {
+            emit SponsorUnsuccessful(paymaster, sender, userOpHash);
+        }
     }
 }

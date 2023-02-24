@@ -8,7 +8,7 @@ import {UserOperationHelper} from "../foundry/utils/UserOp.sol";
 import {EntryPoint} from "../../src/core/EntryPoint.sol";
 import {Whitelist} from "../../src/Whitelist.sol";
 import {EtherspotAccount} from "../../src/EtherspotAccount.sol";
-import {EtherspotPaymaster} from "../../src/TEST_EtherspotPaymaster.sol";
+import {EtherspotPaymaster} from "../../src/EtherspotPaymaster.sol";
 import {EtherspotAccountFactory} from "../../src/samples/EtherspotAccountFactory.sol";
 import {UserOperation} from "../../src/interfaces/UserOperation.sol";
 

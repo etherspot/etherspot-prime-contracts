@@ -113,6 +113,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.EtherspotAccount__factory>;
     getContractFactory(
+      name: "EtherspotPaymaster",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.EtherspotPaymaster__factory>;
+    getContractFactory(
       name: "IAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IAccount__factory>;
@@ -132,6 +136,10 @@ declare module "hardhat/types/runtime" {
       name: "IEntryPoint",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IEntryPoint__factory>;
+    getContractFactory(
+      name: "IEtherspotPaymaster",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IEtherspotPaymaster__factory>;
     getContractFactory(
       name: "IOracle",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -161,9 +169,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestAggregatedAccountFactory__factory>;
     getContractFactory(
-      name: "EtherspotPaymaster",
+      name: "VerifyingPaymaster",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.EtherspotPaymaster__factory>;
+    ): Promise<Contracts.VerifyingPaymaster__factory>;
     getContractFactory(
       name: "MaliciousAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -212,10 +220,6 @@ declare module "hardhat/types/runtime" {
       name: "TestWarmColdAccount",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestWarmColdAccount__factory>;
-    getContractFactory(
-      name: "VerifyingPaymaster",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.VerifyingPaymaster__factory>;
     getContractFactory(
       name: "Whitelist",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -347,6 +351,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.EtherspotAccount>;
     getContractAt(
+      name: "EtherspotPaymaster",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.EtherspotPaymaster>;
+    getContractAt(
       name: "IAccount",
       address: string,
       signer?: ethers.Signer
@@ -371,6 +380,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IEntryPoint>;
+    getContractAt(
+      name: "IEtherspotPaymaster",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IEtherspotPaymaster>;
     getContractAt(
       name: "IOracle",
       address: string,
@@ -407,10 +421,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.TestAggregatedAccountFactory>;
     getContractAt(
-      name: "EtherspotPaymaster",
+      name: "VerifyingPaymaster",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.EtherspotPaymaster>;
+    ): Promise<Contracts.VerifyingPaymaster>;
     getContractAt(
       name: "MaliciousAccount",
       address: string,
@@ -471,11 +485,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.TestWarmColdAccount>;
-    getContractAt(
-      name: "VerifyingPaymaster",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.VerifyingPaymaster>;
     getContractAt(
       name: "Whitelist",
       address: string,

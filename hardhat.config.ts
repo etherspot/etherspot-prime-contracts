@@ -8,6 +8,7 @@ import 'hardhat-deploy';
 import '@nomiclabs/hardhat-etherscan';
 import 'solidity-coverage';
 import 'hardhat-tracer';
+import 'hardhat-exposed';
 import fs from 'fs';
 
 function getRemappings() {
@@ -50,6 +51,7 @@ const config: HardhatUserConfig = {
   paths: {
     sources: './src',
     cache: './cache_hardhat',
+    artifacts: './artifacts',
   },
   typechain: {
     outDir: 'typings',

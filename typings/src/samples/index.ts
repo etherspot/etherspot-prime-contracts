@@ -4,3 +4,4 @@
 export type { EtherspotAccountFactory } from "./EtherspotAccountFactory";
 export type { TestAggregatedAccount } from "./TestAggregatedAccount";
 export type { TestAggregatedAccountFactory } from "./TestAggregatedAccountFactory";
+export type { VerifyingPaymaster } from "./VerifyingPaymaster";

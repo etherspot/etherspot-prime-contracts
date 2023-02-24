@@ -61,7 +61,6 @@ abstract contract BasePaymaster is IPaymaster, Ownable {
     ) internal virtual {
         (mode, context, actualGasCost); // unused params
         // subclass must override this method if validatePaymasterUserOp returns a context
-        revert("must override");
     }
 
     /**
