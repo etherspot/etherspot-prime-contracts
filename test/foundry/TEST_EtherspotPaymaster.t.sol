@@ -7,18 +7,18 @@ import {Utils} from "../foundry/utils/Utils.sol";
 import {UserOperationHelper} from "../foundry/utils/UserOp.sol";
 import {EntryPoint} from "../../src/core/EntryPoint.sol";
 import {Whitelist} from "../../src/Whitelist.sol";
-import {EtherspotAccount} from "../../src/EtherspotAccount.sol";
+import {EtherspotWallet} from "../../src/EtherspotWallet.sol";
 import {EtherspotPaymaster} from "../../src/EtherspotPaymaster.sol";
-import {EtherspotAccountFactory} from "../../src/samples/EtherspotAccountFactory.sol";
+import {EtherspotWalletFactory} from "../../src/samples/EtherspotWalletFactory.sol";
 import {UserOperation} from "../../src/interfaces/UserOperation.sol";
 
 contract EtherspotPaymasterTest is Test {
     Utils internal utils;
     UserOperationHelper internal userop;
     EntryPoint public ep;
-    EtherspotAccount public account;
+    EtherspotWallet public account;
     EtherspotPaymaster public paym;
-    EtherspotAccountFactory public accf;
+    EtherspotWalletFactory public accf;
 
     address payable[] internal users;
     address internal alice;
@@ -26,7 +26,7 @@ contract EtherspotPaymasterTest is Test {
     address internal charlie;
     address internal deployer;
     address internal offchain_signer;
-    EtherspotAccount internal aliceEA;
+    EtherspotWallet internal aliceEA;
 
     event AddedToWhitelist(address paymaster, address account);
     event RemovedFromWhitelist(address paymaster, address account);
@@ -43,7 +43,7 @@ contract EtherspotPaymasterTest is Test {
 
         ep = new EntryPoint();
         paym = new EtherspotPaymaster(EntryPoint(ep));
-        accf = new EtherspotAccountFactory(EntryPoint(ep));
+        accf = new EtherspotWalletFactory(EntryPoint(ep));
 
         aliceEA = accf.createAccount(alice, 1234);
 
@@ -67,7 +67,7 @@ contract EtherspotPaymasterTest is Test {
         paym.add(address(aliceEA));
         assertTrue(paym.check(address(offchain_signer), address(aliceEA)));
 
-        // get default UserOp - pass in alice EtherspotAccount as userOp.sender
+        // get default UserOp - pass in alice EtherspotWallet as userOp.sender
         UserOperation memory userOp = userop.helper_DefaultUserOpGen(
             address(aliceEA)
         );
@@ -107,7 +107,7 @@ contract EtherspotPaymasterTest is Test {
         paym.add(address(aliceEA));
         assertTrue(paym.check(address(offchain_signer), address(aliceEA)));
 
-        // get default UserOp - pass in alice EtherspotAccount as userOp.sender
+        // get default UserOp - pass in alice EtherspotWallet as userOp.sender
         UserOperation memory userOp = userop.helper_DefaultUserOpGen(
             address(aliceEA)
         );
@@ -142,7 +142,7 @@ contract EtherspotPaymasterTest is Test {
         paym.add(address(aliceEA));
         assertTrue(paym.check(address(offchain_signer), address(aliceEA)));
 
-        // get default UserOp - pass in alice EtherspotAccount as userOp.sender
+        // get default UserOp - pass in alice EtherspotWallet as userOp.sender
         UserOperation memory userOp = userop.helper_DefaultUserOpGen(
             address(aliceEA)
         );
@@ -194,7 +194,7 @@ contract EtherspotPaymasterTest is Test {
         paym.add(address(aliceEA));
         assertTrue(paym.check(address(offchain_signer), address(aliceEA)));
 
-        // get default UserOp - pass in alice EtherspotAccount as userOp.sender
+        // get default UserOp - pass in alice EtherspotWallet as userOp.sender
         UserOperation memory userOp = userop.helper_DefaultUserOpGen(
             address(aliceEA)
         );

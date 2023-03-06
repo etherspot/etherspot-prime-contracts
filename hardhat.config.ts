@@ -9,6 +9,7 @@ import '@nomiclabs/hardhat-etherscan';
 import 'solidity-coverage';
 import 'hardhat-tracer';
 import 'hardhat-exposed';
+import '@openzeppelin/hardhat-upgrades';
 import fs from 'fs';
 
 function getRemappings() {

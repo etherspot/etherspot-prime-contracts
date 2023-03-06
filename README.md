@@ -1,4 +1,4 @@
-# Etherspot Solidity contracts
+# Etherspot Lite Solidity contracts
 
 [![NPM version][npm-image]][npm-url]
 
@@ -16,7 +16,7 @@ $ npm i @etherspot/lite-contracts -S
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "@etherspot/lite-contracts/src/EtherspotAccount.sol";
+import "@etherspot/lite-contracts/src/EtherspotWallet.sol";
 
 // ...
 ```

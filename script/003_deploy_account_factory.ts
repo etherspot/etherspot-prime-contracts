@@ -1,8 +1,8 @@
-import { ethers } from "hardhat";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import { ethers } from 'hardhat';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { DeployFunction } from 'hardhat-deploy/types';
 
-const func: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
+const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const {
     deployments: { deploy },
     getNamedAccounts,
@@ -10,9 +10,9 @@ const func: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
   const { from } = await getNamedAccounts();
 
   // get EntryPoint contract
-  const entryPoint = await ethers.getContract("EntryPoint");
+  const entryPoint = await ethers.getContract('EntryPoint');
 
-  await deploy("EtherspotAccountFactory", {
+  await deploy('EtherspotWalletFactory', {
     from,
     args: [entryPoint.address],
     log: true,
@@ -20,6 +20,6 @@ const func: DeployFunction = async function(hre: HardhatRuntimeEnvironment) {
   });
 };
 
-func.tags = ["aa-4337", "etherspot-account-factory"];
+func.tags = ['aa-4337', 'etherspot-account-factory'];
 
 export default func;
