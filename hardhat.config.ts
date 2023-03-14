@@ -11,6 +11,10 @@ import 'hardhat-tracer';
 import 'hardhat-exposed';
 import '@openzeppelin/hardhat-upgrades';
 import fs from 'fs';
+const { resolve } = require('path');
+const { config: dotenvConfig } = require('dotenv');
+
+dotenvConfig({ path: resolve(__dirname, './.env') });
 
 function getRemappings() {
   return fs
@@ -25,6 +29,11 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       allowUnlimitedContractSize: true,
+    },
+    mumbai: {
+      chainId: 80001,
+      url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.MUMBAI_ALCHEMY_API_KEY}`,
+      accounts: [process.env.PRIVATE_KEY!],
     },
     dev: { url: 'http://localhost:8545' },
   },

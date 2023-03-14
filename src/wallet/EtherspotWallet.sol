@@ -177,7 +177,9 @@ contract EtherspotWallet is
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
-    function updateEntryPoint(address _newEntryPoint) external onlyOwner {
+    function updateEntryPoint(address _newEntryPoint) external {
+        _onlyOwner();
+
         require(
             _newEntryPoint != address(0),
             "EtherspotWallet:: EntryPoint address cannot be zero"
@@ -186,7 +188,9 @@ contract EtherspotWallet is
         _entryPoint = IEntryPoint(payable(_newEntryPoint));
     }
 
-    function updateRegistry(address _newRegistry) external onlyOwner {
+    function updateRegistry(address _newRegistry) external {
+        _onlyOwner();
+
         require(
             _newRegistry != address(0),
             "EtherspotWallet:: Registry address cannot be zero"

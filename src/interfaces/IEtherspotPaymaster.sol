@@ -7,12 +7,24 @@ import "../aa-4337/interfaces/UserOperation.sol";
  * the interface exposed by a paymaster contract, who agrees to pay the gas for user's operations.
  * a paymaster must hold a stake to cover the required entrypoint stake and also the gas for the transaction.
  */
-interface IPaymaster {
+interface IEtherspotPaymaster {
     enum PostOpMode {
         opSucceeded, // user op succeeded
         opReverted, // user op reverted. still has to pay for gas.
         postOpReverted //user op succeeded, but caused postOp to revert. Now it's a 2nd call, after user's op was deliberately reverted.
     }
+
+    event SponsorSuccessful(
+        address paymaster,
+        address sender,
+        bytes userOpHash
+    );
+
+    event SponsorUnsuccessful(
+        address paymaster,
+        address sender,
+        bytes userOpHash
+    );
 
     /**
      * payment validation: check if paymaster agrees to pay.
@@ -48,6 +60,9 @@ interface IPaymaster {
      *                       Now this is the 2nd call, after user's op was deliberately reverted.
      * @param context - the context value returned by validatePaymasterUserOp
      * @param actualGasCost - actual gas used so far (without this postOp call).
+     * return will emit SponsorSuccessful or SponsorUnsuccessful depending on result from EntryPoint
+     *      if sponsor is successful, costs will be deducted from paymaster's deposited balance
+     *      if sponsor is unsuccessful, no costs will be deducted
      */
     function postOp(
         PostOpMode mode,

@@ -59,7 +59,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         sponsorFunds[_sponsor] -= _amount;
     }
 
-    function pack(UserOperation calldata userOp)
+    function _pack(UserOperation calldata userOp)
         internal
         pure
         returns (bytes memory ret)
@@ -96,7 +96,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         return
             keccak256(
                 abi.encode(
-                    pack(userOp),
+                    _pack(userOp),
                     block.chainid,
                     address(this),
                     senderNonce[userOp.getSender()],
