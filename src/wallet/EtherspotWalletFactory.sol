@@ -3,7 +3,6 @@ pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/utils/Create2.sol";
 import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-
 import "./EtherspotWallet.sol";
 
 /**
@@ -27,11 +26,10 @@ contract EtherspotWalletFactory {
      */
     function createAccount(
         IEntryPoint _entryPoint,
-        address _registry,
         address owner,
         uint256 salt
     ) public returns (EtherspotWallet ret) {
-        address addr = getAddress(_entryPoint, _registry, owner, salt);
+        address addr = getAddress(_entryPoint, owner, salt);
         uint256 codeSize = addr.code.length;
         if (codeSize > 0) {
             return EtherspotWallet(payable(addr));
@@ -42,7 +40,7 @@ contract EtherspotWalletFactory {
                     address(accountImplementation),
                     abi.encodeCall(
                         EtherspotWallet.initialize,
-                        (_entryPoint, _registry, owner)
+                        (_entryPoint, owner)
                     )
                 )
             )
@@ -54,7 +52,6 @@ contract EtherspotWalletFactory {
      */
     function getAddress(
         IEntryPoint _entryPoint,
-        address _registry,
         address owner,
         uint256 salt
     ) public view returns (address) {
@@ -68,7 +65,7 @@ contract EtherspotWalletFactory {
                             address(accountImplementation),
                             abi.encodeCall(
                                 EtherspotWallet.initialize,
-                                (_entryPoint, _registry, owner)
+                                (_entryPoint, owner)
                             )
                         )
                     )

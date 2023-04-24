@@ -29,20 +29,19 @@ contract BLSAccountFactory {
      * Also note that our BLSSignatureAggregator requires that the public key is the last parameter
      */
     function createAccount(
-        IEntryPoint entryPoint,
-        address anRegistry,
+        IEntryPoint anEntryPoint,
         uint256 salt,
         uint256[4] calldata aPublicKey
     ) public returns (BLSAccount) {
         // the BLSSignatureAggregator depends on the public-key being the last 4 uint256 of msg.data.
-        uint256 slot;
+        uint slot;
         assembly {
             slot := aPublicKey
         }
         require(slot == msg.data.length - 128, "wrong pubkey offset");
 
-        address addr = getAddress(entryPoint, anRegistry, salt, aPublicKey);
-        uint256 codeSize = addr.code.length;
+        address addr = getAddress(anEntryPoint, salt, aPublicKey);
+        uint codeSize = addr.code.length;
         if (codeSize > 0) {
             return BLSAccount(payable(addr));
         }
@@ -53,7 +52,7 @@ contract BLSAccountFactory {
                         address(accountImplementation),
                         abi.encodeCall(
                             BLSAccount.initialize,
-                            (entryPoint, anRegistry, aPublicKey)
+                            (anEntryPoint, aPublicKey)
                         )
                     )
                 )
@@ -64,8 +63,7 @@ contract BLSAccountFactory {
      * calculate the counterfactual address of this account as it would be returned by createAccount()
      */
     function getAddress(
-        IEntryPoint entryPoint,
-        address anRegistry,
+        IEntryPoint anEntryPoint,
         uint256 salt,
         uint256[4] memory aPublicKey
     ) public view returns (address) {
@@ -79,7 +77,7 @@ contract BLSAccountFactory {
                             address(accountImplementation),
                             abi.encodeCall(
                                 BLSAccount.initialize,
-                                (entryPoint, anRegistry, aPublicKey)
+                                (anEntryPoint, aPublicKey)
                             )
                         )
                     )

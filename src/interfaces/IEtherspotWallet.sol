@@ -6,30 +6,31 @@ import {IEntryPoint} from "../aa-4337/interfaces/IEntryPoint.sol";
 interface IEtherspotWallet {
     event EtherspotWalletInitialized(
         IEntryPoint indexed entryPoint,
-        address indexed registry,
         address indexed owner
     );
+    event EtherspotWalletReceived(address indexed from, uint256 indexed amount);
     event EntryPointChanged(address oldEntryPoint, address newEntryPoint);
-    event RegistryChanged(address oldRegistry, address newRegistry);
+    event OwnerAdded(address newOwner, uint256 blockFrom);
+    event OwnerRemoved(address removedOwner, uint256 blockFrom);
 
     function nonce() external view returns (uint256);
 
     function entryPoint() external view returns (IEntryPoint);
 
-    function execute(
-        address dest,
-        uint256 value,
-        bytes calldata func
-    ) external;
+    receive() external payable;
 
-    function executeBatch(address[] calldata dest, bytes[] calldata func)
-        external;
+    function execute(address dest, uint256 value, bytes calldata func) external;
+
+    function executeBatch(
+        address[] calldata dest,
+        bytes[] calldata func
+    ) external;
 
     function getDeposit() external view returns (uint256);
 
     function addDeposit() external payable;
 
-    function updateEntryPoint(address _newEntryPoint) external;
+    function isOwner(address _owner) external view returns (bool);
 
-    function updateRegistry(address _newRegistry) external;
+    function updateEntryPoint(address _newEntryPoint) external;
 }

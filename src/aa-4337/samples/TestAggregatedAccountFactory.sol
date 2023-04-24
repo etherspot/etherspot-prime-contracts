@@ -26,11 +26,10 @@ contract TestAggregatedAccountFactory {
      */
     function createAccount(
         IEntryPoint anEntryPoint,
-        address anRegistry,
         address owner,
         uint256 salt
     ) public returns (TestAggregatedAccount ret) {
-        address addr = getAddress(anEntryPoint, anRegistry, owner, salt);
+        address addr = getAddress(anEntryPoint, owner, salt);
         uint256 codeSize = addr.code.length;
         if (codeSize > 0) {
             return TestAggregatedAccount(payable(addr));
@@ -41,7 +40,7 @@ contract TestAggregatedAccountFactory {
                     address(accountImplementation),
                     abi.encodeCall(
                         TestAggregatedAccount.initialize,
-                        (anEntryPoint, anRegistry, owner)
+                        (anEntryPoint, owner)
                     )
                 )
             )
@@ -53,7 +52,6 @@ contract TestAggregatedAccountFactory {
      */
     function getAddress(
         IEntryPoint anEntryPoint,
-        address anRegistry,
         address owner,
         uint256 salt
     ) public view returns (address) {
@@ -67,7 +65,7 @@ contract TestAggregatedAccountFactory {
                             address(accountImplementation),
                             abi.encodeCall(
                                 TestAggregatedAccount.initialize,
-                                (anEntryPoint, anRegistry, owner)
+                                (anEntryPoint, owner)
                             )
                         )
                     )

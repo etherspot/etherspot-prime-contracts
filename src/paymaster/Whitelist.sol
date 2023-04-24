@@ -24,16 +24,16 @@ contract Whitelist is Ownable {
     );
 
     // External
-    function check(address _sponsor, address _account)
-        external
-        view
-        returns (bool)
-    {
+    function check(
+        address _sponsor,
+        address _account
+    ) external view returns (bool) {
         return _check(_sponsor, _account);
     }
 
     function add(address _account) external {
         _add(_account);
+        emit AddedToWhitelist(msg.sender, _account);
     }
 
     function addBatch(address[] calldata _accounts) external {
@@ -43,6 +43,7 @@ contract Whitelist is Ownable {
 
     function remove(address _account) external {
         _remove(_account);
+        emit RemovedFromWhitelist(msg.sender, _account);
     }
 
     function removeBatch(address[] calldata _accounts) external {
@@ -51,11 +52,10 @@ contract Whitelist is Ownable {
     }
 
     // Internal
-    function _check(address _sponsor, address _account)
-        internal
-        view
-        returns (bool)
-    {
+    function _check(
+        address _sponsor,
+        address _account
+    ) internal view returns (bool) {
         return whitelist[_sponsor][_account];
     }
 
@@ -66,7 +66,6 @@ contract Whitelist is Ownable {
             "Whitelist:: Account is already whitelisted"
         );
         whitelist[msg.sender][_account] = true;
-        emit AddedToWhitelist(msg.sender, _account);
     }
 
     function _addBatch(address[] calldata _accounts) internal {
@@ -82,7 +81,6 @@ contract Whitelist is Ownable {
             "Whitelist:: Account is not whitelisted"
         );
         whitelist[msg.sender][_account] = false;
-        emit RemovedFromWhitelist(msg.sender, _account);
     }
 
     function _removeBatch(address[] calldata _accounts) internal {

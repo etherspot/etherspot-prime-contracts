@@ -7,8 +7,6 @@ import {
   EntryPoint,
   DepositPaymaster,
   DepositPaymaster__factory,
-  PersonalAccountRegistry,
-  PersonalAccountRegistry__factory,
   TestOracle__factory,
   TestCounter,
   TestCounter__factory,
@@ -30,15 +28,11 @@ import { hexConcat, hexZeroPad, parseEther } from 'ethers/lib/utils';
 
 describe('DepositPaymaster', () => {
   let entryPoint: EntryPoint;
-  let registry: PersonalAccountRegistry;
   const ethersSigner = ethers.provider.getSigner();
   let token: TestToken;
   let paymaster: DepositPaymaster;
   before(async function () {
     entryPoint = await deployEntryPoint();
-    registry = await new PersonalAccountRegistry__factory(
-      ethersSigner
-    ).deploy();
     paymaster = await new DepositPaymaster__factory(ethersSigner).deploy(
       entryPoint.address
     );
@@ -60,8 +54,7 @@ describe('DepositPaymaster', () => {
       ({ proxy: account } = await createEtherspotWallet(
         ethersSigner,
         await ethersSigner.getAddress(),
-        entryPoint.address,
-        registry.address
+        entryPoint.address
       ));
     });
     it('should deposit and read balance', async () => {
@@ -116,8 +109,7 @@ describe('DepositPaymaster', () => {
       ({ proxy: account } = await createEtherspotWallet(
         ethersSigner,
         await ethersSigner.getAddress(),
-        entryPoint.address,
-        registry.address
+        entryPoint.address
       ));
     });
 
@@ -226,8 +218,7 @@ describe('DepositPaymaster', () => {
       ({ proxy: account } = await createEtherspotWallet(
         ethersSigner,
         await accountOwner.getAddress(),
-        entryPoint.address,
-        registry.address
+        entryPoint.address
       ));
       counter = await new TestCounter__factory(ethersSigner).deploy();
       const counterJustEmit = await counter.populateTransaction

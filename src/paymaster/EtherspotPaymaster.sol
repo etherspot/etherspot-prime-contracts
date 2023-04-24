@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
 /* solhint-disable reason-string */
@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Whitelist} from "./Whitelist.sol";
+import "hardhat/console.sol";
 
 /**
  * A sample paymaster that uses external service to decide whether to pay for the UserOp.
@@ -59,11 +60,9 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         sponsorFunds[_sponsor] -= _amount;
     }
 
-    function _pack(UserOperation calldata userOp)
-        internal
-        pure
-        returns (bytes memory ret)
-    {
+    function _pack(
+        UserOperation calldata userOp
+    ) internal pure returns (bytes memory ret) {
         // lighter signature scheme. must match UserOp.ts#packUserOp
         bytes calldata pnd = userOp.paymasterAndData;
         // copy directly the userOp from calldata up to (but not including) the paymasterAndData.
@@ -115,7 +114,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
      */
     function _validatePaymasterUserOp(
         UserOperation calldata userOp,
-        bytes32, /*userOpHash*/
+        bytes32 /*userOpHash*/,
         uint256 requiredPreFund
     ) internal override returns (bytes memory context, uint256 validationData) {
         (requiredPreFund);
@@ -134,10 +133,10 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         bytes32 hash = ECDSA.toEthSignedMessageHash(
             getHash(userOp, validUntil, validAfter)
         );
-        senderNonce[userOp.getSender()]++;
+        address sig = userOp.getSender();
+        senderNonce[sig]++;
 
         // check for valid paymaster
-        address sig = userOp.getSender();
         address sponsorSig = ECDSA.recover(hash, signature);
 
         //don't revert on signature failure: return SIG_VALIDATION_FAILED
@@ -151,8 +150,6 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
             "EtherspotPaymaster:: Sponsor paymaster funds too low"
         );
 
-        // TODO: how do we debit from deposited funds for specified sponsor
-
         //no need for other on-chain validation: entire UserOp should have been checked
         // by the external service prior to signing it.
         return (
@@ -161,14 +158,12 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         );
     }
 
-    function parsePaymasterAndData(bytes calldata paymasterAndData)
+    function parsePaymasterAndData(
+        bytes calldata paymasterAndData
+    )
         public
         pure
-        returns (
-            uint48 validUntil,
-            uint48 validAfter,
-            bytes calldata signature
-        )
+        returns (uint48 validUntil, uint48 validAfter, bytes calldata signature)
     {
         (validUntil, validAfter) = abi.decode(
             paymasterAndData[VALID_TIMESTAMP_OFFSET:SIGNATURE_OFFSET],

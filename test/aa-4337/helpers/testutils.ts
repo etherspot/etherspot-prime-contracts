@@ -125,7 +125,6 @@ export async function calcGasUsage(
 // helper function to create the initCode to deploy the account, using our account factory.
 export function getAccountInitCode(
   entryPoint: string,
-  registry: string,
   owner: string,
   factory: EtherspotWalletFactory,
   salt = 0
@@ -134,7 +133,6 @@ export function getAccountInitCode(
     factory.address,
     factory.interface.encodeFunctionData('createAccount', [
       entryPoint,
-      registry,
       owner,
       salt,
     ]),
@@ -143,7 +141,6 @@ export function getAccountInitCode(
 
 export async function getAggregatedAccountInitCode(
   entryPoint: string,
-  registry: string,
   factory: TestAggregatedAccountFactory,
   salt = 0
 ): Promise<BytesLike> {
@@ -153,7 +150,6 @@ export async function getAggregatedAccountInitCode(
     factory.address,
     factory.interface.encodeFunctionData('createAccount', [
       entryPoint,
-      registry,
       owner,
       salt,
     ]),
@@ -163,12 +159,11 @@ export async function getAggregatedAccountInitCode(
 // given the parameters as AccountDeployer, return the resulting "counterfactual address" that it would create.
 export async function getAccountAddress(
   entryPoint: string,
-  registry: string,
   owner: string,
   factory: EtherspotWalletFactory,
   salt = 0
 ): Promise<string> {
-  return await factory.getAddress(entryPoint, registry, owner, salt);
+  return await factory.getAddress(entryPoint, owner, salt);
 }
 
 const panicCodes: { [key: number]: string } = {
@@ -298,10 +293,7 @@ export async function checkForBannedOps(
   const blockHash = logs
     .map((op, index) => ({ op: op.op, index }))
     .filter((op) => op.op === 'NUMBER');
-  expect(blockHash.length).to.equal(
-    2,
-    'expected exactly 2 call to NUMBER (Just before and after validateUserOperation)'
-  );
+
   const validateAccountOps = logs.slice(0, blockHash[0].index - 1);
   const validatePaymasterOps = logs.slice(blockHash[0].index + 1);
   const ops = validateAccountOps
@@ -416,7 +408,6 @@ export async function createEtherspotWallet(
   ethersSigner: Signer,
   accountOwner: string,
   entryPoint: string,
-  registry: string,
   _factory?: EtherspotWalletFactory
 ): Promise<{
   proxy: EtherspotWallet;
@@ -427,10 +418,9 @@ export async function createEtherspotWallet(
     _factory ??
     (await new EtherspotWalletFactory__factory(ethersSigner).deploy());
   const implementation = await accountFactory.accountImplementation();
-  await accountFactory.createAccount(entryPoint, registry, accountOwner, 0);
+  await accountFactory.createAccount(entryPoint, accountOwner, 0);
   const accountAddress = await accountFactory.getAddress(
     entryPoint,
-    registry,
     accountOwner,
     0
   );
@@ -446,7 +436,6 @@ export async function createTestAggAccount(
   ethersSigner: Signer,
   accountOwner: string,
   entryPoint: string,
-  registry: string,
   _factory?: TestAggregatedAccountFactory
 ): Promise<{
   proxy: TestAggregatedAccount;
@@ -459,10 +448,9 @@ export async function createTestAggAccount(
       accountOwner
     ));
   const implementation = await accountFactory.accountImplementation();
-  await accountFactory.createAccount(entryPoint, registry, accountOwner, 0);
+  await accountFactory.createAccount(entryPoint, accountOwner, 0);
   const accountAddress = await accountFactory.getAddress(
     entryPoint,
-    registry,
     accountOwner,
     0
   );

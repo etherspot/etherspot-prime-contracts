@@ -6,8 +6,6 @@ import {
   EntryPoint,
   VerifyingPaymaster,
   VerifyingPaymaster__factory,
-  PersonalAccountRegistry__factory,
-  PersonalAccountRegistry,
 } from '../../../typings';
 import {
   createEtherspotWallet,
@@ -36,7 +34,6 @@ describe('EntryPoint with VerifyingPaymaster', function () {
   const ethersSigner = ethers.provider.getSigner();
   let account: EtherspotWallet;
   let offchainSigner: Wallet;
-  let registry: PersonalAccountRegistry;
   let paymaster: VerifyingPaymaster;
   before(async function () {
     this.timeout(20000);
@@ -49,16 +46,12 @@ describe('EntryPoint with VerifyingPaymaster', function () {
       entryPoint.address,
       offchainSigner.address
     );
-    registry = await new PersonalAccountRegistry__factory(
-      ethersSigner
-    ).deploy();
     await paymaster.addStake(1, { value: parseEther('2') });
     await entryPoint.depositTo(paymaster.address, { value: parseEther('1') });
     ({ proxy: account } = await createEtherspotWallet(
       ethersSigner,
       accountOwner.address,
-      entryPoint.address,
-      registry.address
+      entryPoint.address
     ));
     await fund(accountOwner.address);
   });

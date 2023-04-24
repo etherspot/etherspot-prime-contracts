@@ -58,6 +58,7 @@
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-standard": "^5.0.0",
+    "hardhat-exposed": "^0.3.2",
     "hardhat-tracer": "^1.2.1",
     "promise": "^8.3.0",
     "typechain": "^8.1.1",
@@ -76,8 +77,7 @@
     "hardhat": "^2.12.7",
     "hardhat-deploy": "^0.11.23",
     "hardhat-deploy-ethers": "^0.3.0-beta.13",
-    "hardhat-exposed": "^0.3.1",
-    "hardhat-preprocessor": "^0.1.5"
+    "xdeployer": "^1.2.2"
   },
   "resolutions": {
     "hardhat/**/@ethereumjs/tx": "3.5.0"

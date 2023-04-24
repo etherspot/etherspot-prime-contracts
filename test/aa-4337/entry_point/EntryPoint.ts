@@ -21,8 +21,6 @@ import {
   TestSignatureAggregator__factory,
   MaliciousAccount__factory,
   TestWarmColdAccount__factory,
-  PersonalAccountRegistry,
-  PersonalAccountRegistry__factory,
 } from '../../../typings';
 import {
   AddressZero,
@@ -54,7 +52,7 @@ import {
 } from '../user_ops/UserOp';
 import { UserOperation } from '../user_ops/UserOperation';
 import { PopulatedTransaction } from 'ethers/lib/ethers';
-import { ethers } from 'hardhat';
+import { ethers, upgrades } from 'hardhat';
 import {
   arrayify,
   defaultAbiCoder,
@@ -69,7 +67,6 @@ import { toChecksumAddress } from 'ethereumjs-util';
 describe('EntryPoint', function () {
   let entryPoint: EntryPoint;
   let etherspotWalletFactory: EtherspotWalletFactory;
-  let registry: PersonalAccountRegistry;
 
   let accountOwner: Wallet;
   const ethersSigner = ethers.provider.getSigner();
@@ -88,18 +85,13 @@ describe('EntryPoint', function () {
 
     entryPoint = await deployEntryPoint();
 
-    registry = await new PersonalAccountRegistry__factory(
-      ethersSigner
-    ).deploy();
-
     accountOwner = createAccountOwner();
 
     ({ proxy: account, accountFactory: etherspotWalletFactory } =
       await createEtherspotWallet(
         ethersSigner,
         await accountOwner.getAddress(),
-        entryPoint.address,
-        registry.address
+        entryPoint.address
       ));
     await fund(account);
 
@@ -269,7 +261,6 @@ describe('EntryPoint', function () {
           ethersSigner,
           await ethersSigner.getAddress(),
           entryPoint.address,
-          registry.address,
           etherspotWalletFactory
         ));
 
@@ -294,8 +285,7 @@ describe('EntryPoint', function () {
       ({ proxy: account1 } = await createEtherspotWallet(
         ethersSigner,
         await accountOwner1.getAddress(),
-        entryPoint.address,
-        registry.address
+        entryPoint.address
       ));
     });
 
@@ -383,8 +373,7 @@ describe('EntryPoint', function () {
       const { proxy: account2 } = await createEtherspotWallet(
         ethersSigner,
         await ethersSigner.getAddress(),
-        entryPoint.address,
-        registry.address
+        entryPoint.address
       );
 
       await fund(account2);
@@ -430,7 +419,6 @@ describe('EntryPoint', function () {
         {
           initCode: getAccountInitCode(
             entryPoint.address,
-            registry.address,
 
             accountOwner1.address,
             etherspotWalletFactory,
@@ -450,7 +438,6 @@ describe('EntryPoint', function () {
     it('should report failure on insufficient verificationGas (OOG) for creation', async () => {
       const initCode = getAccountInitCode(
         entryPoint.address,
-        registry.address,
 
         accountOwner1.address,
         etherspotWalletFactory,
@@ -492,7 +479,6 @@ describe('EntryPoint', function () {
     it('should succeed for creating an account', async () => {
       const sender = await getAccountAddress(
         entryPoint.address,
-        registry.address,
 
         accountOwner1.address,
         etherspotWalletFactory,
@@ -503,7 +489,6 @@ describe('EntryPoint', function () {
           sender,
           initCode: getAccountInitCode(
             entryPoint.address,
-            registry.address,
 
             accountOwner1.address,
             etherspotWalletFactory,
@@ -525,8 +510,7 @@ describe('EntryPoint', function () {
       const { proxy: account } = await createEtherspotWallet(
         ethersSigner,
         await accountOwner.getAddress(),
-        entryPoint.address,
-        registry.address
+        entryPoint.address
       );
 
       const sender = createAddress();
@@ -552,16 +536,12 @@ describe('EntryPoint', function () {
         {
           initCode: getAccountInitCode(
             entryPoint.address,
-            registry.address,
-
             accountOwner1.address,
             etherspotWalletFactory,
             0
           ),
           sender: await getAccountAddress(
             entryPoint.address,
-            registry.address,
-
             accountOwner1.address,
             etherspotWalletFactory,
             0
@@ -586,8 +566,7 @@ describe('EntryPoint', function () {
       const { proxy: account } = await createEtherspotWallet(
         ethersSigner,
         await accountOwner.getAddress(),
-        entryPoint.address,
-        registry.address
+        entryPoint.address
       );
       await fund(account);
       const counter = await new TestCounter__factory(ethersSigner).deploy();
@@ -1130,7 +1109,6 @@ describe('EntryPoint', function () {
           {
             initCode: getAccountInitCode(
               entryPoint.address,
-              registry.address,
 
               accountOwner.address,
               etherspotWalletFactory,
@@ -1155,7 +1133,6 @@ describe('EntryPoint', function () {
           {
             initCode: getAccountInitCode(
               entryPoint.address,
-              registry.address,
 
               accountOwner.address,
               etherspotWalletFactory,
@@ -1183,19 +1160,17 @@ describe('EntryPoint', function () {
         const salt = 20;
         const preAddr = await getAccountAddress(
           entryPoint.address,
-          registry.address,
 
           accountOwner.address,
           etherspotWalletFactory,
           salt
         );
         await fund(preAddr);
+
         createOp = await fillAndSign(
           {
             initCode: getAccountInitCode(
               entryPoint.address,
-              registry.address,
-
               accountOwner.address,
               etherspotWalletFactory,
               salt
@@ -1231,7 +1206,6 @@ describe('EntryPoint', function () {
       it('should reject if account already created', async function () {
         const preAddr = await getAccountAddress(
           entryPoint.address,
-          registry.address,
           accountOwner.address,
           etherspotWalletFactory,
           0
@@ -1280,7 +1254,6 @@ describe('EntryPoint', function () {
           );
         account1 = await getAccountAddress(
           entryPoint.address,
-          registry.address,
           accountOwner1.address,
           etherspotWalletFactory,
           0
@@ -1288,8 +1261,7 @@ describe('EntryPoint', function () {
         ({ proxy: account2 } = await createEtherspotWallet(
           ethersSigner,
           await accountOwner2.getAddress(),
-          entryPoint.address,
-          registry.address
+          entryPoint.address
         ));
         await fund(account1);
         await fund(account2.address);
@@ -1298,7 +1270,6 @@ describe('EntryPoint', function () {
           {
             initCode: getAccountInitCode(
               entryPoint.address,
-              registry.address,
               accountOwner1.address,
               etherspotWalletFactory,
               0
@@ -1316,7 +1287,7 @@ describe('EntryPoint', function () {
             callData: accountExecCounterFromEntryPoint.data,
             sender: account2.address,
             callGasLimit: 2e6,
-            verificationGasLimit: 76000,
+            verificationGasLimit: 1e6,
           },
           accountOwner2,
           entryPoint
@@ -1358,19 +1329,16 @@ describe('EntryPoint', function () {
           ethersSigner
         ).deploy();
 
-        const { proxy: aggAccount } = await createTestAggAccount(
-          ethersSigner,
-          aggregator.address,
-          entryPoint.address,
-          registry.address
-        );
+        aggAccount = await new TestAggregatedAccount__factory(
+          ethersSigner
+        ).deploy(aggregator.address);
+        aggAccount2 = await new TestAggregatedAccount__factory(
+          ethersSigner
+        ).deploy(aggregator.address);
 
-        const { proxy: aggAccount2 } = await createTestAggAccount(
-          ethersSigner,
-          aggregator.address,
-          entryPoint.address,
-          registry.address
-        );
+        // await aggAccount.initialize(entryPoint.address, aggregator.address);
+        // await aggAccount2.initialize(entryPoint.address, aggregator.address);
+
         await ethersSigner.sendTransaction({
           to: aggAccount.address,
           value: parseEther('0.1'),
@@ -1381,10 +1349,6 @@ describe('EntryPoint', function () {
         });
       });
       it('should fail to execute aggregated account without an aggregator', async () => {
-        console.log(`Aggregated account: ${aggAccount}`);
-        console.log(`Aggregated account address: ${aggAccount.address}`);
-
-        console.log(`EntryPoint: ${await aggAccount.entryPoint()}`);
         const userOp = await fillAndSign(
           {
             sender: aggAccount.address,
@@ -1432,8 +1396,7 @@ describe('EntryPoint', function () {
         const { proxy: aggAccount1 } = await createTestAggAccount(
           ethersSigner,
           aggregator.address,
-          entryPoint.address,
-          registry.address
+          entryPoint.address
         );
 
         const userOp = await fillAndSign(
@@ -1493,12 +1456,13 @@ describe('EntryPoint', function () {
         const aggregator3 = await new TestSignatureAggregator__factory(
           ethersSigner
         ).deploy();
-        const { proxy: aggAccount3 } = await createTestAggAccount(
-          ethersSigner,
-          aggregator3.address,
-          entryPoint.address,
-          registry.address
-        );
+
+        const aggAccount3 = await new TestAggregatedAccount__factory(
+          ethersSigner
+        ).deploy(aggregator3.address);
+
+        await aggAccount3.initialize(entryPoint.address, aggregator3.address);
+
         await ethersSigner.sendTransaction({
           to: aggAccount3.address,
           value: parseEther('0.1'),
@@ -1618,9 +1582,7 @@ describe('EntryPoint', function () {
             ).deploy(aggregator.address);
             initCode = await getAggregatedAccountInitCode(
               entryPoint.address,
-              registry.address,
-              factory,
-              0
+              factory
             );
             addr = await entryPoint.callStatic
               .getSenderAddress(initCode)
@@ -1698,7 +1660,6 @@ describe('EntryPoint', function () {
             callData: accountExecFromEntryPoint.data,
             initCode: getAccountInitCode(
               entryPoint.address,
-              registry.address,
               account2Owner.address,
               etherspotWalletFactory,
               0
@@ -1721,7 +1682,6 @@ describe('EntryPoint', function () {
             callData: accountExecFromEntryPoint.data,
             initCode: getAccountInitCode(
               entryPoint.address,
-              registry.address,
 
               account2Owner.address,
               etherspotWalletFactory,
@@ -1748,7 +1708,6 @@ describe('EntryPoint', function () {
             callData: accountExecFromEntryPoint.data,
             initCode: getAccountInitCode(
               entryPoint.address,
-              registry.address,
 
               account2Owner.address,
               etherspotWalletFactory,
@@ -1784,7 +1743,6 @@ describe('EntryPoint', function () {
             callData: accountExecFromEntryPoint.data,
             initCode: getAccountInitCode(
               entryPoint.address,
-              registry.address,
 
               anOwner.address,
               etherspotWalletFactory,
@@ -1816,7 +1774,6 @@ describe('EntryPoint', function () {
         account = await new TestExpiryAccount__factory(ethersSigner).deploy();
         await account.initialize(
           entryPoint.address,
-          registry.address,
           await ethersSigner.getAddress()
         );
         await ethersSigner.sendTransaction({

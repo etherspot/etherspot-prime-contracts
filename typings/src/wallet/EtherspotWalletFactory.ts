@@ -26,8 +26,8 @@ import type {
 export interface EtherspotWalletFactoryInterface extends utils.Interface {
   functions: {
     "accountImplementation()": FunctionFragment;
-    "createAccount(address,address,address,uint256)": FunctionFragment;
-    "getAddress(address,address,address,uint256)": FunctionFragment;
+    "createAccount(address,address,uint256)": FunctionFragment;
+    "getAddress(address,address,uint256)": FunctionFragment;
   };
 
   getFunction(
@@ -46,14 +46,12 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<string>,
-      PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>
     ]
   ): string;
   encodeFunctionData(
     functionFragment: "getAddress",
     values: [
-      PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>
@@ -104,7 +102,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     createAccount(
       _entryPoint: PromiseOrValue<string>,
-      _registry: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -112,7 +109,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     getAddress(
       _entryPoint: PromiseOrValue<string>,
-      _registry: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -123,7 +119,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
   createAccount(
     _entryPoint: PromiseOrValue<string>,
-    _registry: PromiseOrValue<string>,
     owner: PromiseOrValue<string>,
     salt: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -131,7 +126,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
   getAddress(
     _entryPoint: PromiseOrValue<string>,
-    _registry: PromiseOrValue<string>,
     owner: PromiseOrValue<string>,
     salt: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
@@ -142,7 +136,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     createAccount(
       _entryPoint: PromiseOrValue<string>,
-      _registry: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -150,7 +143,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     getAddress(
       _entryPoint: PromiseOrValue<string>,
-      _registry: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -164,7 +156,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     createAccount(
       _entryPoint: PromiseOrValue<string>,
-      _registry: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -172,7 +163,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     getAddress(
       _entryPoint: PromiseOrValue<string>,
-      _registry: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
@@ -186,7 +176,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     createAccount(
       _entryPoint: PromiseOrValue<string>,
-      _registry: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -194,7 +183,6 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     getAddress(
       _entryPoint: PromiseOrValue<string>,
-      _registry: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides

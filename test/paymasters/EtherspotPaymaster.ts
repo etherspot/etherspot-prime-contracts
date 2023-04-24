@@ -7,11 +7,8 @@ import {
   EntryPoint,
   EtherspotPaymaster,
   EtherspotPaymaster__factory,
-  PersonalAccountRegistry,
-  PersonalAccountRegistry__factory,
 } from '../../typings';
 import {
-  AddressZero,
   createEtherspotWallet,
   createAccountOwner,
   createAddress,
@@ -19,12 +16,16 @@ import {
   simulationResultCatch,
 } from '../aa-4337/helpers/testutils';
 import { fillAndSign } from '../aa-4337/user_ops/UserOp';
-import { arrayify, hexConcat, parseEther } from 'ethers/lib/utils';
+import {
+  arrayify,
+  defaultAbiCoder,
+  hexConcat,
+  parseEther,
+} from 'ethers/lib/utils';
 import { UserOperation } from '../aa-4337/user_ops/UserOperation';
 
 describe('EntryPoint with EtherspotPaymaster', function () {
   let entryPoint: EntryPoint;
-  let registry: PersonalAccountRegistry;
   let accountOwner: Wallet;
   let wlaccOwner: Wallet;
   const ethersSigner = ethers.provider.getSigner();
@@ -38,7 +39,6 @@ describe('EntryPoint with EtherspotPaymaster', function () {
   let paymaster: EtherspotPaymaster;
   let intpaymaster: any;
 
-  const abicode = new ethers.utils.AbiCoder();
   const SUCCESS_OP = 0;
   const FAIL_OP = 2;
   const HASH =
@@ -53,9 +53,6 @@ describe('EntryPoint with EtherspotPaymaster', function () {
 
     this.timeout(20000);
     entryPoint = await deployEntryPoint();
-    registry = await new PersonalAccountRegistry__factory(
-      ethersSigner
-    ).deploy();
 
     offchainSigner = createAccountOwner();
     offchainSigner1 = createAccountOwner();
@@ -71,14 +68,12 @@ describe('EntryPoint with EtherspotPaymaster', function () {
     ({ proxy: account } = await createEtherspotWallet(
       ethersSigner,
       accountOwner.address,
-      entryPoint.address,
-      registry.address
+      entryPoint.address
     ));
     ({ proxy: wlaccount } = await createEtherspotWallet(
       ethersSigner,
       wlaccOwner.address,
-      entryPoint.address,
-      registry.address
+      entryPoint.address
     ));
 
     await funder.sendTransaction({
@@ -95,7 +90,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
     it('should parse data properly', async () => {
       const paymasterAndData = hexConcat([
         paymaster.address,
-        abicode.encode(
+        defaultAbiCoder.encode(
           ['uint48', 'uint48'],
           [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
         ),
@@ -129,12 +124,13 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           sender: account.address,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
             '0x1234',
           ]),
+          verificationGasLimit: 120000,
         },
         accountOwner,
         entryPoint
@@ -150,12 +146,13 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           sender: account.address,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
             '0x' + '00'.repeat(65),
           ]),
+          verificationGasLimit: 120000,
         },
         accountOwner,
         entryPoint
@@ -175,12 +172,13 @@ describe('EntryPoint with EtherspotPaymaster', function () {
             sender: account.address,
             paymasterAndData: hexConcat([
               paymaster.address,
-              abicode.encode(
+              defaultAbiCoder.encode(
                 ['uint48', 'uint48'],
                 [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
               ),
               sig,
             ]),
+            verificationGasLimit: 120000,
           },
           accountOwner,
           entryPoint
@@ -212,12 +210,13 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           sender: account.address,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
             '0x' + '00'.repeat(65),
           ]),
+          verificationGasLimit: 120000,
         },
         accountOwner,
         entryPoint
@@ -228,6 +227,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         MOCK_VALID_UNTIL,
         MOCK_VALID_AFTER
       );
+
       const sig = await offchainSigner.signMessage(arrayify(hash));
 
       const userOp = await fillAndSign(
@@ -235,7 +235,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           ...userOp1,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
@@ -264,12 +264,13 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           sender: account.address,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
             '0x' + '00'.repeat(65),
           ]),
+          verificationGasLimit: 120000,
         },
         accountOwner,
         entryPoint
@@ -287,7 +288,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           ...userOp2,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
@@ -309,18 +310,27 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       await paymaster
         .connect(offchainSigner)
         .depositFunds({ value: ethers.utils.parseEther('2.0') });
+
+      // offchain signer add itself as sponsor for wlaccount
       await paymaster.connect(offchainSigner).add(wlaccount.address);
+      // check added correctly
+      const check = await paymaster.check(
+        offchainSigner.address,
+        wlaccount.address
+      );
+
       const userOp2 = await fillAndSign(
         {
           sender: wlaccount.address,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
             '0x' + '00'.repeat(65),
           ]),
+          verificationGasLimit: 120000,
         },
         wlaccOwner,
         entryPoint
@@ -338,7 +348,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           ...userOp2,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
@@ -365,12 +375,13 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           sender: wlaccount.address,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
             '0x' + '00'.repeat(65),
           ]),
+          verificationGasLimit: 120000,
         },
         wlaccOwner,
         entryPoint
@@ -381,6 +392,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         MOCK_VALID_UNTIL,
         MOCK_VALID_AFTER
       );
+
       const sig = await offchainSigner1.signMessage(arrayify(hash));
 
       const userOp = await fillAndSign(
@@ -388,7 +400,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           ...userOp2,
           paymasterAndData: hexConcat([
             paymaster.address,
-            abicode.encode(
+            defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
             ),
@@ -448,7 +460,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       const init = await intpaymaster.checkSponsorFunds(offchainSigner.address);
       expect(init).to.equal(ethers.utils.parseEther('2'));
 
-      const context = abicode.encode(
+      const context = defaultAbiCoder.encode(
         ['address', 'address', 'bytes', 'uint256'],
         [offchainSigner.address, account.address, HASH, 0]
       );
@@ -464,7 +476,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
     });
 
     it('should emit success event upon deducting sponsor funds', async () => {
-      const context = abicode.encode(
+      const context = defaultAbiCoder.encode(
         ['address', 'address', 'bytes', 'uint256'],
         [offchainSigner.address, account.address, HASH, 0]
       );
@@ -478,7 +490,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
     });
 
     it('should emit event upon op code revert when sponsoring failed tx', async () => {
-      const context = abicode.encode(
+      const context = defaultAbiCoder.encode(
         ['address', 'address', 'bytes', 'uint256'],
         [offchainSigner.address, account.address, HASH, 0]
       );
@@ -495,7 +507,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       const init = await intpaymaster.checkSponsorFunds(offchainSigner.address);
       expect(init).to.equal(ethers.utils.parseEther('2'));
 
-      const context = abicode.encode(
+      const context = defaultAbiCoder.encode(
         ['address', 'address', 'bytes', 'uint256'],
         [offchainSigner.address, account.address, HASH, 0]
       );

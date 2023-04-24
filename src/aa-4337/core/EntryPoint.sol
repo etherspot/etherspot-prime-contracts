@@ -17,6 +17,8 @@ import "./StakeManager.sol";
 import "./SenderCreator.sol";
 import "./Helpers.sol";
 
+import "hardhat/console.sol";
+
 contract EntryPoint is IEntryPoint, StakeManager {
     using UserOperationLib for UserOperation;
 
@@ -315,11 +317,9 @@ contract EntryPoint is IEntryPoint, StakeManager {
      * generate a request Id - unique identifier for this request.
      * the request ID is a hash over the content of the userOp (except the signature), the entrypoint and the chainid.
      */
-    function getUserOpHash(UserOperation calldata userOp)
-        public
-        view
-        returns (bytes32)
-    {
+    function getUserOpHash(
+        UserOperation calldata userOp
+    ) public view returns (bytes32) {
         return
             keccak256(abi.encode(userOp.hash(), address(this), block.chainid));
     }
@@ -413,11 +413,9 @@ contract EntryPoint is IEntryPoint, StakeManager {
         );
     }
 
-    function _getRequiredPrefund(MemoryUserOp memory mUserOp)
-        internal
-        pure
-        returns (uint256 requiredPrefund)
-    {
+    function _getRequiredPrefund(
+        MemoryUserOp memory mUserOp
+    ) internal pure returns (uint256 requiredPrefund) {
         unchecked {
             //when using a Paymaster, the verificationGasLimit is used also to as a limit for the postOp call.
             // our security model might call postOp eventually twice
@@ -470,10 +468,9 @@ contract EntryPoint is IEntryPoint, StakeManager {
         revert SenderAddressResult(senderCreator.createSender(initCode));
     }
 
-    function _simulationOnlyValidations(UserOperation calldata userOp)
-        internal
-        view
-    {
+    function _simulationOnlyValidations(
+        UserOperation calldata userOp
+    ) internal view {
         // solhint-disable-next-line no-empty-blocks
         try
             this._validateSenderAndPaymaster(
@@ -652,11 +649,9 @@ contract EntryPoint is IEntryPoint, StakeManager {
         }
     }
 
-    function _getValidationData(uint256 validationData)
-        internal
-        view
-        returns (address aggregator, bool outOfTimeRange)
-    {
+    function _getValidationData(
+        uint256 validationData
+    ) internal view returns (address aggregator, bool outOfTimeRange) {
         if (validationData == 0) {
             return (address(0), false);
         }
@@ -810,11 +805,9 @@ contract EntryPoint is IEntryPoint, StakeManager {
      * the gas price this UserOp agrees to pay.
      * relayer/block builder might submit the TX with higher priorityFee, but the user should not
      */
-    function getUserOpGasPrice(MemoryUserOp memory mUserOp)
-        internal
-        view
-        returns (uint256)
-    {
+    function getUserOpGasPrice(
+        MemoryUserOp memory mUserOp
+    ) internal view returns (uint256) {
         unchecked {
             uint256 maxFeePerGas = mUserOp.maxFeePerGas;
             uint256 maxPriorityFeePerGas = mUserOp.maxPriorityFeePerGas;
@@ -830,21 +823,17 @@ contract EntryPoint is IEntryPoint, StakeManager {
         return a < b ? a : b;
     }
 
-    function getOffsetOfMemoryBytes(bytes memory data)
-        internal
-        pure
-        returns (uint256 offset)
-    {
+    function getOffsetOfMemoryBytes(
+        bytes memory data
+    ) internal pure returns (uint256 offset) {
         assembly {
             offset := data
         }
     }
 
-    function getMemoryBytesFromOffset(uint256 offset)
-        internal
-        pure
-        returns (bytes memory data)
-    {
+    function getMemoryBytesFromOffset(
+        uint256 offset
+    ) internal pure returns (bytes memory data) {
         assembly {
             data := offset
         }

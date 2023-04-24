@@ -20,10 +20,9 @@ contract TestAggregatedAccount is EtherspotWallet {
     /// @inheritdoc EtherspotWallet
     function initialize(
         IEntryPoint anEntryPoint,
-        address anRegistry,
         address
     ) public virtual override initializer {
-        super._initialize(anEntryPoint, anRegistry, address(0));
+        super._initialize(anEntryPoint, address(0));
     }
 
     function _validateSignature(

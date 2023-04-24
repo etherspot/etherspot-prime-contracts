@@ -1,31 +1,27 @@
+import * as dotenv from 'dotenv';
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
-import 'hardhat-preprocessor';
 import '@nomicfoundation/hardhat-chai-matchers';
-import '@typechain/hardhat';
 import '@nomiclabs/hardhat-waffle';
-import 'hardhat-deploy';
 import '@nomiclabs/hardhat-etherscan';
-import 'solidity-coverage';
+import '@typechain/hardhat';
+import '@openzeppelin/hardhat-upgrades';
+import 'hardhat-deploy';
+import 'hardhat-gas-reporter';
 import 'hardhat-tracer';
 import 'hardhat-exposed';
-import '@openzeppelin/hardhat-upgrades';
-import fs from 'fs';
-const { resolve } = require('path');
-const { config: dotenvConfig } = require('dotenv');
+import 'solidity-coverage';
+import 'xdeployer';
 
-dotenvConfig({ path: resolve(__dirname, './.env') });
-
-function getRemappings() {
-  return fs
-    .readFileSync('remappings.txt', 'utf8')
-    .split('\n')
-    .filter(Boolean) // remove empty lines
-    .map((line) => line.trim().split('='));
-}
+dotenv.config({ path: __dirname + '/.env' });
 
 const config: HardhatUserConfig = {
-  solidity: '0.8.12',
+  namedAccounts: {
+    from: 0,
+  },
+  solidity: {
+    compilers: [{ version: '0.8.12' }, { version: '0.8.17' }],
+  },
   networks: {
     hardhat: {
       allowUnlimitedContractSize: true,
@@ -37,31 +33,26 @@ const config: HardhatUserConfig = {
     },
     dev: { url: 'http://localhost:8545' },
   },
-  preprocess: {
-    eachLine: (hre) => ({
-      transform: (line: string) => {
-        if (line.match(/^\s*import /i)) {
-          for (const [from, to] of getRemappings()) {
-            if (line.includes(from)) {
-              line = line.replace(from, to);
-              break;
-            }
-          }
-        }
-        return line;
-      },
-    }),
-  },
   mocha: {
     timeout: 10000,
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: process.env.POLYSCAN_API_KEY,
+  },
+  gasReporter: {
+    enabled: true,
+    currency: 'USD',
+    token: 'MATIC',
+    coinmarketcap: 'd574b328-92e4-40d5-87ef-c2d99aa38bc0',
+    gasPriceApi:
+      'https://api.polygonscan.com/api?module=proxy&action=eth_gasPrice',
   },
   paths: {
     sources: './src',
-    cache: './cache_hardhat',
+    cache: '.hardhat/cache',
     artifacts: './artifacts',
+    deploy: './deploy',
+    deployments: './deployments',
   },
   typechain: {
     outDir: 'typings',

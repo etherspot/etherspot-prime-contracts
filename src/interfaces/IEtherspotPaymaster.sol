@@ -14,13 +14,8 @@ interface IEtherspotPaymaster {
         postOpReverted //user op succeeded, but caused postOp to revert. Now it's a 2nd call, after user's op was deliberately reverted.
     }
 
-    event SponsorSuccessful(
-        address paymaster,
-        address sender,
-        bytes userOpHash
-    );
-
-    event SponsorUnsuccessful(
+    event SponsorTransaction(
+        bool success,
         address paymaster,
         address sender,
         bytes userOpHash
@@ -60,7 +55,7 @@ interface IEtherspotPaymaster {
      *                       Now this is the 2nd call, after user's op was deliberately reverted.
      * @param context - the context value returned by validatePaymasterUserOp
      * @param actualGasCost - actual gas used so far (without this postOp call).
-     * return will emit SponsorSuccessful or SponsorUnsuccessful depending on result from EntryPoint
+     * return will emit SponsorTransaction on result from EntryPoint
      *      if sponsor is successful, costs will be deducted from paymaster's deposited balance
      *      if sponsor is unsuccessful, no costs will be deducted
      */

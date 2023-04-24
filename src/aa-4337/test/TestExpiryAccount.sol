@@ -21,10 +21,9 @@ contract TestExpiryAccount is EtherspotWallet {
 
     function initialize(
         IEntryPoint anEntryPoint,
-        address anRegistry,
         address anOwner
     ) public virtual override initializer {
-        super._initialize(anEntryPoint, anRegistry, anOwner);
+        super._initialize(anEntryPoint, anOwner);
         addTemporaryOwner(anOwner, 0, type(uint48).max);
     }
 

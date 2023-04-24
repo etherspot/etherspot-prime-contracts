@@ -26,8 +26,8 @@ import type {
 export interface BLSAccountFactoryInterface extends utils.Interface {
   functions: {
     "accountImplementation()": FunctionFragment;
-    "createAccount(address,address,uint256,uint256[4])": FunctionFragment;
-    "getAddress(address,address,uint256,uint256[4])": FunctionFragment;
+    "createAccount(address,uint256,uint256[4])": FunctionFragment;
+    "getAddress(address,uint256,uint256[4])": FunctionFragment;
   };
 
   getFunction(
@@ -45,7 +45,6 @@ export interface BLSAccountFactoryInterface extends utils.Interface {
     functionFragment: "createAccount",
     values: [
       PromiseOrValue<string>,
-      PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       [
         PromiseOrValue<BigNumberish>,
@@ -58,7 +57,6 @@ export interface BLSAccountFactoryInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getAddress",
     values: [
-      PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       [
@@ -113,8 +111,7 @@ export interface BLSAccountFactory extends BaseContract {
     accountImplementation(overrides?: CallOverrides): Promise<[string]>;
 
     createAccount(
-      entryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
+      anEntryPoint: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -126,8 +123,7 @@ export interface BLSAccountFactory extends BaseContract {
     ): Promise<ContractTransaction>;
 
     getAddress(
-      entryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
+      anEntryPoint: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -142,8 +138,7 @@ export interface BLSAccountFactory extends BaseContract {
   accountImplementation(overrides?: CallOverrides): Promise<string>;
 
   createAccount(
-    entryPoint: PromiseOrValue<string>,
-    anRegistry: PromiseOrValue<string>,
+    anEntryPoint: PromiseOrValue<string>,
     salt: PromiseOrValue<BigNumberish>,
     aPublicKey: [
       PromiseOrValue<BigNumberish>,
@@ -155,8 +150,7 @@ export interface BLSAccountFactory extends BaseContract {
   ): Promise<ContractTransaction>;
 
   getAddress(
-    entryPoint: PromiseOrValue<string>,
-    anRegistry: PromiseOrValue<string>,
+    anEntryPoint: PromiseOrValue<string>,
     salt: PromiseOrValue<BigNumberish>,
     aPublicKey: [
       PromiseOrValue<BigNumberish>,
@@ -171,8 +165,7 @@ export interface BLSAccountFactory extends BaseContract {
     accountImplementation(overrides?: CallOverrides): Promise<string>;
 
     createAccount(
-      entryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
+      anEntryPoint: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -184,8 +177,7 @@ export interface BLSAccountFactory extends BaseContract {
     ): Promise<string>;
 
     getAddress(
-      entryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
+      anEntryPoint: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -203,8 +195,7 @@ export interface BLSAccountFactory extends BaseContract {
     accountImplementation(overrides?: CallOverrides): Promise<BigNumber>;
 
     createAccount(
-      entryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
+      anEntryPoint: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -216,8 +207,7 @@ export interface BLSAccountFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     getAddress(
-      entryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
+      anEntryPoint: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -235,8 +225,7 @@ export interface BLSAccountFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     createAccount(
-      entryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
+      anEntryPoint: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -248,8 +237,7 @@ export interface BLSAccountFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getAddress(
-      entryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
+      anEntryPoint: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,

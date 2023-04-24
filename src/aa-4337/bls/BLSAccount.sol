@@ -27,10 +27,9 @@ contract BLSAccount is EtherspotWallet, IBLSAccount {
      */
     function initialize(
         IEntryPoint anEntryPoint,
-        address anRegistry,
         uint256[4] memory aPublicKey
     ) public virtual initializer {
-        super._initialize(anEntryPoint, anRegistry, address(0));
+        super._initialize(anEntryPoint, address(0));
         _setBlsPublicKey(aPublicKey);
     }
 

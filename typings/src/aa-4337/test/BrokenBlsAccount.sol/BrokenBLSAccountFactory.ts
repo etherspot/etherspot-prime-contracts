@@ -26,8 +26,8 @@ import type {
 export interface BrokenBLSAccountFactoryInterface extends utils.Interface {
   functions: {
     "accountImplementation()": FunctionFragment;
-    "createAccount(address,address,uint256,uint256[4])": FunctionFragment;
-    "getAddress(address,address,uint256,uint256[4])": FunctionFragment;
+    "createAccount(address,uint256,uint256[4])": FunctionFragment;
+    "getAddress(address,uint256,uint256[4])": FunctionFragment;
   };
 
   getFunction(
@@ -45,7 +45,6 @@ export interface BrokenBLSAccountFactoryInterface extends utils.Interface {
     functionFragment: "createAccount",
     values: [
       PromiseOrValue<string>,
-      PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       [
         PromiseOrValue<BigNumberish>,
@@ -58,7 +57,6 @@ export interface BrokenBLSAccountFactoryInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getAddress",
     values: [
-      PromiseOrValue<string>,
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
       [
@@ -114,7 +112,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
     createAccount(
       anEntryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -127,7 +124,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
     getAddress(
       anEntryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -143,7 +139,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
   createAccount(
     anEntryPoint: PromiseOrValue<string>,
-    anRegistry: PromiseOrValue<string>,
     salt: PromiseOrValue<BigNumberish>,
     aPublicKey: [
       PromiseOrValue<BigNumberish>,
@@ -156,7 +151,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
   getAddress(
     anEntryPoint: PromiseOrValue<string>,
-    anRegistry: PromiseOrValue<string>,
     salt: PromiseOrValue<BigNumberish>,
     aPublicKey: [
       PromiseOrValue<BigNumberish>,
@@ -172,7 +166,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
     createAccount(
       anEntryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -185,7 +178,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
     getAddress(
       anEntryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -204,7 +196,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
     createAccount(
       anEntryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -217,7 +208,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
     getAddress(
       anEntryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -236,7 +226,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
     createAccount(
       anEntryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,
@@ -249,7 +238,6 @@ export interface BrokenBLSAccountFactory extends BaseContract {
 
     getAddress(
       anEntryPoint: PromiseOrValue<string>,
-      anRegistry: PromiseOrValue<string>,
       salt: PromiseOrValue<BigNumberish>,
       aPublicKey: [
         PromiseOrValue<BigNumberish>,

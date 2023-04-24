@@ -22,11 +22,10 @@ contract BrokenBLSAccount is EtherspotWallet, IBLSAccount {
 
     function initialize(
         IEntryPoint anEntryPoint,
-        address anRegistry,
         uint256[4] memory aPublicKey
     ) public virtual initializer {
         (aPublicKey);
-        super._initialize(anEntryPoint, anRegistry, address(0));
+        super._initialize(anEntryPoint, address(0));
     }
 
     function _validateSignature(
@@ -69,11 +68,10 @@ contract BrokenBLSAccountFactory {
      */
     function createAccount(
         IEntryPoint anEntryPoint,
-        address anRegistry,
         uint256 salt,
         uint256[4] memory aPublicKey
     ) public returns (BrokenBLSAccount) {
-        address addr = getAddress(anEntryPoint, anRegistry, salt, aPublicKey);
+        address addr = getAddress(anEntryPoint, salt, aPublicKey);
         uint256 codeSize = addr.code.length;
         if (codeSize > 0) {
             return BrokenBLSAccount(payable(addr));
@@ -85,7 +83,7 @@ contract BrokenBLSAccountFactory {
                         address(accountImplementation),
                         abi.encodeCall(
                             BrokenBLSAccount.initialize,
-                            (anEntryPoint, anRegistry, aPublicKey)
+                            (anEntryPoint, aPublicKey)
                         )
                     )
                 )
@@ -97,7 +95,6 @@ contract BrokenBLSAccountFactory {
      */
     function getAddress(
         IEntryPoint anEntryPoint,
-        address anRegistry,
         uint256 salt,
         uint256[4] memory aPublicKey
     ) public view returns (address) {
@@ -111,7 +108,7 @@ contract BrokenBLSAccountFactory {
                             address(accountImplementation),
                             abi.encodeCall(
                                 BrokenBLSAccount.initialize,
-                                (anEntryPoint, anRegistry, aPublicKey)
+                                (anEntryPoint, aPublicKey)
                             )
                         )
                     )

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
-/* eslint-disable @typescript-eslint/camelcase */
 import {
   aggregate,
   BlsSignerFactory,
@@ -14,12 +12,13 @@ import {
   BLSAccount__factory,
   BLSAccountFactory,
   BLSAccountFactory__factory,
+  BrokenBLSAccountFactory__factory,
   EntryPoint,
-  PersonalAccountRegistry,
-  PersonalAccountRegistry__factory,
+  IEntryPoint,
 } from '../../../typings';
 import { ethers } from 'hardhat';
 import {
+  createAddress,
   deployEntryPoint,
   fund,
   ONE_ETH,
@@ -29,8 +28,24 @@ import { DefaultsForUserOp, fillUserOp } from '../user_ops/UserOp';
 import { expect } from 'chai';
 import { keccak256 } from 'ethereumjs-util';
 import { hashToPoint } from '@thehubbleproject/bls/dist/mcl';
-import { BigNumber } from 'ethers';
+import { BigNumber, Signer } from 'ethers';
 import { BytesLike, hexValue } from '@ethersproject/bytes';
+
+async function deployBlsAccount(
+  ethersSigner: Signer,
+  factoryAddr: string,
+  blsSigner: any,
+  entryPoint: string
+): Promise<BLSAccount> {
+  const factory = BLSAccountFactory__factory.connect(factoryAddr, ethersSigner);
+  const addr = await factory.callStatic.createAccount(
+    entryPoint,
+    0,
+    blsSigner.pubkey
+  );
+  await factory.createAccount(entryPoint, 0, blsSigner.pubkey);
+  return BLSAccount__factory.connect(addr, ethersSigner);
+}
 
 describe('bls account', function () {
   this.timeout(20000);
@@ -44,10 +59,8 @@ describe('bls account', function () {
   let account1: BLSAccount;
   let account2: BLSAccount;
   let accountDeployer: BLSAccountFactory;
-  let registry: PersonalAccountRegistry;
   before(async () => {
     entrypoint = await deployEntryPoint();
-    registry = await new PersonalAccountRegistry__factory(etherSigner).deploy();
     const BLSOpenLib = await new BLSOpen__factory(
       ethers.provider.getSigner()
     ).deploy();
@@ -67,22 +80,17 @@ describe('bls account', function () {
       blsAgg.address
     );
 
-    // TODO: these two are not created via the 'accountDeployer' for some reason - I am not touching it for now
-    account1 = await new BLSAccount__factory(etherSigner).deploy(
-      blsAgg.address
+    account1 = await deployBlsAccount(
+      etherSigner,
+      accountDeployer.address,
+      signer1,
+      entrypoint.address
     );
-    await account1['initialize(IEntryPoint, address, uint256[4])'](
-      entrypoint,
-      registry.address,
-      signer1.pubkey
-    );
-    account2 = await new BLSAccount__factory(etherSigner).deploy(
-      blsAgg.address
-    );
-    await account2['initialize(IEntryPoint, address, uint256[4])'](
-      entrypoint,
-      registry.address,
-      signer2.pubkey
+    account2 = await deployBlsAccount(
+      etherSigner,
+      accountDeployer.address,
+      signer2,
+      entrypoint.address
     );
   });
 
@@ -141,6 +149,62 @@ describe('bls account', function () {
     expect(ret).to.equal('0x');
   });
 
+  it('aggregated sig validation must succeed if off-chain UserOp sig succeeds', async () => {
+    // regression AA-119: prevent off-chain signature success and on-chain revert.
+    // "broken account" uses different public-key during construction and runtime.
+    const brokenAccountFactory = await new BrokenBLSAccountFactory__factory(
+      etherSigner
+    ).deploy(blsAgg.address);
+    // const brokenAccountFactory = await new BLSAccountFactory__factory(etherSigner).deploy(entrypoint.address, blsAgg.address)
+    const deployTx =
+      await brokenAccountFactory.populateTransaction.createAccount(
+        entrypoint.address,
+        0,
+        signer1.pubkey
+      );
+    const res = await brokenAccountFactory.provider.call(deployTx);
+    const acc = brokenAccountFactory.interface.decodeFunctionResult(
+      'createAccount',
+      res
+    )[0];
+    await fund(acc);
+    const userOp = await fillUserOp(
+      {
+        sender: acc,
+        initCode: hexConcat([brokenAccountFactory.address, deployTx.data!]),
+      },
+      entrypoint
+    );
+    const requestHash = await blsAgg.getUserOpHash(userOp);
+    const signature = (userOp.signature = hexConcat(signer1.sign(requestHash)));
+
+    // and sig validation should fail:
+    const singleOpSigCheck = (await blsAgg.validateUserOpSignature(userOp).then(
+      () => 'ok',
+      (e) => e.message
+    )) as string;
+
+    // above account should fail on-chain:
+    const beneficiary = createAddress();
+    const handleRet = (await entrypoint.callStatic
+      .handleAggregatedOps(
+        [
+          {
+            userOps: [userOp],
+            aggregator: blsAgg.address,
+            signature,
+          },
+        ],
+        beneficiary
+      )
+      .then(
+        () => 'ok',
+        (e) => e.errorName
+      )) as string;
+
+    expect(`${singleOpSigCheck},${handleRet}`).to.eq('ok,ok');
+  });
+
   it('validateSignatures', async function () {
     // yes, it does take long on hardhat, but quick on geth.
     this.timeout(30000);
@@ -196,7 +260,6 @@ describe('bls account', function () {
         accountDeployer.address,
         accountDeployer.interface.encodeFunctionData('createAccount', [
           entrypoint.address,
-          registry.address,
           0,
           signer3.pubkey,
         ]),
@@ -221,24 +284,10 @@ describe('bls account', function () {
       const sigParts = signer3.sign(requestHash);
       userOp.signature = hexConcat(sigParts);
 
-      // const aggregatorInfo: any = await entrypoint.callStatic
-      //   .simulateValidation(userOp)
-      //   .catch((e) => {
-      //     const actualAggregator = e.message.split('"')[3];
-      //     const stake = e.message.split('"')[4].slice(3, 22);
-      //     const unstakeDelaySec = parseInt(
-      //       e.message.split('"')[4].slice(24, 25)
-      //     );
-      //     return [actualAggregator, stake, unstakeDelaySec];
-      //   });
-      // expect(aggregatorInfo[0]).to.eq(blsAgg.address);
-      // expect(aggregatorInfo[1]).to.eq(ONE_ETH);
-      // expect(aggregatorInfo[2]).to.eq(2);
-
       const { aggregatorInfo } = await entrypoint.callStatic
         .simulateValidation(userOp)
         .catch(simulationResultWithAggregationCatch);
-      expect(aggregatorInfo.actualAggregator).to.eq(blsAgg.address);
+      expect(aggregatorInfo.aggregator).to.eq(blsAgg.address);
       expect(aggregatorInfo.stakeInfo.stake).to.eq(ONE_ETH);
       expect(aggregatorInfo.stakeInfo.unstakeDelaySec).to.eq(2);
 
