@@ -12,6 +12,7 @@ import 'hardhat-tracer';
 import 'hardhat-exposed';
 import 'solidity-coverage';
 import 'xdeployer';
+import { stdout } from 'process';
 
 dotenv.config({ path: __dirname + '/.env' });
 
