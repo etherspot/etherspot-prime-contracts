@@ -35,6 +35,7 @@ export interface IEtherspotWalletInterface extends utils.Interface {
     "execute(address,uint256,bytes)": FunctionFragment;
     "executeBatch(address[],bytes[])": FunctionFragment;
     "getDeposit()": FunctionFragment;
+    "isGuardian(address)": FunctionFragment;
     "isOwner(address)": FunctionFragment;
     "nonce()": FunctionFragment;
     "updateEntryPoint(address)": FunctionFragment;
@@ -47,6 +48,7 @@ export interface IEtherspotWalletInterface extends utils.Interface {
       | "execute"
       | "executeBatch"
       | "getDeposit"
+      | "isGuardian"
       | "isOwner"
       | "nonce"
       | "updateEntryPoint"
@@ -77,6 +79,10 @@ export interface IEtherspotWalletInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "isGuardian",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
     functionFragment: "isOwner",
     values: [PromiseOrValue<string>]
   ): string;
@@ -94,6 +100,7 @@ export interface IEtherspotWalletInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "isGuardian", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
   decodeFunctionResult(
@@ -222,6 +229,11 @@ export interface IEtherspotWallet extends BaseContract {
 
     getDeposit(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    isGuardian(
+      _guardian: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     isOwner(
       _owner: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -256,6 +268,11 @@ export interface IEtherspotWallet extends BaseContract {
 
   getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
+  isGuardian(
+    _guardian: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   isOwner(
     _owner: PromiseOrValue<string>,
     overrides?: CallOverrides
@@ -287,6 +304,11 @@ export interface IEtherspotWallet extends BaseContract {
     ): Promise<void>;
 
     getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isGuardian(
+      _guardian: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
     isOwner(
       _owner: PromiseOrValue<string>,
@@ -367,6 +389,11 @@ export interface IEtherspotWallet extends BaseContract {
 
     getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
+    isGuardian(
+      _guardian: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     isOwner(
       _owner: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -401,6 +428,11 @@ export interface IEtherspotWallet extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getDeposit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isGuardian(
+      _guardian: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     isOwner(
       _owner: PromiseOrValue<string>,

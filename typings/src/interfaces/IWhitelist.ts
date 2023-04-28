@@ -12,7 +12,11 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -70,8 +74,80 @@ export interface IWhitelistInterface extends utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "AddedBatchToWhitelist(address,address[])": EventFragment;
+    "AddedToWhitelist(address,address)": EventFragment;
+    "RemovedBatchFromWhitelist(address,address[])": EventFragment;
+    "RemovedFromWhitelist(address,address)": EventFragment;
+    "WhitelistInitialized(address,string)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "AddedBatchToWhitelist"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AddedToWhitelist"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RemovedBatchFromWhitelist"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "RemovedFromWhitelist"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "WhitelistInitialized"): EventFragment;
 }
+
+export interface AddedBatchToWhitelistEventObject {
+  paymaster: string;
+  accounts: string[];
+}
+export type AddedBatchToWhitelistEvent = TypedEvent<
+  [string, string[]],
+  AddedBatchToWhitelistEventObject
+>;
+
+export type AddedBatchToWhitelistEventFilter =
+  TypedEventFilter<AddedBatchToWhitelistEvent>;
+
+export interface AddedToWhitelistEventObject {
+  paymaster: string;
+  account: string;
+}
+export type AddedToWhitelistEvent = TypedEvent<
+  [string, string],
+  AddedToWhitelistEventObject
+>;
+
+export type AddedToWhitelistEventFilter =
+  TypedEventFilter<AddedToWhitelistEvent>;
+
+export interface RemovedBatchFromWhitelistEventObject {
+  paymaster: string;
+  accounts: string[];
+}
+export type RemovedBatchFromWhitelistEvent = TypedEvent<
+  [string, string[]],
+  RemovedBatchFromWhitelistEventObject
+>;
+
+export type RemovedBatchFromWhitelistEventFilter =
+  TypedEventFilter<RemovedBatchFromWhitelistEvent>;
+
+export interface RemovedFromWhitelistEventObject {
+  paymaster: string;
+  account: string;
+}
+export type RemovedFromWhitelistEvent = TypedEvent<
+  [string, string],
+  RemovedFromWhitelistEventObject
+>;
+
+export type RemovedFromWhitelistEventFilter =
+  TypedEventFilter<RemovedFromWhitelistEvent>;
+
+export interface WhitelistInitializedEventObject {
+  owner: string;
+  version: string;
+}
+export type WhitelistInitializedEvent = TypedEvent<
+  [string, string],
+  WhitelistInitializedEventObject
+>;
+
+export type WhitelistInitializedEventFilter =
+  TypedEventFilter<WhitelistInitializedEvent>;
 
 export interface IWhitelist extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -181,7 +257,52 @@ export interface IWhitelist extends BaseContract {
     ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    "AddedBatchToWhitelist(address,address[])"(
+      paymaster?: PromiseOrValue<string> | null,
+      accounts?: PromiseOrValue<string>[] | null
+    ): AddedBatchToWhitelistEventFilter;
+    AddedBatchToWhitelist(
+      paymaster?: PromiseOrValue<string> | null,
+      accounts?: PromiseOrValue<string>[] | null
+    ): AddedBatchToWhitelistEventFilter;
+
+    "AddedToWhitelist(address,address)"(
+      paymaster?: PromiseOrValue<string> | null,
+      account?: PromiseOrValue<string> | null
+    ): AddedToWhitelistEventFilter;
+    AddedToWhitelist(
+      paymaster?: PromiseOrValue<string> | null,
+      account?: PromiseOrValue<string> | null
+    ): AddedToWhitelistEventFilter;
+
+    "RemovedBatchFromWhitelist(address,address[])"(
+      paymaster?: PromiseOrValue<string> | null,
+      accounts?: PromiseOrValue<string>[] | null
+    ): RemovedBatchFromWhitelistEventFilter;
+    RemovedBatchFromWhitelist(
+      paymaster?: PromiseOrValue<string> | null,
+      accounts?: PromiseOrValue<string>[] | null
+    ): RemovedBatchFromWhitelistEventFilter;
+
+    "RemovedFromWhitelist(address,address)"(
+      paymaster?: PromiseOrValue<string> | null,
+      account?: PromiseOrValue<string> | null
+    ): RemovedFromWhitelistEventFilter;
+    RemovedFromWhitelist(
+      paymaster?: PromiseOrValue<string> | null,
+      account?: PromiseOrValue<string> | null
+    ): RemovedFromWhitelistEventFilter;
+
+    "WhitelistInitialized(address,string)"(
+      owner?: null,
+      version?: null
+    ): WhitelistInitializedEventFilter;
+    WhitelistInitialized(
+      owner?: null,
+      version?: null
+    ): WhitelistInitializedEventFilter;
+  };
 
   estimateGas: {
     add(

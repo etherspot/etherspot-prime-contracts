@@ -3,11 +3,12 @@ pragma solidity ^0.8.12;
 
 /* solhint-disable reason-string */
 
-import "../aa-4337/core/BasePaymaster.sol";
+import "../../account-abstraction/contracts/core/BasePaymaster.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Whitelist} from "./Whitelist.sol";
+import "./Whitelist.sol";
+
 import "hardhat/console.sol";
 
 /**
@@ -124,7 +125,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
             uint48 validAfter,
             bytes calldata signature
         ) = parsePaymasterAndData(userOp.paymasterAndData);
-        //ECDSA library supports both 64 and 65-byte long signatures.
+        // ECDSA library supports both 64 and 65-byte long signatures.
         // we only "require" it here so that the revert reason on invalid signature will be of "EtherspotPaymaster", and not "ECDSA"
         require(
             signature.length == 64 || signature.length == 65,
@@ -139,7 +140,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         // check for valid paymaster
         address sponsorSig = ECDSA.recover(hash, signature);
 
-        //don't revert on signature failure: return SIG_VALIDATION_FAILED
+        // don't revert on signature failure: return SIG_VALIDATION_FAILED
         if (!_check(sponsorSig, sig)) {
             return ("", _packValidationData(true, validUntil, validAfter));
         }
@@ -150,7 +151,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
             "EtherspotPaymaster:: Sponsor paymaster funds too low"
         );
 
-        //no need for other on-chain validation: entire UserOp should have been checked
+        // no need for other on-chain validation: entire UserOp should have been checked
         // by the external service prior to signing it.
         return (
             abi.encode(sponsorSig, sig, userOp),

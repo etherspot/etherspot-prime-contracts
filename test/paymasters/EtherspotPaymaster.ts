@@ -2,27 +2,28 @@
 import { Wallet } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
+import { EntryPoint } from '../../account-abstraction/typechain';
 import {
   EtherspotWallet,
-  EntryPoint,
   EtherspotPaymaster,
   EtherspotPaymaster__factory,
 } from '../../typings';
 import {
-  createEtherspotWallet,
   createAccountOwner,
   createAddress,
   deployEntryPoint,
+  rethrow,
   simulationResultCatch,
-} from '../aa-4337/helpers/testutils';
-import { fillAndSign } from '../aa-4337/user_ops/UserOp';
+} from '../../account-abstraction/test/testutils';
+import { createEtherspotWallet } from '../TestUtils';
+import { fillAndSign } from '../../account-abstraction/test/UserOp';
 import {
   arrayify,
   defaultAbiCoder,
   hexConcat,
   parseEther,
 } from 'ethers/lib/utils';
-import { UserOperation } from '../aa-4337/user_ops/UserOperation';
+import { UserOperation } from '../../account-abstraction/test/UserOperation';
 
 describe('EntryPoint with EtherspotPaymaster', function () {
   let entryPoint: EntryPoint;
@@ -63,8 +64,8 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       entryPoint.address
     );
 
-    await paymaster.addStake(1, { value: parseEther('2') });
-    await entryPoint.depositTo(paymaster.address, { value: parseEther('1') });
+    await paymaster.addStake(1, { value: parseEther('3') });
+    await entryPoint.depositTo(paymaster.address, { value: parseEther('2') });
     ({ proxy: account } = await createEtherspotWallet(
       ethersSigner,
       accountOwner.address,
@@ -76,13 +77,16 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       entryPoint.address
     ));
 
+    // await fund(offchainSigner.address, '5.0');
+    // await fund(offchainSigner1.address, '5.0');
+
     await funder.sendTransaction({
       to: offchainSigner.address,
-      value: ethers.utils.parseEther('10.0'),
+      value: ethers.utils.parseEther('20.0'),
     });
     await funder.sendTransaction({
       to: offchainSigner1.address,
-      value: ethers.utils.parseEther('10.0'),
+      value: ethers.utils.parseEther('20.0'),
     });
   });
 
@@ -96,7 +100,6 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         ),
         MOCK_SIG,
       ]);
-      console.log(paymasterAndData);
       const res = await paymaster.parsePaymasterAndData(paymasterAndData);
       expect(res.validUntil).to.be.equal(
         ethers.BigNumber.from(MOCK_VALID_UNTIL)
@@ -135,9 +138,14 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         accountOwner,
         entryPoint
       );
-      await expect(
-        entryPoint.callStatic.simulateValidation(userOp)
-      ).to.be.revertedWith('invalid signature length in paymasterAndData');
+      const revert = await entryPoint.callStatic
+        .simulateValidation(userOp)
+        .catch((e) => {
+          return e.errorArgs.reason;
+        });
+      expect(revert).to.contain(
+        'EtherspotPaymaster:: invalid signature length in paymasterAndData'
+      );
     });
 
     it('should reject on invalid signature', async () => {
@@ -157,9 +165,12 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         accountOwner,
         entryPoint
       );
-      await expect(
-        entryPoint.callStatic.simulateValidation(userOp)
-      ).to.be.revertedWith('ECDSA: invalid signature');
+      const revert = await entryPoint.callStatic
+        .simulateValidation(userOp)
+        .catch((e) => {
+          return e.errorArgs.reason;
+        });
+      expect(revert).to.contain('ECDSA: invalid signature');
     });
 
     describe('with wrong signature', () => {
@@ -178,7 +189,6 @@ describe('EntryPoint with EtherspotPaymaster', function () {
               ),
               sig,
             ]),
-            verificationGasLimit: 120000,
           },
           accountOwner,
           entryPoint
@@ -195,7 +205,9 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       it('handleOp revert on signature failure in handleOps', async () => {
         await expect(
           entryPoint.estimateGas.handleOps([wrongSigUserOp], beneficiaryAddress)
-        ).to.revertedWith('AA34 signature error');
+        )
+          .to.revertedWithCustomError(entryPoint, 'FailedOp')
+          .withArgs(0, 'AA34 signature error');
       });
     });
 
@@ -411,9 +423,12 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         entryPoint
       );
 
-      await expect(
-        entryPoint.callStatic.simulateValidation(userOp)
-      ).to.be.revertedWith(
+      const revert = await entryPoint.callStatic
+        .simulateValidation(userOp)
+        .catch((e) => {
+          return e.message;
+        });
+      expect(revert).to.contain(
         'EtherspotPaymaster:: Sponsor paymaster funds too low'
       );
     });
@@ -421,11 +436,13 @@ describe('EntryPoint with EtherspotPaymaster', function () {
 
   describe('#depositFunds', () => {
     it('fails if sponsor does not have enough balance', async () => {
-      await expect(
-        paymaster
-          .connect(offchainSigner)
-          .depositFunds({ value: ethers.utils.parseEther('1000000') })
-      ).to.be.revertedWith('EtherspotPaymaster:: Not enough balance');
+      const revert = await paymaster
+        .connect(offchainSigner)
+        .depositFunds({ value: ethers.utils.parseEther('1000000') })
+        .catch((e) => {
+          return e.message;
+        });
+      expect(revert).to.contain('EtherspotPaymaster:: Not enough balance');
     });
 
     it('should succeed in depositing funds', async () => {
@@ -440,8 +457,6 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       expect(post).to.equal(ethers.utils.parseEther('2.0'));
     });
   });
-
-  // TODO: testing for depositing, paying gas for a userOp and reducing deposited balance
 
   describe('#_postOp', async () => {
     beforeEach(async () => {

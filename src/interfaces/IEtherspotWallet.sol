@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.12;
 
-import {IEntryPoint} from "../aa-4337/interfaces/IEntryPoint.sol";
+import {IEntryPoint} from "../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
 
 interface IEtherspotWallet {
     event EtherspotWalletInitialized(
@@ -31,6 +31,8 @@ interface IEtherspotWallet {
     function addDeposit() external payable;
 
     function isOwner(address _owner) external view returns (bool);
+
+    function isGuardian(address _guardian) external view returns (bool);
 
     function updateEntryPoint(address _newEntryPoint) external;
 }

@@ -183,6 +183,25 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "_guardian",
+        type: "address",
+      },
+    ],
+    name: "isGuardian",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "_owner",
         type: "address",
       },

@@ -77,13 +77,13 @@ export interface EtherspotWalletInterface extends utils.Interface {
     "execute(address,uint256,bytes)": FunctionFragment;
     "executeBatch(address[],bytes[])": FunctionFragment;
     "getDeposit()": FunctionFragment;
+    "getNonce()": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
     "isGuardian(address)": FunctionFragment;
     "isOwner(address)": FunctionFragment;
     "isValidSig(address,bytes32,bytes)": FunctionFragment;
     "isValidSigImpl(address,bytes32,bytes,bool)": FunctionFragment;
     "isValidSigWithSideEffects(address,bytes32,bytes)": FunctionFragment;
-    "nonce()": FunctionFragment;
     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
     "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
     "onERC721Received(address,address,uint256,bytes)": FunctionFragment;
@@ -108,13 +108,13 @@ export interface EtherspotWalletInterface extends utils.Interface {
       | "execute"
       | "executeBatch"
       | "getDeposit"
+      | "getNonce"
       | "initialize"
       | "isGuardian"
       | "isOwner"
       | "isValidSig"
       | "isValidSigImpl"
       | "isValidSigWithSideEffects"
-      | "nonce"
       | "onERC1155BatchReceived"
       | "onERC1155Received"
       | "onERC721Received"
@@ -162,6 +162,7 @@ export interface EtherspotWalletInterface extends utils.Interface {
     functionFragment: "getDeposit",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "getNonce", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "initialize",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
@@ -199,7 +200,6 @@ export interface EtherspotWalletInterface extends utils.Interface {
       PromiseOrValue<BytesLike>
     ]
   ): string;
-  encodeFunctionData(functionFragment: "nonce", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "onERC1155BatchReceived",
     values: [
@@ -294,6 +294,7 @@ export interface EtherspotWalletInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getNonce", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isGuardian", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
@@ -306,7 +307,6 @@ export interface EtherspotWalletInterface extends utils.Interface {
     functionFragment: "isValidSigWithSideEffects",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "onERC1155BatchReceived",
     data: BytesLike
@@ -544,6 +544,8 @@ export interface EtherspotWallet extends BaseContract {
 
     getDeposit(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    getNonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     initialize(
       anEntryPoint: PromiseOrValue<string>,
       anOwner: PromiseOrValue<string>,
@@ -581,8 +583,6 @@ export interface EtherspotWallet extends BaseContract {
       _signature: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    nonce(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -698,6 +698,8 @@ export interface EtherspotWallet extends BaseContract {
 
   getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
   initialize(
     anEntryPoint: PromiseOrValue<string>,
     anOwner: PromiseOrValue<string>,
@@ -735,8 +737,6 @@ export interface EtherspotWallet extends BaseContract {
     _signature: PromiseOrValue<BytesLike>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-
-  nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
   onERC1155BatchReceived(
     arg0: PromiseOrValue<string>,
@@ -850,6 +850,8 @@ export interface EtherspotWallet extends BaseContract {
 
     getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     initialize(
       anEntryPoint: PromiseOrValue<string>,
       anOwner: PromiseOrValue<string>,
@@ -887,8 +889,6 @@ export interface EtherspotWallet extends BaseContract {
       _signature: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<boolean>;
-
-    nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -1074,6 +1074,8 @@ export interface EtherspotWallet extends BaseContract {
 
     getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getNonce(overrides?: CallOverrides): Promise<BigNumber>;
+
     initialize(
       anEntryPoint: PromiseOrValue<string>,
       anOwner: PromiseOrValue<string>,
@@ -1111,8 +1113,6 @@ export interface EtherspotWallet extends BaseContract {
       _signature: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-
-    nonce(overrides?: CallOverrides): Promise<BigNumber>;
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,
@@ -1229,6 +1229,8 @@ export interface EtherspotWallet extends BaseContract {
 
     getDeposit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getNonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     initialize(
       anEntryPoint: PromiseOrValue<string>,
       anOwner: PromiseOrValue<string>,
@@ -1266,8 +1268,6 @@ export interface EtherspotWallet extends BaseContract {
       _signature: PromiseOrValue<BytesLike>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-
-    nonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     onERC1155BatchReceived(
       arg0: PromiseOrValue<string>,

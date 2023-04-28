@@ -8,12 +8,10 @@ pragma solidity ^0.8.12;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../aa-4337/core/BaseAccount.sol";
-import "../aa-4337/callback/TokenCallbackHandler.sol";
+import "../../account-abstraction/contracts/core/BaseAccount.sol";
+import "../../account-abstraction/contracts/samples/callback/TokenCallbackHandler.sol";
 import "../helpers/UniversalSignatureValidator.sol";
-import "../access/Owned.sol";
-import "../access/Guarded.sol";
+import "../access/AccessController.sol";
 
 contract EtherspotWallet is
     BaseAccount,
@@ -21,15 +19,11 @@ contract EtherspotWallet is
     Initializable,
     TokenCallbackHandler,
     UniversalSigValidator,
-    Owned,
-    Guarded
+    AccessController
 {
     using ECDSA for bytes32;
 
     IEntryPoint private _entryPoint;
-
-    bytes28 private _filler;
-    uint96 private _nonce;
 
     event EtherspotWalletInitialized(
         IEntryPoint indexed entryPoint,
@@ -38,24 +32,9 @@ contract EtherspotWallet is
     event EtherspotWalletReceived(address indexed from, uint256 indexed amount);
     event EntryPointChanged(address oldEntryPoint, address newEntryPoint);
 
-    modifier onlyOwner() {
-        _onlyOwner();
-        _;
-    }
-
-    modifier onlyOwnerOrGuardian() {
-        _onlyOwnerOrGuardian();
-        _;
-    }
-
     constructor() {
         _disableInitializers();
         // solhint-disable-previous-line no-empty-blocks
-    }
-
-    /// @inheritdoc BaseAccount
-    function nonce() public view virtual override returns (uint256) {
-        return _nonce;
     }
 
     /// @inheritdoc BaseAccount
@@ -67,51 +46,18 @@ contract EtherspotWallet is
         emit EtherspotWalletReceived(msg.sender, msg.value);
     }
 
-    function _onlyOwner() internal view {
-        //directly from EOA owner, or through the account itself (which gets redirected through execute())
-        require(
-            isOwner(msg.sender) || msg.sender == address(this),
-            "EtherspotWallet:: only owner"
-        );
-    }
-
-    function _onlyOwnerOrGuardian() internal view {
-        require(
-            isOwner(msg.sender) ||
-                msg.sender == address(this) ||
-                isGuardian(msg.sender),
-            "EtherspotWallet:: only owner or guardian"
-        );
-    }
-
-    // Require the function call went through EntryPoint or owner
-    function _requireFromEntryPointOrOwner() internal view {
-        require(
-            msg.sender == address(entryPoint()) || isOwner(msg.sender),
-            "EtherspotWallet: not Owner or EntryPoint"
-        );
-    }
-
-    /**
-     * execute a transaction (called directly from owner, or by entryPoint)
-     */
     function execute(
         address dest,
         uint256 value,
         bytes calldata func
-    ) external {
-        _requireFromEntryPointOrOwner();
+    ) external onlyOwnerOrEntryPoint(address(entryPoint())) {
         _call(dest, value, func);
     }
 
-    /**
-     * execute a sequence of transactions
-     */
     function executeBatch(
         address[] calldata dest,
         bytes[] calldata func
-    ) external {
-        _requireFromEntryPointOrOwner();
+    ) external onlyOwnerOrEntryPoint(address(entryPoint())) {
         require(
             dest.length == func.length,
             "EtherspotWallet:: executeBatch: wrong array lengths"
@@ -121,11 +67,6 @@ contract EtherspotWallet is
         }
     }
 
-    /**
-     * @dev The _entryPoint member is immutable, to reduce gas consumption.  To upgrade EntryPoint,
-     * a new implementation of SimpleAccount must be deployed with the new EntryPoint address, then upgrading
-     * the implementation by calling `upgradeTo()`
-     */
     function initialize(
         IEntryPoint anEntryPoint,
         address anOwner
@@ -142,14 +83,6 @@ contract EtherspotWallet is
         emit EtherspotWalletInitialized(_entryPoint, anOwner);
     }
 
-    /// implement template method of BaseAccount
-    function _validateAndUpdateNonce(
-        UserOperation calldata userOp
-    ) internal override {
-        require(_nonce++ == userOp.nonce, "EtherspotWallet:: invalid nonce");
-    }
-
-    /// implement template method of BaseAccount
     function _validateSignature(
         UserOperation calldata userOp,
         bytes32 userOpHash
@@ -157,7 +90,6 @@ contract EtherspotWallet is
         bytes32 hash = userOpHash.toEthSignedMessageHash();
         if (!isOwner(hash.recover(userOp.signature)))
             return SIG_VALIDATION_FAILED;
-
         return 0;
     }
 
@@ -196,8 +128,7 @@ contract EtherspotWallet is
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
-    function updateEntryPoint(address _newEntryPoint) external {
-        _onlyOwner();
+    function updateEntryPoint(address _newEntryPoint) external onlyOwner {
         require(
             _newEntryPoint != address(0),
             "EtherspotWallet:: EntryPoint address cannot be zero"
@@ -206,32 +137,9 @@ contract EtherspotWallet is
         _entryPoint = IEntryPoint(payable(_newEntryPoint));
     }
 
-    // Ownership control
-
-    function addOwner(address _newOwner) external onlyOwnerOrGuardian {
-        _addOwner(_newOwner);
-    }
-
-    function removeOwner(address _owner) external onlyOwnerOrGuardian {
-        _removeOwner(_owner);
-    }
-
-    // Guardian management
-
-    function addGuardian(address _newGuardian) external onlyOwner {
-        _addGuardian(_newGuardian);
-    }
-
-    function removeGuardian(address _guardian) external onlyOwner {
-        _removeGuardian(_guardian);
-    }
-
-    // upgrade control
-
     function _authorizeUpgrade(
         address newImplementation
-    ) internal view override {
+    ) internal view override onlyOwner {
         (newImplementation);
-        _onlyOwner();
     }
 }

@@ -11,6 +11,101 @@ import type {
 
 const _abi = [
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "paymaster",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address[]",
+        name: "accounts",
+        type: "address[]",
+      },
+    ],
+    name: "AddedBatchToWhitelist",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "paymaster",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "AddedToWhitelist",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "paymaster",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address[]",
+        name: "accounts",
+        type: "address[]",
+      },
+    ],
+    name: "RemovedBatchFromWhitelist",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "paymaster",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+    ],
+    name: "RemovedFromWhitelist",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "version",
+        type: "string",
+      },
+    ],
+    name: "WhitelistInitialized",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",

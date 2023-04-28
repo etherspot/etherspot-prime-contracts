@@ -3,38 +3,41 @@ import { Wallet } from 'ethers';
 import { ethers } from 'hardhat';
 import { expect } from 'chai';
 import {
-  EtherspotWallet,
-  EtherspotWalletFactory__factory,
+  ERC1967Proxy__factory,
   TestUtil,
   TestUtil__factory,
+} from '../../account-abstraction/typechain';
+import {
+  EtherspotWallet,
+  EtherspotWallet__factory,
+  EtherspotWalletFactory__factory,
 } from '../../typings';
 import {
   createAddress,
   createAccountOwner,
-  createEtherspotWallet,
   getBalance,
   isDeployed,
   ONE_ETH,
   HashZero,
   AddressZero,
   fund,
-} from '../aa-4337/helpers/testutils';
+} from '../../account-abstraction/test/testutils';
+import { createEtherspotWallet } from '../TestUtils';
 import {
   fillUserOpDefaults,
   getUserOpHash,
   packUserOp,
   signUserOp,
-} from '../aa-4337/user_ops/UserOp';
+} from '../../account-abstraction/test/UserOp';
 import { parseEther } from 'ethers/lib/utils';
-import { UserOperation } from '../aa-4337/user_ops/UserOperation';
-import { zeroAddress } from 'ethereumjs-util';
+import { UserOperation } from '../../account-abstraction/test/UserOperation';
 
 describe('EtherspotWallet', function () {
+  const ethersSigner = ethers.provider.getSigner();
   const entryPoint = '0x'.padEnd(42, '2');
   let accounts: string[];
   let testUtil: TestUtil;
   let accountOwner: Wallet;
-  const ethersSigner = ethers.provider.getSigner();
 
   before(async function () {
     accounts = await ethers.provider.listAccounts();
@@ -44,7 +47,7 @@ describe('EtherspotWallet', function () {
     accountOwner = createAccountOwner();
   });
 
-  it('owner should be able to call transfer', async () => {
+  it('owner should be able to call execute', async () => {
     const { proxy: account } = await createEtherspotWallet(
       ethers.provider.getSigner(),
       accounts[0],
@@ -58,7 +61,7 @@ describe('EtherspotWallet', function () {
     await account.execute(accounts[2], ONE_ETH, '0x');
   });
 
-  it('a different owner should be able to call transfer', async () => {
+  it('a different owner should be able to call execute', async () => {
     const { proxy: account } = await createEtherspotWallet(
       ethers.provider.getSigner(),
       accounts[0],
@@ -78,22 +81,22 @@ describe('EtherspotWallet', function () {
       .execute(accounts[2], ONE_ETH, '0x');
   });
 
-  it('guardian should not be able to call transfer', async () => {
+  it('guardian should not be able to call execute', async () => {
     const { proxy: account } = await createEtherspotWallet(
       ethers.provider.getSigner(),
       accounts[0],
       entryPoint
     );
 
-    const accountOwner1 = createAccountOwner();
-    await account.addGuardian(accountOwner1.address);
+    const accountOwner1 = ethers.provider.getSigner(1);
+    await account.addGuardian(accountOwner1.getAddress());
 
     await expect(
       account.connect(accountOwner1).execute(accounts[2], ONE_ETH, '0x')
-    ).to.be.revertedWith('EtherspotWallet:: not Owner or EntryPoint');
+    ).to.be.revertedWith('ACL:: not owner or entryPoint');
   });
 
-  it('other account should not be able to call transfer', async () => {
+  it('other account should not be able to call execute', async () => {
     const { proxy: account } = await createEtherspotWallet(
       ethers.provider.getSigner(),
       accounts[0],
@@ -103,7 +106,7 @@ describe('EtherspotWallet', function () {
       account
         .connect(ethers.provider.getSigner(1))
         .execute(accounts[2], ONE_ETH, '0x')
-    ).to.be.revertedWith('EtherspotWallet:: not Owner or EntryPoint');
+    ).to.be.revertedWith('ACL:: not owner or entryPoint');
   });
 
   it('should pack in js the same as solidity', async () => {
@@ -120,15 +123,24 @@ describe('EtherspotWallet', function () {
     let expectedPay: number;
 
     const actualGasPrice = 1e9;
+    // for testing directly validateUserOp, we initialize the account with EOA as entryPoint.
+    let entryPointEoa: string;
 
     before(async () => {
-      // that's the account of ethersSigner
-      const entryPoint = accounts[2];
-      ({ proxy: account } = await createEtherspotWallet(
-        await ethers.getSigner(entryPoint),
-        accountOwner.address,
-        entryPoint
-      ));
+      entryPointEoa = accounts[2];
+      const epAsSigner = await ethers.getSigner(entryPointEoa);
+
+      // cant use "EtherspotWalletFactory", since it attempts to increment nonce first
+      const implementation = await new EtherspotWallet__factory(
+        ethersSigner
+      ).deploy();
+      const proxy = await new ERC1967Proxy__factory(ethersSigner).deploy(
+        implementation.address,
+        '0x'
+      );
+      account = EtherspotWallet__factory.connect(proxy.address, epAsSigner);
+      await account.initialize(entryPointEoa, accountOwner.address);
+
       await ethersSigner.sendTransaction({
         from: accounts[0],
         to: account.address,
@@ -149,11 +161,11 @@ describe('EtherspotWallet', function () {
           maxFeePerGas,
         }),
         accountOwner,
-        entryPoint,
+        entryPointEoa,
         chainId
       );
 
-      userOpHash = await getUserOpHash(userOp, entryPoint, chainId);
+      userOpHash = await getUserOpHash(userOp, entryPointEoa, chainId);
 
       expectedPay = actualGasPrice * (callGasLimit + verificationGasLimit);
 
@@ -172,14 +184,6 @@ describe('EtherspotWallet', function () {
       expect(preBalance - postBalance).to.eql(expectedPay);
     });
 
-    it('should increment nonce', async () => {
-      expect(await account.nonce()).to.equal(1);
-    });
-    it('should reject same TX on nonce error', async () => {
-      await expect(
-        account.validateUserOp(userOp, userOpHash, 0)
-      ).to.revertedWith('EtherspotWallet:: invalid nonce');
-    });
     it('should return NO_SIG_VALIDATION on wrong signature', async () => {
       const userOpHash = HashZero;
       const deadline = await account.callStatic.validateUserOp(
@@ -258,14 +262,6 @@ describe('EtherspotWallet', function () {
       expect(preBalance - postBalance).to.eql(expectedPay);
     });
 
-    it('should increment nonce', async () => {
-      expect(await account.nonce()).to.equal(1);
-    });
-    it('should reject same TX on nonce error', async () => {
-      await expect(
-        account.validateUserOp(userOp, userOpHash, 0)
-      ).to.revertedWith('EtherspotWallet:: invalid nonce');
-    });
     it('should return NO_SIG_VALIDATION on wrong signature', async () => {
       const userOpHash = HashZero;
       const deadline = await account.callStatic.validateUserOp(
@@ -410,8 +406,8 @@ describe('EtherspotWallet', function () {
       });
       await account.addGuardian(accounts[1]);
       await expect(
-        account.connect(accounts[2]).addOwner(accounts[3])
-      ).to.be.revertedWith('EtherspotWallet:: only owner or guardian');
+        account.connect(ethers.provider.getSigner(2)).addOwner(accounts[3])
+      ).to.be.revertedWith('ACL:: only owner or guardian');
     });
 
     it('should trigger error if already owner', async () => {
@@ -426,7 +422,7 @@ describe('EtherspotWallet', function () {
         value: parseEther('2'),
       });
       await expect(account.addOwner(accounts[0])).to.be.revertedWith(
-        'Owned:: already an owner'
+        'ACL:: already owner'
       );
     });
   });
@@ -503,8 +499,8 @@ describe('EtherspotWallet', function () {
       });
       await account.addOwner(accounts[1]);
       await expect(
-        account.connect(accounts[2]).removeOwner(accounts[1])
-      ).to.be.revertedWith('EtherspotWallet:: only owner');
+        account.connect(ethers.provider.getSigner(2)).removeOwner(accounts[1])
+      ).to.be.revertedWith('ACL:: only owner or guardian');
     });
 
     it('should trigger error if removing self', async () => {
@@ -519,13 +515,14 @@ describe('EtherspotWallet', function () {
         value: parseEther('2'),
       });
 
-      const accountOwner1 = createAccountOwner();
-      await fund(accountOwner1.address);
+      const accountOwner1 = ethers.provider.getSigner(1);
+      const accountOwner1Addr = await accountOwner1.getAddress();
+      await fund(accountOwner1Addr);
 
-      await account.addOwner(accountOwner1.address);
+      await account.addOwner(accountOwner1Addr);
       await expect(
-        account.connect(accountOwner1).removeOwner(accountOwner1.address)
-      ).to.be.revertedWith('Owned:: cannot remove self');
+        account.connect(accountOwner1).removeOwner(accountOwner1Addr)
+      ).to.be.revertedWith('ACL:: removing self');
     });
 
     it('should trigger error if removing a non owner', async () => {
@@ -540,7 +537,7 @@ describe('EtherspotWallet', function () {
         value: parseEther('2'),
       });
       await expect(account.removeOwner(accounts[1])).to.be.revertedWith(
-        "Owned:: owner doesn't exist"
+        'ACL:: non-existant owner'
       );
     });
   });
@@ -605,7 +602,7 @@ describe('EtherspotWallet', function () {
         value: parseEther('2'),
       });
       await expect(account.addGuardian(AddressZero)).to.be.revertedWith(
-        "Guarded:: zero address can't be guardian"
+        'ACL:: zero address'
       );
     });
 
@@ -622,7 +619,7 @@ describe('EtherspotWallet', function () {
       });
       await account.addGuardian(accounts[1]);
       await expect(account.addGuardian(accounts[1])).to.be.revertedWith(
-        'Guarded:: already a guardian'
+        'ACL:: already guardian'
       );
     });
 
@@ -674,7 +671,7 @@ describe('EtherspotWallet', function () {
         value: parseEther('2'),
       });
       await expect(account.removeGuardian(accounts[1])).to.be.revertedWith(
-        "Guarded:: guardian doesn't exist"
+        'ACL:: non-existant guardian'
       );
     });
 
@@ -697,7 +694,7 @@ describe('EtherspotWallet', function () {
   });
 
   context('EtherspotWalletFactory', () => {
-    it.only('sanity: check deployer', async () => {
+    it('sanity: check deployer', async () => {
       const ownerAddr = createAddress();
       const deployer = await new EtherspotWalletFactory__factory(
         ethersSigner

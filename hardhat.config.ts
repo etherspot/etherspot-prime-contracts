@@ -2,7 +2,6 @@ import * as dotenv from 'dotenv';
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-chai-matchers';
-import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import '@openzeppelin/hardhat-upgrades';
@@ -12,7 +11,6 @@ import 'hardhat-tracer';
 import 'hardhat-exposed';
 import 'solidity-coverage';
 import 'xdeployer';
-import { stdout } from 'process';
 
 dotenv.config({ path: __dirname + '/.env' });
 
@@ -21,12 +19,21 @@ const config: HardhatUserConfig = {
     from: 0,
   },
   solidity: {
-    compilers: [{ version: '0.8.12' }, { version: '0.8.17' }],
+    compilers: [
+      {
+        version: '0.8.12',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
+      },
+      { version: '0.8.17' },
+    ],
   },
   networks: {
-    hardhat: {
-      allowUnlimitedContractSize: true,
-    },
+    hardhat: {},
     mumbai: {
       chainId: 80001,
       url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.MUMBAI_ALCHEMY_API_KEY}`,

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.12;
 
-import "../aa-4337/interfaces/UserOperation.sol";
+import "../../account-abstraction/contracts/interfaces/UserOperation.sol";
 
 /**
  * the interface exposed by a paymaster contract, who agrees to pay the gas for user's operations.
@@ -71,10 +71,9 @@ interface IEtherspotPaymaster {
      * @param userOp - user operation to hash.
      * @return - returns hash of user operation.
      */
-    function getHash(UserOperation calldata userOp)
-        external
-        pure
-        returns (bytes32);
+    function getHash(
+        UserOperation calldata userOp
+    ) external pure returns (bytes32);
 
     /**
      * sponsor fund deposit.
@@ -88,8 +87,7 @@ interface IEtherspotPaymaster {
      * @param _sponsor - address of sponsor to check fund balance.
      * @return - current balance of sponsor.
      */
-    function checkSponsorFunds(address _sponsor)
-        external
-        view
-        returns (uint256);
+    function checkSponsorFunds(
+        address _sponsor
+    ) external view returns (uint256);
 }
