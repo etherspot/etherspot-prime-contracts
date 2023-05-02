@@ -8,7 +8,7 @@ contract Whitelist is Ownable {
     mapping(address => mapping(address => bool)) public whitelist;
 
     // Events
-    event WhitelistInitialized(address owner, string version);
+    event WhitelistInitialized(address owner);
     event AddedToWhitelist(address indexed paymaster, address indexed account);
     event AddedBatchToWhitelist(
         address indexed paymaster,

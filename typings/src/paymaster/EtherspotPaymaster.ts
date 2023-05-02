@@ -293,7 +293,7 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     "RemovedFromWhitelist(address,address)": EventFragment;
     "SponsorSuccessful(address,address,bytes)": EventFragment;
     "SponsorUnsuccessful(address,address,bytes)": EventFragment;
-    "WhitelistInitialized(address,string)": EventFragment;
+    "WhitelistInitialized(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddedBatchToWhitelist"): EventFragment;
@@ -394,10 +394,9 @@ export type SponsorUnsuccessfulEventFilter =
 
 export interface WhitelistInitializedEventObject {
   owner: string;
-  version: string;
 }
 export type WhitelistInitializedEvent = TypedEvent<
-  [string, string],
+  [string],
   WhitelistInitializedEventObject
 >;
 
@@ -862,14 +861,10 @@ export interface EtherspotPaymaster extends BaseContract {
       userOpHash?: null
     ): SponsorUnsuccessfulEventFilter;
 
-    "WhitelistInitialized(address,string)"(
-      owner?: null,
-      version?: null
+    "WhitelistInitialized(address)"(
+      owner?: null
     ): WhitelistInitializedEventFilter;
-    WhitelistInitialized(
-      owner?: null,
-      version?: null
-    ): WhitelistInitializedEventFilter;
+    WhitelistInitialized(owner?: null): WhitelistInitializedEventFilter;
   };
 
   estimateGas: {

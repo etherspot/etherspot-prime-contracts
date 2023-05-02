@@ -111,7 +111,7 @@ export interface WhitelistInterface extends utils.Interface {
     "OwnershipTransferred(address,address)": EventFragment;
     "RemovedBatchFromWhitelist(address,address[])": EventFragment;
     "RemovedFromWhitelist(address,address)": EventFragment;
-    "WhitelistInitialized(address,string)": EventFragment;
+    "WhitelistInitialized(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddedBatchToWhitelist"): EventFragment;
@@ -184,10 +184,9 @@ export type RemovedFromWhitelistEventFilter =
 
 export interface WhitelistInitializedEventObject {
   owner: string;
-  version: string;
 }
 export type WhitelistInitializedEvent = TypedEvent<
-  [string, string],
+  [string],
   WhitelistInitializedEventObject
 >;
 
@@ -397,14 +396,10 @@ export interface Whitelist extends BaseContract {
       account?: PromiseOrValue<string> | null
     ): RemovedFromWhitelistEventFilter;
 
-    "WhitelistInitialized(address,string)"(
-      owner?: null,
-      version?: null
+    "WhitelistInitialized(address)"(
+      owner?: null
     ): WhitelistInitializedEventFilter;
-    WhitelistInitialized(
-      owner?: null,
-      version?: null
-    ): WhitelistInitializedEventFilter;
+    WhitelistInitialized(owner?: null): WhitelistInitializedEventFilter;
   };
 
   estimateGas: {
