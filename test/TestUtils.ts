@@ -5,6 +5,8 @@ import {
   EtherspotWalletFactory__factory,
   EtherspotWallet__factory,
   EtherspotWalletFactory,
+  ProxyFactory__factory,
+  ProxyFactory
 } from '../typings';
 
 export function k256EncPack(_string: string) {
