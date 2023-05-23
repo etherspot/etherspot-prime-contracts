@@ -152,6 +152,10 @@ declare module "hardhat/types/runtime" {
       name: "EtherspotWalletFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.EtherspotWalletFactory__factory>;
+    getContractFactory(
+      name: "Proxy",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Proxy__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -328,6 +332,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.EtherspotWalletFactory>;
+    getContractAt(
+      name: "Proxy",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Proxy>;
 
     // default types
     getContractFactory(

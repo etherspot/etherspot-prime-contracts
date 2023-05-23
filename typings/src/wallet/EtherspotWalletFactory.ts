@@ -13,7 +13,11 @@ import type {
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -25,6 +29,7 @@ import type {
 
 export interface EtherspotWalletFactoryInterface extends utils.Interface {
   functions: {
+    "accountCreationCode()": FunctionFragment;
     "accountImplementation()": FunctionFragment;
     "createAccount(address,address,uint256)": FunctionFragment;
     "getAddress(address,address,uint256)": FunctionFragment;
@@ -32,11 +37,16 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "accountCreationCode"
       | "accountImplementation"
       | "createAccount"
       | "getAddress"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "accountCreationCode",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "accountImplementation",
     values?: undefined
@@ -59,6 +69,10 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "accountCreationCode",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "accountImplementation",
     data: BytesLike
   ): Result;
@@ -68,8 +82,24 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "getAddress", data: BytesLike): Result;
 
-  events: {};
+  events: {
+    "AccountCreation(address,address,uint256)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "AccountCreation"): EventFragment;
 }
+
+export interface AccountCreationEventObject {
+  wallet: string;
+  owner: string;
+  index: BigNumber;
+}
+export type AccountCreationEvent = TypedEvent<
+  [string, string, BigNumber],
+  AccountCreationEventObject
+>;
+
+export type AccountCreationEventFilter = TypedEventFilter<AccountCreationEvent>;
 
 export interface EtherspotWalletFactory extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -98,93 +128,116 @@ export interface EtherspotWalletFactory extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    accountCreationCode(overrides?: CallOverrides): Promise<[string]>;
+
     accountImplementation(overrides?: CallOverrides): Promise<[string]>;
 
     createAccount(
-      _entryPoint: PromiseOrValue<string>,
+      entryPoint: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
-      salt: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     getAddress(
-      _entryPoint: PromiseOrValue<string>,
+      entryPoint: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
-      salt: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<[string]>;
+    ): Promise<[string] & { proxy: string }>;
   };
+
+  accountCreationCode(overrides?: CallOverrides): Promise<string>;
 
   accountImplementation(overrides?: CallOverrides): Promise<string>;
 
   createAccount(
-    _entryPoint: PromiseOrValue<string>,
+    entryPoint: PromiseOrValue<string>,
     owner: PromiseOrValue<string>,
-    salt: PromiseOrValue<BigNumberish>,
+    index: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   getAddress(
-    _entryPoint: PromiseOrValue<string>,
+    entryPoint: PromiseOrValue<string>,
     owner: PromiseOrValue<string>,
-    salt: PromiseOrValue<BigNumberish>,
+    index: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<string>;
 
   callStatic: {
+    accountCreationCode(overrides?: CallOverrides): Promise<string>;
+
     accountImplementation(overrides?: CallOverrides): Promise<string>;
 
     createAccount(
-      _entryPoint: PromiseOrValue<string>,
+      entryPoint: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
-      salt: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
 
     getAddress(
-      _entryPoint: PromiseOrValue<string>,
+      entryPoint: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
-      salt: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<string>;
   };
 
-  filters: {};
+  filters: {
+    "AccountCreation(address,address,uint256)"(
+      wallet?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      index?: null
+    ): AccountCreationEventFilter;
+    AccountCreation(
+      wallet?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
+      index?: null
+    ): AccountCreationEventFilter;
+  };
 
   estimateGas: {
+    accountCreationCode(overrides?: CallOverrides): Promise<BigNumber>;
+
     accountImplementation(overrides?: CallOverrides): Promise<BigNumber>;
 
     createAccount(
-      _entryPoint: PromiseOrValue<string>,
+      entryPoint: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
-      salt: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     getAddress(
-      _entryPoint: PromiseOrValue<string>,
+      entryPoint: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
-      salt: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    accountCreationCode(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     accountImplementation(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     createAccount(
-      _entryPoint: PromiseOrValue<string>,
+      entryPoint: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
-      salt: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getAddress(
-      _entryPoint: PromiseOrValue<string>,
+      entryPoint: PromiseOrValue<string>,
       owner: PromiseOrValue<string>,
-      salt: PromiseOrValue<BigNumberish>,
+      index: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

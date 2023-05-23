@@ -3,3 +3,4 @@
 /* eslint-disable */
 export type { EtherspotWallet } from "./EtherspotWallet";
 export type { EtherspotWalletFactory } from "./EtherspotWalletFactory";
+export type { Proxy } from "./Proxy";
