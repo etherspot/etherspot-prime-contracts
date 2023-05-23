@@ -47,6 +47,15 @@ describe('EtherspotWallet', function () {
     accountOwner = createAccountOwner();
   });
 
+  it('should deploy wallet', async () => {
+    const { proxy: account } = await createEtherspotWallet(
+      ethers.provider.getSigner(),
+      accounts[0],
+      entryPoint
+    );
+    expect(await account.isOwner(accounts[0])).to.eq(true);
+  });
+
   it('owner should be able to call execute', async () => {
     const { proxy: account } = await createEtherspotWallet(
       ethers.provider.getSigner(),

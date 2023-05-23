@@ -2,6 +2,14 @@
 
 [![NPM version][npm-image]][npm-url]
 
+## How to run this repo
+
+
+1. `git submodule init --update`
+2. `npm i`
+3. `cd account-abstraction && yarn && npx hardhat compile`
+4. `npx hardhat test`
+
 ## Installation
 
 ```bash
