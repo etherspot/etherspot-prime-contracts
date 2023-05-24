@@ -5,8 +5,6 @@ pragma solidity ^0.8.12;
 
 import "../../account-abstraction/contracts/core/BasePaymaster.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Whitelist.sol";
 
 /**
@@ -20,7 +18,6 @@ import "./Whitelist.sol";
  */
 contract EtherspotPaymaster is BasePaymaster, Whitelist {
     using ECDSA for bytes32;
-    using SafeERC20 for IERC20;
     using UserOperationLib for UserOperation;
 
     uint256 private constant VALID_TIMESTAMP_OFFSET = 20;

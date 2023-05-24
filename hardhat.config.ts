@@ -36,7 +36,7 @@ const config: HardhatUserConfig = {
     hardhat: {},
     mumbai: {
       chainId: 80001,
-      url: `https://polygon-mumbai.g.alchemy.com/v2/${process.env.MUMBAI_ALCHEMY_API_KEY}`,
+      url: 'https://rpc.ankr.com/polygon_mumbai',
       accounts: [process.env.PRIVATE_KEY!],
     },
     dev: { url: 'http://localhost:8545' },
@@ -45,7 +45,19 @@ const config: HardhatUserConfig = {
     timeout: 10000,
   },
   etherscan: {
-    apiKey: process.env.POLYSCAN_API_KEY,
+    apiKey: {
+      mumbai: process.env.POLYSCAN_API_KEY!,
+    },
+    customChains: [
+      {
+        network: "mumbai",
+        chainId: 80001,
+        urls: {
+          apiURL: "https://api-testnet.polygonscan.com/api",
+          browserURL: "https://mumbai.polygonscan.com/"
+        }
+      }
+    ]  
   },
   gasReporter: {
     enabled: true,
