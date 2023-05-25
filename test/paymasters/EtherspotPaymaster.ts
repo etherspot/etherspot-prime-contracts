@@ -435,16 +435,6 @@ describe('EntryPoint with EtherspotPaymaster', function () {
   });
 
   describe('#depositFunds', () => {
-    it('fails if sponsor does not have enough balance', async () => {
-      const revert = await paymaster
-        .connect(offchainSigner)
-        .depositFunds({ value: ethers.utils.parseEther('1000000') })
-        .catch((e) => {
-          return e.message;
-        });
-      expect(revert).to.contain('EtherspotPaymaster:: Not enough balance');
-    });
-
     it('should succeed in depositing funds', async () => {
       const init = await paymaster.checkSponsorFunds(offchainSigner.address);
       expect(init).to.equal(0);

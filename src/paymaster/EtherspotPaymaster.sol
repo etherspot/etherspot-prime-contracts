@@ -40,10 +40,6 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
     constructor(IEntryPoint _entryPoint) BasePaymaster(_entryPoint) {}
 
     function depositFunds() public payable {
-        require(
-            msg.sender.balance >= msg.value,
-            "EtherspotPaymaster:: Not enough balance"
-        );
         entryPoint.depositTo{value: msg.value}(address(this));
         sponsorFunds[msg.sender] += msg.value;
     }
