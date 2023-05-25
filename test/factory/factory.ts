@@ -10,7 +10,7 @@ import {
   createAccountOwner,
 } from '../../account-abstraction/test/testutils';
 
-describe.only("Factory", () => {
+describe("Factory", () => {
   const ethersSigner = ethers.provider.getSigner();
   const entryPoint = '0x'.padEnd(42, '2');
   let accounts: string[];
