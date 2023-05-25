@@ -8,14 +8,22 @@ const deployEtherspotPaymaster: DeployFunction = async function (
   const { deploy } = deployments;
   const { from } = await getNamedAccounts();
 
-  const entrypoint = '<entry_point_address>';
+  console.log('starting deployment of paymaster...');
+
+  const entrypoint = '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789';
   const ret = await deploy('EtherspotPaymaster', {
     from,
     args: [entrypoint],
     gasLimit: 6e6,
-    deterministicDeployment: true,
+    log: true,
   });
   console.log('EtherspotPaymaster deployed at:', ret.address);
+
+  await hre.run('verify:verify', {
+    address: ret.address,
+    contract: 'src/paymaster/EtherspotPaymaster.sol:EtherspotPaymaster',
+    constructorArguments: [entrypoint],
+  });
 };
 
 deployEtherspotPaymaster.tags = ['aa-4337', 'etherspot-paymaster'];

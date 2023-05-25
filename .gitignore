@@ -21,6 +21,7 @@ node_modules
 
 # Hardhat
 .hardhat
+typings/*
 
 # IDEs
 /.idea

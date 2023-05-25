@@ -19,12 +19,18 @@ contract EtherspotWallet is
     Initializable,
     TokenCallbackHandler,
     UniversalSigValidator,
-    AccessController
+    AccessController,
+    IERC1271Wallet
 {
+    bytes4 private constant ERC1271_SUCCESS = 0x1626ba7e;
+
+    /// LIBRARIES
     using ECDSA for bytes32;
 
+    /// STORAGE
     IEntryPoint private _entryPoint;
 
+    /// EVENTS
     event EtherspotWalletInitialized(
         IEntryPoint indexed entryPoint,
         address indexed owner
@@ -32,18 +38,11 @@ contract EtherspotWallet is
     event EtherspotWalletReceived(address indexed from, uint256 indexed amount);
     event EntryPointChanged(address oldEntryPoint, address newEntryPoint);
 
+    /// EXTERNAL METHODS
+
     constructor() {
         _disableInitializers();
         // solhint-disable-previous-line no-empty-blocks
-    }
-
-    /// @inheritdoc BaseAccount
-    function entryPoint() public view virtual override returns (IEntryPoint) {
-        return _entryPoint;
-    }
-
-    receive() external payable {
-        emit EtherspotWalletReceived(msg.sender, msg.value);
     }
 
     function execute(
@@ -67,39 +66,42 @@ contract EtherspotWallet is
         }
     }
 
-    function initialize(
-        IEntryPoint anEntryPoint,
-        address anOwner
-    ) public virtual initializer {
-        _initialize(anEntryPoint, anOwner);
+    function updateEntryPoint(address _newEntryPoint) external onlyOwner {
+        require(
+            _newEntryPoint != address(0),
+            "EtherspotWallet:: EntryPoint address cannot be zero"
+        );
+        emit EntryPointChanged(address(_entryPoint), _newEntryPoint);
+        _entryPoint = IEntryPoint(payable(_newEntryPoint));
     }
 
-    function _initialize(
-        IEntryPoint anEntryPoint,
-        address anOwner
-    ) internal virtual {
-        _entryPoint = anEntryPoint;
-        _addOwner(anOwner);
-        emit EtherspotWalletInitialized(_entryPoint, anOwner);
-    }
-
-    function _validateSignature(
-        UserOperation calldata userOp,
-        bytes32 userOpHash
-    ) internal virtual override returns (uint256 validationData) {
-        bytes32 hash = userOpHash.toEthSignedMessageHash();
-        if (!isOwner(hash.recover(userOp.signature)))
-            return SIG_VALIDATION_FAILED;
-        return 0;
-    }
-
-    function _call(address target, uint256 value, bytes memory data) internal {
-        (bool success, bytes memory result) = target.call{value: value}(data);
-        if (!success) {
-            assembly {
-                revert(add(result, 32), mload(result))
-            }
+    /**
+     * Implementation of ISignatureValidator
+     * @dev doesn't allow the owner to be a smart contract, SCW should use {isValidSig}
+     * @param hash 32 bytes hash of the data signed on the behalf of address(msg.sender)
+     * @param signature Signature byte array associated with _dataHash
+     * @return magicValue ERC1271 magic value.
+     */
+    function isValidSignature(
+        bytes32 hash,
+        bytes calldata signature
+    ) external view returns (bytes4 magicValue) {
+        address owner = ECDSA.recover(hash, signature);
+        if (isOwner(owner)) {
+            return ERC1271_SUCCESS;
         }
+        return bytes4(0xffffffff);
+    }
+
+    receive() external payable {
+        emit EtherspotWalletReceived(msg.sender, msg.value);
+    }
+
+    /// PUBLIC
+
+    /// @inheritdoc BaseAccount
+    function entryPoint() public view virtual override returns (IEntryPoint) {
+        return _entryPoint;
     }
 
     /**
@@ -107,6 +109,13 @@ contract EtherspotWallet is
      */
     function getDeposit() public view returns (uint256) {
         return entryPoint().balanceOf(address(this));
+    }
+
+    function initialize(
+        IEntryPoint anEntryPoint,
+        address anOwner
+    ) public virtual initializer {
+        _initialize(anEntryPoint, anOwner);
     }
 
     /**
@@ -128,13 +137,34 @@ contract EtherspotWallet is
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
-    function updateEntryPoint(address _newEntryPoint) external onlyOwner {
-        require(
-            _newEntryPoint != address(0),
-            "EtherspotWallet:: EntryPoint address cannot be zero"
-        );
-        emit EntryPointChanged(address(_entryPoint), _newEntryPoint);
-        _entryPoint = IEntryPoint(payable(_newEntryPoint));
+    /// INTERNAL
+
+    function _initialize(
+        IEntryPoint anEntryPoint,
+        address anOwner
+    ) internal virtual {
+        _entryPoint = anEntryPoint;
+        _addOwner(anOwner);
+        emit EtherspotWalletInitialized(_entryPoint, anOwner);
+    }
+
+    function _call(address target, uint256 value, bytes memory data) internal {
+        (bool success, bytes memory result) = target.call{value: value}(data);
+        if (!success) {
+            assembly {
+                revert(add(result, 32), mload(result))
+            }
+        }
+    }
+
+    function _validateSignature(
+        UserOperation calldata userOp,
+        bytes32 userOpHash
+    ) internal virtual override returns (uint256 validationData) {
+        bytes32 hash = userOpHash.toEthSignedMessageHash();
+        if (!isOwner(hash.recover(userOp.signature)))
+            return SIG_VALIDATION_FAILED;
+        return 0;
     }
 
     function _authorizeUpgrade(
