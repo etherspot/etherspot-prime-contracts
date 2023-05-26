@@ -1,0 +1,48 @@
+# OS
+.DS_Store
+
+# Compiler files
+cache/
+cache_hardhat/
+forge-cache/
+out/
+
+# Ignores development broadcast logs
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+
+# Dotenv file
+.env
+
+# Node modules
+node_modules
+
+# Hardhat
+.hardhat
+typings/*
+
+# IDEs
+/.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+
+# Coverage
+coverage
+
+# Artifacts
+artifacts/
+
+# Testing
+contracts-exposed/

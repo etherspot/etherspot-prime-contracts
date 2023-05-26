@@ -1,0 +1,31 @@
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { DeployFunction } from 'hardhat-deploy/types';
+
+const deployEtherspotPaymaster: DeployFunction = async function (
+  hre: HardhatRuntimeEnvironment
+) {
+  const { deployments, getNamedAccounts } = hre;
+  const { deploy } = deployments;
+  const { from } = await getNamedAccounts();
+
+  console.log('starting deployment of paymaster...');
+
+  const entrypoint = '0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789';
+  const ret = await deploy('EtherspotPaymaster', {
+    from,
+    args: [entrypoint],
+    gasLimit: 6e6,
+    log: true,
+  });
+  console.log('EtherspotPaymaster deployed at:', ret.address);
+
+  await hre.run('verify:verify', {
+    address: ret.address,
+    contract: 'src/paymaster/EtherspotPaymaster.sol:EtherspotPaymaster',
+    constructorArguments: [entrypoint],
+  });
+};
+
+deployEtherspotPaymaster.tags = ['aa-4337', 'etherspot-paymaster'];
+
+module.exports = deployEtherspotPaymaster;
