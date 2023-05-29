@@ -291,8 +291,8 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     "OwnershipTransferred(address,address)": EventFragment;
     "RemovedBatchFromWhitelist(address,address[])": EventFragment;
     "RemovedFromWhitelist(address,address)": EventFragment;
-    "SponsorSuccessful(address,address,bytes)": EventFragment;
-    "SponsorUnsuccessful(address,address,bytes)": EventFragment;
+    "SponsorSuccessful(address,address)": EventFragment;
+    "SponsorUnsuccessful(address,address)": EventFragment;
     "WhitelistInitialized(address)": EventFragment;
   };
 
@@ -369,10 +369,9 @@ export type RemovedFromWhitelistEventFilter =
 export interface SponsorSuccessfulEventObject {
   paymaster: string;
   sender: string;
-  userOpHash: string;
 }
 export type SponsorSuccessfulEvent = TypedEvent<
-  [string, string, string],
+  [string, string],
   SponsorSuccessfulEventObject
 >;
 
@@ -382,10 +381,9 @@ export type SponsorSuccessfulEventFilter =
 export interface SponsorUnsuccessfulEventObject {
   paymaster: string;
   sender: string;
-  userOpHash: string;
 }
 export type SponsorUnsuccessfulEvent = TypedEvent<
-  [string, string, string],
+  [string, string],
   SponsorUnsuccessfulEventObject
 >;
 
@@ -839,26 +837,22 @@ export interface EtherspotPaymaster extends BaseContract {
       account?: PromiseOrValue<string> | null
     ): RemovedFromWhitelistEventFilter;
 
-    "SponsorSuccessful(address,address,bytes)"(
+    "SponsorSuccessful(address,address)"(
       paymaster?: null,
-      sender?: null,
-      userOpHash?: null
+      sender?: null
     ): SponsorSuccessfulEventFilter;
     SponsorSuccessful(
       paymaster?: null,
-      sender?: null,
-      userOpHash?: null
+      sender?: null
     ): SponsorSuccessfulEventFilter;
 
-    "SponsorUnsuccessful(address,address,bytes)"(
+    "SponsorUnsuccessful(address,address)"(
       paymaster?: null,
-      sender?: null,
-      userOpHash?: null
+      sender?: null
     ): SponsorUnsuccessfulEventFilter;
     SponsorUnsuccessful(
       paymaster?: null,
-      sender?: null,
-      userOpHash?: null
+      sender?: null
     ): SponsorUnsuccessfulEventFilter;
 
     "WhitelistInitialized(address)"(

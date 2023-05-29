@@ -466,8 +466,8 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       expect(init).to.equal(ethers.utils.parseEther('2'));
 
       const context = defaultAbiCoder.encode(
-        ['address', 'address', 'bytes', 'uint256'],
-        [offchainSigner.address, account.address, HASH, 0]
+        ['address', 'address'],
+        [offchainSigner.address, account.address]
       );
 
       // call _postOp
@@ -482,8 +482,8 @@ describe('EntryPoint with EtherspotPaymaster', function () {
 
     it('should emit success event upon deducting sponsor funds', async () => {
       const context = defaultAbiCoder.encode(
-        ['address', 'address', 'bytes', 'uint256'],
-        [offchainSigner.address, account.address, HASH, 0]
+        ['address', 'address'],
+        [offchainSigner.address, account.address]
       );
       await expect(
         intpaymaster
@@ -491,13 +491,13 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           .$_postOp(SUCCESS_OP, context, GAS_COST)
       )
         .to.emit(intpaymaster, 'SponsorSuccessful')
-        .withArgs(offchainSigner.address, account.address, HASH);
+        .withArgs(offchainSigner.address, account.address);
     });
 
     it('should emit event upon op code revert when sponsoring failed tx', async () => {
       const context = defaultAbiCoder.encode(
-        ['address', 'address', 'bytes', 'uint256'],
-        [offchainSigner.address, account.address, HASH, 0]
+        ['address', 'address'],
+        [offchainSigner.address, account.address]
       );
       await expect(
         intpaymaster
@@ -505,7 +505,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
           .$_postOp(FAIL_OP, context, GAS_COST)
       )
         .to.emit(intpaymaster, 'SponsorUnsuccessful')
-        .withArgs(offchainSigner.address, account.address, HASH);
+        .withArgs(offchainSigner.address, account.address);
     });
 
     it('should not deduct funds from sponsor if user op fails validation', async () => {
@@ -513,8 +513,8 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       expect(init).to.equal(ethers.utils.parseEther('2'));
 
       const context = defaultAbiCoder.encode(
-        ['address', 'address', 'bytes', 'uint256'],
-        [offchainSigner.address, account.address, HASH, 0]
+        ['address', 'address'],
+        [offchainSigner.address, account.address]
       );
 
       await intpaymaster

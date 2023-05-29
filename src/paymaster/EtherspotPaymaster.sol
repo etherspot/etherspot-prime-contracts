@@ -28,13 +28,11 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
 
     event SponsorSuccessful(
         address paymaster,
-        address sender,
-        bytes userOpHash
+        address sender
     );
     event SponsorUnsuccessful(
         address paymaster,
-        address sender,
-        bytes userOpHash
+        address sender
     );
 
     constructor(IEntryPoint _entryPoint) BasePaymaster(_entryPoint) {}
@@ -145,7 +143,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         // no need for other on-chain validation: entire UserOp should have been checked
         // by the external service prior to signing it.
         return (
-            abi.encode(sponsorSig, sig, userOp),
+            abi.encode(sponsorSig, sig),
             _packValidationData(false, validUntil, validAfter)
         );
     }
@@ -169,16 +167,16 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         bytes calldata context,
         uint256 actualGasCost
     ) internal override {
-        (address paymaster, address sender, bytes memory userOpHash) = abi
-            .decode(context, (address, address, bytes));
+        (address paymaster, address sender) = abi
+            .decode(context, (address, address));
         if (
             mode == IPaymaster.PostOpMode.opSucceeded ||
             mode == IPaymaster.PostOpMode.opReverted
         ) {
             _debitSponsor(paymaster, actualGasCost);
-            emit SponsorSuccessful(paymaster, sender, userOpHash);
+            emit SponsorSuccessful(paymaster, sender);
         } else {
-            emit SponsorUnsuccessful(paymaster, sender, userOpHash);
+            emit SponsorUnsuccessful(paymaster, sender);
         }
     }
 }
