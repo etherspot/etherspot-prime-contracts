@@ -27,7 +27,9 @@ describe("Factory", () => {
 
   it("should get counter factual address", async () => {
     const counterFactualAddress = await accountFactory.getAddress(entryPoint, accounts[0], 0);
+    const callStaticAddress = await accountFactory.callStatic.createAccount(entryPoint, accounts[0], 0);
     expect(counterFactualAddress).to.not.eq(ethers.constants.AddressZero);
+    expect(callStaticAddress).to.eq(counterFactualAddress);
   });
 
   it("counter-factual address should match deployed address", async () => {
