@@ -75,7 +75,7 @@ export interface EtherspotWalletInterface extends utils.Interface {
     "addOwner(address)": FunctionFragment;
     "entryPoint()": FunctionFragment;
     "execute(address,uint256,bytes)": FunctionFragment;
-    "executeBatch(address[],bytes[])": FunctionFragment;
+    "executeBatch(address[],uint256[],bytes[])": FunctionFragment;
     "getDeposit()": FunctionFragment;
     "getNonce()": FunctionFragment;
     "initialize(address,address)": FunctionFragment;
@@ -158,7 +158,11 @@ export interface EtherspotWalletInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "executeBatch",
-    values: [PromiseOrValue<string>[], PromiseOrValue<BytesLike>[]]
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[],
+      PromiseOrValue<BytesLike>[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getDeposit",
@@ -548,6 +552,7 @@ export interface EtherspotWallet extends BaseContract {
 
     executeBatch(
       dest: PromiseOrValue<string>[],
+      value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -708,6 +713,7 @@ export interface EtherspotWallet extends BaseContract {
 
   executeBatch(
     dest: PromiseOrValue<string>[],
+    value: PromiseOrValue<BigNumberish>[],
     func: PromiseOrValue<BytesLike>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -866,6 +872,7 @@ export interface EtherspotWallet extends BaseContract {
 
     executeBatch(
       dest: PromiseOrValue<string>[],
+      value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: CallOverrides
     ): Promise<void>;
@@ -1096,6 +1103,7 @@ export interface EtherspotWallet extends BaseContract {
 
     executeBatch(
       dest: PromiseOrValue<string>[],
+      value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -1257,6 +1265,7 @@ export interface EtherspotWallet extends BaseContract {
 
     executeBatch(
       dest: PromiseOrValue<string>[],
+      value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;

@@ -70,6 +70,24 @@ describe('EtherspotWallet', function () {
     await account.execute(accounts[2], ONE_ETH, '0x');
   });
 
+  it('owner should be able to call executeBatch', async () => {
+    const { proxy: account } = await createEtherspotWallet(
+      ethers.provider.getSigner(),
+      accounts[0],
+      entryPoint
+    );
+    await ethersSigner.sendTransaction({
+      from: accounts[0],
+      to: account.address,
+      value: parseEther('2'),
+    });
+    await account.executeBatch(
+      [accounts[2], accounts[3]],
+      [ONE_ETH, ONE_ETH],
+      ['0x', '0x']
+    );
+  });
+
   it('a different owner should be able to call execute', async () => {
     const { proxy: account } = await createEtherspotWallet(
       ethers.provider.getSigner(),
