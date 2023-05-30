@@ -55,14 +55,20 @@ contract EtherspotWallet is
 
     function executeBatch(
         address[] calldata dest,
+        uint256[] calldata value,
         bytes[] calldata func
     ) external onlyOwnerOrEntryPoint(address(entryPoint())) {
         require(
-            dest.length == func.length,
+            dest.length > 0 &&
+            dest.length == value.length &&
+            value.length == func.length,
             "EtherspotWallet:: executeBatch: wrong array lengths"
         );
-        for (uint256 i = 0; i < dest.length; i++) {
-            _call(dest[i], 0, func[i]);
+        for (uint256 i; i < dest.length; ) {
+            _call(dest[i], value[i], func[i]);
+            unchecked {
+                ++i;
+            }
         }
     }
 
