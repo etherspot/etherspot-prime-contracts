@@ -81,9 +81,6 @@ export interface EtherspotWalletInterface extends utils.Interface {
     "initialize(address,address)": FunctionFragment;
     "isGuardian(address)": FunctionFragment;
     "isOwner(address)": FunctionFragment;
-    "isValidSig(address,bytes32,bytes)": FunctionFragment;
-    "isValidSigImpl(address,bytes32,bytes,bool)": FunctionFragment;
-    "isValidSigWithSideEffects(address,bytes32,bytes)": FunctionFragment;
     "isValidSignature(bytes32,bytes)": FunctionFragment;
     "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)": FunctionFragment;
     "onERC1155Received(address,address,uint256,uint256,bytes)": FunctionFragment;
@@ -113,9 +110,6 @@ export interface EtherspotWalletInterface extends utils.Interface {
       | "initialize"
       | "isGuardian"
       | "isOwner"
-      | "isValidSig"
-      | "isValidSigImpl"
-      | "isValidSigWithSideEffects"
       | "isValidSignature"
       | "onERC1155BatchReceived"
       | "onERC1155Received"
@@ -180,31 +174,6 @@ export interface EtherspotWalletInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "isOwner",
     values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isValidSig",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isValidSigImpl",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<boolean>
-    ]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isValidSigWithSideEffects",
-    values: [
-      PromiseOrValue<string>,
-      PromiseOrValue<BytesLike>,
-      PromiseOrValue<BytesLike>
-    ]
   ): string;
   encodeFunctionData(
     functionFragment: "isValidSignature",
@@ -308,15 +277,6 @@ export interface EtherspotWalletInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "initialize", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isGuardian", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "isValidSig", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "isValidSigImpl",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "isValidSigWithSideEffects",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "isValidSignature",
     data: BytesLike
@@ -577,28 +537,6 @@ export interface EtherspotWallet extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    isValidSig(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    isValidSigImpl(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      allowSideEffects: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    isValidSigWithSideEffects(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     isValidSignature(
       hash: PromiseOrValue<BytesLike>,
       signature: PromiseOrValue<BytesLike>,
@@ -738,28 +676,6 @@ export interface EtherspotWallet extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  isValidSig(
-    _signer: PromiseOrValue<string>,
-    _hash: PromiseOrValue<BytesLike>,
-    _signature: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  isValidSigImpl(
-    _signer: PromiseOrValue<string>,
-    _hash: PromiseOrValue<BytesLike>,
-    _signature: PromiseOrValue<BytesLike>,
-    allowSideEffects: PromiseOrValue<boolean>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  isValidSigWithSideEffects(
-    _signer: PromiseOrValue<string>,
-    _hash: PromiseOrValue<BytesLike>,
-    _signature: PromiseOrValue<BytesLike>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   isValidSignature(
     hash: PromiseOrValue<BytesLike>,
     signature: PromiseOrValue<BytesLike>,
@@ -894,28 +810,6 @@ export interface EtherspotWallet extends BaseContract {
 
     isOwner(
       _address: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isValidSig(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isValidSigImpl(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      allowSideEffects: PromiseOrValue<boolean>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
-    isValidSigWithSideEffects(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -1128,28 +1022,6 @@ export interface EtherspotWallet extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    isValidSig(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    isValidSigImpl(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      allowSideEffects: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    isValidSigWithSideEffects(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     isValidSignature(
       hash: PromiseOrValue<BytesLike>,
       signature: PromiseOrValue<BytesLike>,
@@ -1288,28 +1160,6 @@ export interface EtherspotWallet extends BaseContract {
     isOwner(
       _address: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    isValidSig(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    isValidSigImpl(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      allowSideEffects: PromiseOrValue<boolean>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    isValidSigWithSideEffects(
-      _signer: PromiseOrValue<string>,
-      _hash: PromiseOrValue<BytesLike>,
-      _signature: PromiseOrValue<BytesLike>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     isValidSignature(

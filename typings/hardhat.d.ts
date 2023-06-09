@@ -97,10 +97,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AccessController__factory>;
     getContractFactory(
-      name: "IERC1271Wallet",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC1271Wallet__factory>;
-    getContractFactory(
       name: "UniversalSigValidator",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.UniversalSigValidator__factory>;
@@ -108,6 +104,10 @@ declare module "hardhat/types/runtime" {
       name: "ValidateSigOffchain",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ValidateSigOffchain__factory>;
+    getContractFactory(
+      name: "IERC1271Wallet",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC1271Wallet__factory>;
     getContractFactory(
       name: "IEtherspotPaymaster",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -251,11 +251,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.AccessController>;
     getContractAt(
-      name: "IERC1271Wallet",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC1271Wallet>;
-    getContractAt(
       name: "UniversalSigValidator",
       address: string,
       signer?: ethers.Signer
@@ -265,6 +260,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ValidateSigOffchain>;
+    getContractAt(
+      name: "IERC1271Wallet",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC1271Wallet>;
     getContractAt(
       name: "IEtherspotPaymaster",
       address: string,

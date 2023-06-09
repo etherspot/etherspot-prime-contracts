@@ -50,12 +50,12 @@ export type { TokenCallbackHandler } from "./account-abstraction/contracts/sampl
 export { TokenCallbackHandler__factory } from "./factories/account-abstraction/contracts/samples/callback/TokenCallbackHandler__factory";
 export type { AccessController } from "./src/access/AccessController";
 export { AccessController__factory } from "./factories/src/access/AccessController__factory";
-export type { IERC1271Wallet } from "./src/helpers/UniversalSignatureValidator.sol/IERC1271Wallet";
-export { IERC1271Wallet__factory } from "./factories/src/helpers/UniversalSignatureValidator.sol/IERC1271Wallet__factory";
 export type { UniversalSigValidator } from "./src/helpers/UniversalSignatureValidator.sol/UniversalSigValidator";
 export { UniversalSigValidator__factory } from "./factories/src/helpers/UniversalSignatureValidator.sol/UniversalSigValidator__factory";
 export type { ValidateSigOffchain } from "./src/helpers/UniversalSignatureValidator.sol/ValidateSigOffchain";
 export { ValidateSigOffchain__factory } from "./factories/src/helpers/UniversalSignatureValidator.sol/ValidateSigOffchain__factory";
+export type { IERC1271Wallet } from "./src/interfaces/IERC721Wallet.sol/IERC1271Wallet";
+export { IERC1271Wallet__factory } from "./factories/src/interfaces/IERC721Wallet.sol/IERC1271Wallet__factory";
 export type { IEtherspotPaymaster } from "./src/interfaces/IEtherspotPaymaster";
 export { IEtherspotPaymaster__factory } from "./factories/src/interfaces/IEtherspotPaymaster__factory";
 export type { IEtherspotWallet } from "./src/interfaces/IEtherspotWallet";

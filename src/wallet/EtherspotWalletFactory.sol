@@ -121,7 +121,7 @@ contract EtherspotWalletFactory {
     function getInitializer(
         IEntryPoint entryPoint,
         address owner
-    ) internal view returns (bytes memory) {
+    ) internal pure returns (bytes memory) {
         return abi.encodeCall(EtherspotWallet.initialize, (entryPoint, owner));
     }
 }

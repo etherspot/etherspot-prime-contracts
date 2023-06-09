@@ -285,6 +285,7 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     "RemovedBatchFromWhitelist(address,address[])": EventFragment;
     "RemovedFromWhitelist(address,address)": EventFragment;
     "SponsorSuccessful(address,address)": EventFragment;
+    "SponsorUnsuccessful(address,address)": EventFragment;
     "WhitelistInitialized(address)": EventFragment;
   };
 
@@ -294,6 +295,7 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "RemovedBatchFromWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemovedFromWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SponsorSuccessful"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SponsorUnsuccessful"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "WhitelistInitialized"): EventFragment;
 }
 
@@ -368,6 +370,18 @@ export type SponsorSuccessfulEvent = TypedEvent<
 
 export type SponsorSuccessfulEventFilter =
   TypedEventFilter<SponsorSuccessfulEvent>;
+
+export interface SponsorUnsuccessfulEventObject {
+  paymaster: string;
+  sender: string;
+}
+export type SponsorUnsuccessfulEvent = TypedEvent<
+  [string, string],
+  SponsorUnsuccessfulEventObject
+>;
+
+export type SponsorUnsuccessfulEventFilter =
+  TypedEventFilter<SponsorUnsuccessfulEvent>;
 
 export interface WhitelistInitializedEventObject {
   owner: string;
@@ -809,6 +823,15 @@ export interface EtherspotPaymaster extends BaseContract {
       paymaster?: null,
       sender?: null
     ): SponsorSuccessfulEventFilter;
+
+    "SponsorUnsuccessful(address,address)"(
+      paymaster?: null,
+      sender?: null
+    ): SponsorUnsuccessfulEventFilter;
+    SponsorUnsuccessful(
+      paymaster?: null,
+      sender?: null
+    ): SponsorUnsuccessfulEventFilter;
 
     "WhitelistInitialized(address)"(
       owner?: null
