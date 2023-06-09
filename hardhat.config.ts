@@ -33,7 +33,9 @@ const config: HardhatUserConfig = {
     ],
   },
   networks: {
-    hardhat: {},
+    hardhat: {
+      allowUnlimitedContractSize: true,
+    },
     mumbai: {
       chainId: 80001,
       url: 'https://rpc.ankr.com/polygon_mumbai',
@@ -50,14 +52,14 @@ const config: HardhatUserConfig = {
     },
     customChains: [
       {
-        network: "mumbai",
+        network: 'mumbai',
         chainId: 80001,
         urls: {
-          apiURL: "https://api-testnet.polygonscan.com/api",
-          browserURL: "https://mumbai.polygonscan.com/"
-        }
-      }
-    ]  
+          apiURL: 'https://api-testnet.polygonscan.com/api',
+          browserURL: 'https://mumbai.polygonscan.com/',
+        },
+      },
+    ],
   },
   gasReporter: {
     enabled: true,

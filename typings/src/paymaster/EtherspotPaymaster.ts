@@ -86,14 +86,13 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     "remove(address)": FunctionFragment;
     "removeBatch(address[])": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
-    "senderNonce(address)": FunctionFragment;
     "sponsorFunds(address)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "unlockStake()": FunctionFragment;
     "validatePaymasterUserOp((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes),bytes32,uint256)": FunctionFragment;
     "whitelist(address,address)": FunctionFragment;
+    "withdrawFunds(address,uint256)": FunctionFragment;
     "withdrawStake(address)": FunctionFragment;
-    "withdrawTo(address,uint256)": FunctionFragment;
   };
 
   getFunction(
@@ -114,14 +113,13 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
       | "remove"
       | "removeBatch"
       | "renounceOwnership"
-      | "senderNonce"
       | "sponsorFunds"
       | "transferOwnership"
       | "unlockStake"
       | "validatePaymasterUserOp"
       | "whitelist"
+      | "withdrawFunds"
       | "withdrawStake"
-      | "withdrawTo"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -191,10 +189,6 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "senderNonce",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
     functionFragment: "sponsorFunds",
     values: [PromiseOrValue<string>]
   ): string;
@@ -219,12 +213,12 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawStake",
-    values: [PromiseOrValue<string>]
+    functionFragment: "withdrawFunds",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawTo",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    functionFragment: "withdrawStake",
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(functionFragment: "add", data: BytesLike): Result;
@@ -259,10 +253,6 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "senderNonce",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "sponsorFunds",
     data: BytesLike
   ): Result;
@@ -280,10 +270,13 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "whitelist", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "withdrawFunds",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "withdrawStake",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "withdrawTo", data: BytesLike): Result;
 
   events: {
     "AddedBatchToWhitelist(address,address[])": EventFragment;
@@ -292,7 +285,6 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     "RemovedBatchFromWhitelist(address,address[])": EventFragment;
     "RemovedFromWhitelist(address,address)": EventFragment;
     "SponsorSuccessful(address,address)": EventFragment;
-    "SponsorUnsuccessful(address,address)": EventFragment;
     "WhitelistInitialized(address)": EventFragment;
   };
 
@@ -302,7 +294,6 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "RemovedBatchFromWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemovedFromWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SponsorSuccessful"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SponsorUnsuccessful"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "WhitelistInitialized"): EventFragment;
 }
 
@@ -377,18 +368,6 @@ export type SponsorSuccessfulEvent = TypedEvent<
 
 export type SponsorSuccessfulEventFilter =
   TypedEventFilter<SponsorSuccessfulEvent>;
-
-export interface SponsorUnsuccessfulEventObject {
-  paymaster: string;
-  sender: string;
-}
-export type SponsorUnsuccessfulEvent = TypedEvent<
-  [string, string],
-  SponsorUnsuccessfulEventObject
->;
-
-export type SponsorUnsuccessfulEventFilter =
-  TypedEventFilter<SponsorUnsuccessfulEvent>;
 
 export interface WhitelistInitializedEventObject {
   owner: string;
@@ -507,11 +486,6 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    senderNonce(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     sponsorFunds(
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -539,14 +513,14 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    withdrawStake(
-      withdrawAddress: PromiseOrValue<string>,
+    withdrawFunds(
+      _sponsor: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    withdrawTo(
+    withdrawStake(
       withdrawAddress: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
@@ -630,11 +604,6 @@ export interface EtherspotPaymaster extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  senderNonce(
-    arg0: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   sponsorFunds(
     arg0: PromiseOrValue<string>,
     overrides?: CallOverrides
@@ -662,14 +631,14 @@ export interface EtherspotPaymaster extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  withdrawStake(
-    withdrawAddress: PromiseOrValue<string>,
+  withdrawFunds(
+    _sponsor: PromiseOrValue<string>,
+    _amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  withdrawTo(
+  withdrawStake(
     withdrawAddress: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -747,11 +716,6 @@ export interface EtherspotPaymaster extends BaseContract {
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
-    senderNonce(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     sponsorFunds(
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -779,14 +743,14 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    withdrawStake(
-      withdrawAddress: PromiseOrValue<string>,
+    withdrawFunds(
+      _sponsor: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    withdrawTo(
+    withdrawStake(
       withdrawAddress: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -845,15 +809,6 @@ export interface EtherspotPaymaster extends BaseContract {
       paymaster?: null,
       sender?: null
     ): SponsorSuccessfulEventFilter;
-
-    "SponsorUnsuccessful(address,address)"(
-      paymaster?: null,
-      sender?: null
-    ): SponsorUnsuccessfulEventFilter;
-    SponsorUnsuccessful(
-      paymaster?: null,
-      sender?: null
-    ): SponsorUnsuccessfulEventFilter;
 
     "WhitelistInitialized(address)"(
       owner?: null
@@ -935,11 +890,6 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    senderNonce(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     sponsorFunds(
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -967,14 +917,14 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    withdrawStake(
-      withdrawAddress: PromiseOrValue<string>,
+    withdrawFunds(
+      _sponsor: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    withdrawTo(
+    withdrawStake(
       withdrawAddress: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
@@ -1053,11 +1003,6 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    senderNonce(
-      arg0: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     sponsorFunds(
       arg0: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -1085,14 +1030,14 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    withdrawStake(
-      withdrawAddress: PromiseOrValue<string>,
+    withdrawFunds(
+      _sponsor: PromiseOrValue<string>,
+      _amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    withdrawTo(
+    withdrawStake(
       withdrawAddress: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

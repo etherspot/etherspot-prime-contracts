@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../../account-abstraction/contracts/core/BaseAccount.sol";
 import "../../account-abstraction/contracts/samples/callback/TokenCallbackHandler.sol";
-import "../helpers/UniversalSignatureValidator.sol";
+import "../interfaces/IERC721Wallet.sol";
 import "../access/AccessController.sol";
 
 contract EtherspotWallet is
@@ -18,7 +18,6 @@ contract EtherspotWallet is
     UUPSUpgradeable,
     Initializable,
     TokenCallbackHandler,
-    UniversalSigValidator,
     AccessController,
     IERC1271Wallet
 {
@@ -60,8 +59,8 @@ contract EtherspotWallet is
     ) external onlyOwnerOrEntryPoint(address(entryPoint())) {
         require(
             dest.length > 0 &&
-            dest.length == value.length &&
-            value.length == func.length,
+                dest.length == value.length &&
+                value.length == func.length,
             "EtherspotWallet:: executeBatch: wrong array lengths"
         );
         for (uint256 i; i < dest.length; ) {

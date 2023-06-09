@@ -2,12 +2,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-interface IERC1271Wallet {
-    function isValidSignature(
-        bytes32 hash,
-        bytes calldata signature
-    ) external view returns (bytes4 magicValue);
-}
+import "../interfaces/IERC721Wallet.sol";
 
 error ERC1271Revert(bytes error);
 error ERC6492DeployFailed(bytes error);

@@ -15,7 +15,7 @@ import {
   rethrow,
   simulationResultCatch,
 } from '../../account-abstraction/test/testutils';
-import { createEtherspotWallet } from '../TestUtils';
+import { createEtherspotWallet, errorParse } from '../TestUtils';
 import { fillAndSign } from '../../account-abstraction/test/UserOp';
 import {
   arrayify,
@@ -44,7 +44,7 @@ describe('EntryPoint with EtherspotPaymaster', function () {
   const FAIL_OP = 2;
   const HASH =
     '0xead571b8d3ed9e40e7cb1d44db5a7ecc1e4297e2fc6a69235bf61f1c6a43c605';
-  const GAS_COST = 158574;
+  const GAS_COST = ethers.utils.parseEther('0.000000000000158574');
   const MOCK_VALID_UNTIL = '0x00000000deadbeef';
   const MOCK_VALID_AFTER = '0x0000000000001234';
   const MOCK_SIG = '0x1234';
@@ -448,6 +448,49 @@ describe('EntryPoint with EtherspotPaymaster', function () {
     });
   });
 
+  describe('#withdrawFunds', () => {
+    it('should succeed in withdrawing funds', async () => {
+      const init = await paymaster.checkSponsorFunds(offchainSigner.address);
+      expect(init).to.equal(0);
+      await paymaster
+        .connect(offchainSigner)
+        .depositFunds({ value: ethers.utils.parseEther('2.0') });
+      const pre = await paymaster.checkSponsorFunds(offchainSigner.address);
+      expect(pre).to.equal(ethers.utils.parseEther('2.0'));
+      await expect(() =>
+        paymaster
+          .connect(offchainSigner)
+          .withdrawFunds(offchainSigner.address, ethers.utils.parseEther('1.0'))
+      ).to.changeEtherBalance(offchainSigner, ethers.utils.parseEther('1.0'));
+      const post = await paymaster.checkSponsorFunds(offchainSigner.address);
+      expect(post).to.equal(ethers.utils.parseEther('1.0'));
+    });
+
+    it('should throw error when sponsor is not withdrawer of funds', async () => {
+      await paymaster
+        .connect(offchainSigner1)
+        .withdrawFunds(offchainSigner.address, ethers.utils.parseEther('1.0'))
+        .catch((e) => {
+          const error = errorParse(e.toString());
+          expect(error).to.equal(
+            'EtherspotPaymaster:: can only withdraw own funds'
+          );
+        });
+    });
+
+    it('should throw error when amount is greater than sponsor deposited balance', async () => {
+      await paymaster
+        .connect(offchainSigner)
+        .withdrawFunds(offchainSigner.address, ethers.utils.parseEther('1.0'))
+        .catch((e) => {
+          const error = errorParse(e.toString());
+          expect(error).to.equal(
+            'EtherspotPaymaster:: not enough deposited funds'
+          );
+        });
+    });
+  });
+
   describe('#_postOp', async () => {
     beforeEach(async () => {
       // deploy internal paymaster test contract
@@ -461,13 +504,18 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         .depositFunds({ value: ethers.utils.parseEther('2.0') });
     });
 
-    it('should debit funds from sponsor on successful UserOp execution', async () => {
+    it('should credit remaining prefund after gas on successful UserOp execution', async () => {
       const init = await intpaymaster.checkSponsorFunds(offchainSigner.address);
       expect(init).to.equal(ethers.utils.parseEther('2'));
 
+      const reqPreFund = ethers.utils.parseEther('0.1');
+      const costOfPost = ethers.utils.parseEther('0.0000000000012');
+      const totalGasConsumed = GAS_COST.add(costOfPost);
+      const diff = reqPreFund.sub(totalGasConsumed);
+
       const context = defaultAbiCoder.encode(
-        ['address', 'address'],
-        [offchainSigner.address, account.address]
+        ['address', 'address', 'uint256', 'uint256'],
+        [offchainSigner.address, account.address, reqPreFund, costOfPost]
       );
 
       // call _postOp
@@ -475,15 +523,36 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         .connect(offchainSigner)
         .$_postOp(SUCCESS_OP, context, GAS_COST);
       const post = await intpaymaster.checkSponsorFunds(offchainSigner.address);
-      expect(parseInt(post.toString())).to.equal(
-        parseInt(init.toString()) - GAS_COST
+      expect(post).to.equal(init.add(diff));
+    });
+
+    it('should credit whole prefund back on unsuccessful UserOp execution', async () => {
+      const init = await intpaymaster.checkSponsorFunds(offchainSigner.address);
+      expect(init).to.equal(ethers.utils.parseEther('2'));
+
+      const reqPreFund = ethers.utils.parseEther('0.1');
+      const costOfPost = ethers.utils.parseEther('0.0000000000012');
+
+      const context = defaultAbiCoder.encode(
+        ['address', 'address', 'uint256', 'uint256'],
+        [offchainSigner.address, account.address, reqPreFund, costOfPost]
       );
+
+      // call _postOp
+      await intpaymaster
+        .connect(offchainSigner)
+        .$_postOp(FAIL_OP, context, GAS_COST);
+      const post = await intpaymaster.checkSponsorFunds(offchainSigner.address);
+      expect(post).to.equal(init.add(reqPreFund));
     });
 
     it('should emit success event upon deducting sponsor funds', async () => {
+      const reqPreFund = ethers.utils.parseEther('0.1');
+      const costOfPost = ethers.utils.parseEther('0.0000000000012');
+
       const context = defaultAbiCoder.encode(
-        ['address', 'address'],
-        [offchainSigner.address, account.address]
+        ['address', 'address', 'uint256', 'uint256'],
+        [offchainSigner.address, account.address, reqPreFund, costOfPost]
       );
       await expect(
         intpaymaster
@@ -492,38 +561,6 @@ describe('EntryPoint with EtherspotPaymaster', function () {
       )
         .to.emit(intpaymaster, 'SponsorSuccessful')
         .withArgs(offchainSigner.address, account.address);
-    });
-
-    it('should emit event upon op code revert when sponsoring failed tx', async () => {
-      const context = defaultAbiCoder.encode(
-        ['address', 'address'],
-        [offchainSigner.address, account.address]
-      );
-      await expect(
-        intpaymaster
-          .connect(offchainSigner)
-          .$_postOp(FAIL_OP, context, GAS_COST)
-      )
-        .to.emit(intpaymaster, 'SponsorUnsuccessful')
-        .withArgs(offchainSigner.address, account.address);
-    });
-
-    it('should not deduct funds from sponsor if user op fails validation', async () => {
-      const init = await intpaymaster.checkSponsorFunds(offchainSigner.address);
-      expect(init).to.equal(ethers.utils.parseEther('2'));
-
-      const context = defaultAbiCoder.encode(
-        ['address', 'address'],
-        [offchainSigner.address, account.address]
-      );
-
-      await intpaymaster
-        .connect(offchainSigner)
-        .$_postOp(FAIL_OP, context, GAS_COST);
-
-      const post = await intpaymaster.checkSponsorFunds(offchainSigner.address);
-      expect(post).to.equal(ethers.utils.parseEther('2'));
-      expect(init).to.equal(post);
     });
   });
 });

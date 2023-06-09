@@ -4,7 +4,8 @@ pragma solidity ^0.8.12;
 /* solhint-disable reason-string */
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "../../account-abstraction/contracts/core/BasePaymaster.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "./BasePaymaster.sol";
 import "./Whitelist.sol";
 
 /**
@@ -16,30 +17,41 @@ import "./Whitelist.sol";
  * - the paymaster signs to agree to PAY for GAS.
  * - the wallet signs to prove identity and account ownership.
  */
-contract EtherspotPaymaster is BasePaymaster, Whitelist {
+contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
     using ECDSA for bytes32;
     using UserOperationLib for UserOperation;
 
     uint256 private constant VALID_TIMESTAMP_OFFSET = 20;
     uint256 private constant SIGNATURE_OFFSET = 84;
+    // calculated cost of the postOp
+    uint256 private constant COST_OF_POST = 40000;
 
     mapping(address => uint256) public sponsorFunds;
-    mapping(address => uint256) public senderNonce;
 
-    event SponsorSuccessful(
-        address paymaster,
-        address sender
-    );
-    event SponsorUnsuccessful(
-        address paymaster,
-        address sender
-    );
+    event SponsorSuccessful(address paymaster, address sender);
+    event SponsorUnsuccessful(address paymaster, address sender);
 
     constructor(IEntryPoint _entryPoint) BasePaymaster(_entryPoint) {}
 
-    function depositFunds() public payable {
+    function depositFunds() external payable nonReentrant {
         entryPoint.depositTo{value: msg.value}(address(this));
-        sponsorFunds[msg.sender] += msg.value;
+        _creditSponsor(msg.sender, msg.value);
+    }
+
+    function withdrawFunds(
+        address payable _sponsor,
+        uint256 _amount
+    ) external nonReentrant {
+        require(
+            msg.sender == _sponsor,
+            "EtherspotPaymaster:: can only withdraw own funds"
+        );
+        require(
+            checkSponsorFunds(_sponsor) >= _amount,
+            "EtherspotPaymaster:: not enough deposited funds"
+        );
+        _debitSponsor(_sponsor, _amount);
+        entryPoint.withdrawTo(_sponsor, _amount);
     }
 
     function checkSponsorFunds(address _sponsor) public view returns (uint256) {
@@ -50,22 +62,27 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         sponsorFunds[_sponsor] -= _amount;
     }
 
+    function _creditSponsor(address _sponsor, uint256 _amount) internal {
+        sponsorFunds[_sponsor] += _amount;
+    }
+
     function _pack(
         UserOperation calldata userOp
-    ) internal pure returns (bytes memory ret) {
-        // lighter signature scheme. must match UserOp.ts#packUserOp
-        bytes calldata pnd = userOp.paymasterAndData;
-        // copy directly the userOp from calldata up to (but not including) the paymasterAndData.
-        // this encoding depends on the ABI encoding of calldata, but is much lighter to copy
-        // than referencing each field separately.
-        assembly {
-            let ofs := userOp
-            let len := sub(sub(pnd.offset, ofs), 32)
-            ret := mload(0x40)
-            mstore(0x40, add(ret, add(len, 32)))
-            mstore(ret, len)
-            calldatacopy(add(ret, 32), ofs, len)
-        }
+    ) internal pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    userOp.getSender(),
+                    userOp.nonce,
+                    keccak256(userOp.initCode),
+                    keccak256(userOp.callData),
+                    userOp.callGasLimit,
+                    userOp.verificationGasLimit,
+                    userOp.preVerificationGas,
+                    userOp.maxFeePerGas,
+                    userOp.maxPriorityFeePerGas
+                )
+            );
     }
 
     /**
@@ -88,7 +105,6 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
                     _pack(userOp),
                     block.chainid,
                     address(this),
-                    senderNonce[userOp.getSender()],
                     validUntil,
                     validAfter
                 )
@@ -124,7 +140,6 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
             getHash(userOp, validUntil, validAfter)
         );
         address sig = userOp.getSender();
-        senderNonce[sig]++;
 
         // check for valid paymaster
         address sponsorSig = ECDSA.recover(hash, signature);
@@ -140,10 +155,15 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
             "EtherspotPaymaster:: Sponsor paymaster funds too low"
         );
 
+        uint256 costOfPost = userOp.gasPrice() * COST_OF_POST;
+
+        // debit requiredPreFund amount
+        _debitSponsor(sponsorSig, requiredPreFund);
+
         // no need for other on-chain validation: entire UserOp should have been checked
         // by the external service prior to signing it.
         return (
-            abi.encode(sponsorSig, sig),
+            abi.encode(sponsorSig, sig, requiredPreFund, costOfPost),
             _packValidationData(false, validUntil, validAfter)
         );
     }
@@ -167,16 +187,21 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist {
         bytes calldata context,
         uint256 actualGasCost
     ) internal override {
-        (address paymaster, address sender) = abi
-            .decode(context, (address, address));
-        if (
-            mode == IPaymaster.PostOpMode.opSucceeded ||
-            mode == IPaymaster.PostOpMode.opReverted
-        ) {
-            _debitSponsor(paymaster, actualGasCost);
-            emit SponsorSuccessful(paymaster, sender);
-        } else {
+        (
+            address paymaster,
+            address sender,
+            uint256 prefundedAmount,
+            uint256 costOfPost
+        ) = abi.decode(context, (address, address, uint256, uint256));
+        if (mode == PostOpMode.postOpReverted) {
+            _creditSponsor(paymaster, prefundedAmount);
             emit SponsorUnsuccessful(paymaster, sender);
+        } else {
+            _creditSponsor(
+                paymaster,
+                prefundedAmount - (actualGasCost + costOfPost)
+            );
+            emit SponsorSuccessful(paymaster, sender);
         }
     }
 }

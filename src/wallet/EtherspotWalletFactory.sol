@@ -8,7 +8,11 @@ import "./Proxy.sol";
  * @title Proxy Factory - Allows to create a new proxy contract and execute a message call to the new proxy within one transaction.
  */
 contract EtherspotWalletFactory {
-    event AccountCreation(address indexed wallet, address indexed owner, uint256 index);
+    event AccountCreation(
+        address indexed wallet,
+        address indexed owner,
+        uint256 index
+    );
 
     address public immutable accountImplementation;
 
@@ -33,6 +37,11 @@ contract EtherspotWalletFactory {
         address owner,
         uint256 index
     ) public returns (address ret) {
+        address account = getAddress(entryPoint, owner, index);
+        if (account.code.length > 0) {
+            return account;
+        }
+
         bytes memory initializer = getInitializer(entryPoint, owner);
 
         bytes32 salt = keccak256(
@@ -113,9 +122,6 @@ contract EtherspotWalletFactory {
         IEntryPoint entryPoint,
         address owner
     ) internal view returns (bytes memory) {
-        return abi.encodeCall(
-          EtherspotWallet.initialize,
-          (entryPoint, owner)
-        );
+        return abi.encodeCall(EtherspotWallet.initialize, (entryPoint, owner));
     }
 }

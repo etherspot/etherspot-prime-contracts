@@ -29,17 +29,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IBeacon__factory>;
     getContractFactory(
-      name: "ERC1967Proxy",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ERC1967Proxy__factory>;
-    getContractFactory(
       name: "ERC1967Upgrade",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC1967Upgrade__factory>;
-    getContractFactory(
-      name: "Proxy",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.Proxy__factory>;
     getContractFactory(
       name: "Initializable",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -52,14 +44,6 @@ declare module "hardhat/types/runtime" {
       name: "IERC1155Receiver",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC1155Receiver__factory>;
-    getContractFactory(
-      name: "IERC20Permit",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC20Permit__factory>;
-    getContractFactory(
-      name: "IERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC20__factory>;
     getContractFactory(
       name: "IERC721Receiver",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -137,6 +121,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IWhitelist__factory>;
     getContractFactory(
+      name: "BasePaymaster",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BasePaymaster__factory>;
+    getContractFactory(
       name: "EtherspotPaymaster",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.EtherspotPaymaster__factory>;
@@ -178,20 +166,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IBeacon>;
     getContractAt(
-      name: "ERC1967Proxy",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ERC1967Proxy>;
-    getContractAt(
       name: "ERC1967Upgrade",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ERC1967Upgrade>;
-    getContractAt(
-      name: "Proxy",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.Proxy>;
     getContractAt(
       name: "Initializable",
       address: string,
@@ -207,16 +185,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC1155Receiver>;
-    getContractAt(
-      name: "IERC20Permit",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC20Permit>;
-    getContractAt(
-      name: "IERC20",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC20>;
     getContractAt(
       name: "IERC721Receiver",
       address: string,
@@ -312,6 +280,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IWhitelist>;
+    getContractAt(
+      name: "BasePaymaster",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BasePaymaster>;
     getContractAt(
       name: "EtherspotPaymaster",
       address: string,
