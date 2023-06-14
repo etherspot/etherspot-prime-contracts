@@ -41,6 +41,31 @@ const _abi = [
     inputs: [
       {
         indexed: false,
+        internalType: "uint256",
+        name: "proposalId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newOwnerProposed",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "proposer",
+        type: "address",
+      },
+    ],
+    name: "NewOwnerProposalSubmitted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
         internalType: "address",
         name: "newOwner",
         type: "address",
@@ -60,6 +85,31 @@ const _abi = [
       },
     ],
     name: "OwnerRemoved",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "proposalId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newOwnerProposed",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "guardiansApproved",
+        type: "uint256",
+      },
+    ],
+    name: "QuorumNotReached",
     type: "event",
   },
   {
@@ -84,6 +134,74 @@ const _abi = [
       },
     ],
     name: "addOwner",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_proposalId",
+        type: "uint256",
+      },
+    ],
+    name: "getProposal",
+    outputs: [
+      {
+        internalType: "address",
+        name: "ownerProposed_",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "approvalCount_",
+        type: "uint256",
+      },
+      {
+        internalType: "address[]",
+        name: "guardiansApproved_",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_proposalId",
+        type: "uint256",
+      },
+    ],
+    name: "guardianCosign",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "guardianCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_newOwner",
+        type: "address",
+      },
+    ],
+    name: "guardianPropose",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -121,6 +239,32 @@ const _abi = [
         internalType: "bool",
         name: "",
         type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "ownerCount",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "proposalId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
     stateMutability: "view",

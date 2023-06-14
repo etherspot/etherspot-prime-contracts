@@ -155,7 +155,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
             "EtherspotPaymaster:: Sponsor paymaster funds too low"
         );
 
-        uint256 costOfPost = userOp.gasPrice() * COST_OF_POST;
+        uint256 costOfPost = userOp.maxFeePerGas * COST_OF_POST;
 
         // debit requiredPreFund amount
         _debitSponsor(sponsorSig, requiredPreFund);

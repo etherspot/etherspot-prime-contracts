@@ -1,20 +1,50 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
+import "hardhat/console.sol";
+
 abstract contract AccessController {
+    uint128 immutable MULTIPLY_FACTOR = 1000;
+    uint16 immutable SIXTY_PERCENT = 600;
+
+    uint256 public ownerCount;
+    uint256 public guardianCount;
+    uint256 public proposalId;
     mapping(address => bool) private owners;
     mapping(address => bool) private guardians;
+    mapping(uint256 => NewOwnerProposal) private proposals;
+
+    struct NewOwnerProposal {
+        address newOwnerProposed;
+        uint256 approvalCount;
+        address[] guardiansApproved;
+    }
 
     event OwnerAdded(address newOwner);
     event OwnerRemoved(address removedOwner);
     event GuardianAdded(address newGuardian);
     event GuardianRemoved(address removedGuardian);
+    event NewOwnerProposalSubmitted(
+        uint256 proposalId,
+        address newOwnerProposed,
+        address proposer
+    );
+    event QuorumNotReached(
+        uint256 proposalId,
+        address newOwnerProposed,
+        uint256 guardiansApproved
+    );
 
     modifier onlyOwner() {
         require(
             isOwner(msg.sender) || msg.sender == address(this),
             "ACL:: only owner"
         );
+        _;
+    }
+
+    modifier onlyGuardian() {
+        require(isGuardian(msg.sender), "ACL:: only guardian");
         _;
     }
 
@@ -44,7 +74,7 @@ abstract contract AccessController {
         return guardians[_address];
     }
 
-    function addOwner(address _newOwner) external onlyOwnerOrGuardian {
+    function addOwner(address _newOwner) external onlyOwner {
         _addOwner(_newOwner);
     }
 
@@ -60,14 +90,77 @@ abstract contract AccessController {
         _removeGuardian(_guardian);
     }
 
+    function getProposal(
+        uint256 _proposalId
+    )
+        public
+        view
+        returns (
+            address ownerProposed_,
+            uint256 approvalCount_,
+            address[] memory guardiansApproved_
+        )
+    {
+        require(
+            proposals[_proposalId].approvalCount > 0 &&
+                _proposalId <= proposalId,
+            "ACL:: invalid proposal id"
+        );
+        NewOwnerProposal memory proposal = proposals[_proposalId];
+        return (
+            proposal.newOwnerProposed,
+            proposal.approvalCount,
+            proposal.guardiansApproved
+        );
+    }
+
+    function guardianPropose(address _newOwner) external onlyGuardian {
+        require(
+            guardianCount >= 3,
+            "ACL:: not enough guardians to propose new owner (minimum 3)"
+        );
+        proposalId = proposalId + 1;
+        proposals[proposalId].newOwnerProposed = _newOwner;
+        proposals[proposalId].guardiansApproved.push(msg.sender);
+        proposals[proposalId].approvalCount += 1;
+        emit NewOwnerProposalSubmitted(proposalId, _newOwner, msg.sender);
+    }
+
+    function guardianCosign(uint256 _proposalId) external onlyGuardian {
+        require(
+            proposals[_proposalId].approvalCount > 0 &&
+                _proposalId <= proposalId,
+            "ACL:: invalid proposal id"
+        );
+        require(
+            !_checkIfSigned(_proposalId),
+            "ACL:: guardian already signed proposal"
+        );
+        proposals[_proposalId].guardiansApproved.push(msg.sender);
+        proposals[_proposalId].approvalCount += 1;
+        address newOwner = proposals[_proposalId].newOwnerProposed;
+        if (_checkQuorumReached(_proposalId)) {
+            _addOwner(newOwner);
+        } else {
+            emit QuorumNotReached(
+                _proposalId,
+                newOwner,
+                proposals[_proposalId].approvalCount
+            );
+        }
+    }
+
     // INTERNAL
 
     function _addOwner(address _newOwner) internal {
         // no check for address(0) as used when creating wallet via BLS.
         require(_newOwner != address(0), "ACL:: zero address");
         require(!owners[_newOwner], "ACL:: already owner");
+        if (isGuardian(msg.sender) && msg.sender == _newOwner)
+            revert("ACL:: guardian cannot be owner");
         emit OwnerAdded(_newOwner);
         owners[_newOwner] = true;
+        ownerCount = ownerCount + 1;
     }
 
     function _addGuardian(address _newGuardian) internal {
@@ -75,18 +168,39 @@ abstract contract AccessController {
         require(!guardians[_newGuardian], "ACL:: already guardian");
         emit GuardianAdded(_newGuardian);
         guardians[_newGuardian] = true;
+        guardianCount = guardianCount + 1;
     }
 
     function _removeOwner(address _owner) internal {
         require(msg.sender != _owner, "ACL:: removing self");
         require(owners[_owner], "ACL:: non-existant owner");
+        require(ownerCount > 1, "ACL:: wallet cannot be ownerless");
         emit OwnerRemoved(_owner);
         owners[_owner] = false;
+        ownerCount = ownerCount - 1;
     }
 
     function _removeGuardian(address _guardian) internal {
         require(guardians[_guardian], "ACL:: non-existant guardian");
         emit GuardianRemoved(_guardian);
         guardians[_guardian] = false;
+        guardianCount = guardianCount - 1;
+    }
+
+    function _checkIfSigned(uint256 _proposalId) internal view returns (bool) {
+        for (uint i; i < proposals[_proposalId].guardiansApproved.length; i++) {
+            if (proposals[_proposalId].guardiansApproved[i] == msg.sender) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function _checkQuorumReached(
+        uint256 _proposalId
+    ) internal view returns (bool) {
+        return ((proposals[_proposalId].approvalCount * MULTIPLY_FACTOR) /
+            guardianCount >=
+            SIXTY_PERCENT);
     }
 }
