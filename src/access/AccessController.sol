@@ -18,13 +18,14 @@ abstract contract AccessController {
         address newOwnerProposed;
         uint256 approvalCount;
         address[] guardiansApproved;
+        bool resolved;
     }
 
     event OwnerAdded(address newOwner);
     event OwnerRemoved(address removedOwner);
     event GuardianAdded(address newGuardian);
     event GuardianRemoved(address removedGuardian);
-    event NewOwnerProposalSubmitted(
+    event ProposalSubmitted(
         uint256 proposalId,
         address newOwnerProposed,
         address proposer
@@ -34,6 +35,7 @@ abstract contract AccessController {
         address newOwnerProposed,
         uint256 guardiansApproved
     );
+    event ProposalDiscarded(uint256 proposalId);
 
     modifier onlyOwner() {
         require(
@@ -98,20 +100,26 @@ abstract contract AccessController {
         returns (
             address ownerProposed_,
             uint256 approvalCount_,
-            address[] memory guardiansApproved_
+            address[] memory guardiansApproved_,
+            bool resolved_
         )
     {
-        require(
-            proposals[_proposalId].approvalCount > 0 &&
-                _proposalId <= proposalId,
-            "ACL:: invalid proposal id"
-        );
+        require(_proposalId <= proposalId, "ACL:: invalid proposal id");
         NewOwnerProposal memory proposal = proposals[_proposalId];
         return (
             proposal.newOwnerProposed,
             proposal.approvalCount,
-            proposal.guardiansApproved
+            proposal.guardiansApproved,
+            proposal.resolved
         );
+    }
+
+    function discardCurrentProposal() external onlyOwnerOrGuardian {
+        delete proposals[proposalId].newOwnerProposed;
+        delete proposals[proposalId].guardiansApproved;
+        delete proposals[proposalId].approvalCount;
+        proposals[proposalId].resolved = true;
+        emit ProposalDiscarded(proposalId);
     }
 
     function guardianPropose(address _newOwner) external onlyGuardian {
@@ -119,27 +127,34 @@ abstract contract AccessController {
             guardianCount >= 3,
             "ACL:: not enough guardians to propose new owner (minimum 3)"
         );
+        if (
+            proposals[proposalId].guardiansApproved.length != 0 &&
+            proposals[proposalId].resolved == false
+        ) revert("ACL:: latest proposal not yet resolved");
+
         proposalId = proposalId + 1;
         proposals[proposalId].newOwnerProposed = _newOwner;
         proposals[proposalId].guardiansApproved.push(msg.sender);
         proposals[proposalId].approvalCount += 1;
-        emit NewOwnerProposalSubmitted(proposalId, _newOwner, msg.sender);
+        proposals[proposalId].resolved = false;
+        emit ProposalSubmitted(proposalId, _newOwner, msg.sender);
     }
 
     function guardianCosign(uint256 _proposalId) external onlyGuardian {
-        require(
-            proposals[_proposalId].approvalCount > 0 &&
-                _proposalId <= proposalId,
-            "ACL:: invalid proposal id"
-        );
+        require(_proposalId <= proposalId, "ACL:: invalid proposal id");
         require(
             !_checkIfSigned(_proposalId),
             "ACL:: guardian already signed proposal"
+        );
+        require(
+            !proposals[proposalId].resolved,
+            "ACL:: proposal already resolved"
         );
         proposals[_proposalId].guardiansApproved.push(msg.sender);
         proposals[_proposalId].approvalCount += 1;
         address newOwner = proposals[_proposalId].newOwnerProposed;
         if (_checkQuorumReached(_proposalId)) {
+            proposals[proposalId].resolved = true;
             _addOwner(newOwner);
         } else {
             emit QuorumNotReached(
@@ -156,8 +171,7 @@ abstract contract AccessController {
         // no check for address(0) as used when creating wallet via BLS.
         require(_newOwner != address(0), "ACL:: zero address");
         require(!owners[_newOwner], "ACL:: already owner");
-        if (isGuardian(msg.sender) && msg.sender == _newOwner)
-            revert("ACL:: guardian cannot be owner");
+        if (isGuardian(_newOwner)) revert("ACL:: guardian cannot be owner");
         emit OwnerAdded(_newOwner);
         owners[_newOwner] = true;
         ownerCount = ownerCount + 1;
@@ -166,6 +180,7 @@ abstract contract AccessController {
     function _addGuardian(address _newGuardian) internal {
         require(_newGuardian != address(0), "ACL:: zero address");
         require(!guardians[_newGuardian], "ACL:: already guardian");
+        require(!isOwner(_newGuardian), "ACL:: guardian cannot be owner");
         emit GuardianAdded(_newGuardian);
         guardians[_newGuardian] = true;
         guardianCount = guardianCount + 1;

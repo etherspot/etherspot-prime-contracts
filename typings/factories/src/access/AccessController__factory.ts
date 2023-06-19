@@ -41,31 +41,6 @@ const _abi = [
     inputs: [
       {
         indexed: false,
-        internalType: "uint256",
-        name: "proposalId",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "newOwnerProposed",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "address",
-        name: "proposer",
-        type: "address",
-      },
-    ],
-    name: "NewOwnerProposalSubmitted",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
         internalType: "address",
         name: "newOwner",
         type: "address",
@@ -85,6 +60,44 @@ const _abi = [
       },
     ],
     name: "OwnerRemoved",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "proposalId",
+        type: "uint256",
+      },
+    ],
+    name: "ProposalDiscarded",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "proposalId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "newOwnerProposed",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "proposer",
+        type: "address",
+      },
+    ],
+    name: "ProposalSubmitted",
     type: "event",
   },
   {
@@ -139,6 +152,13 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "discardCurrentProposal",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -162,6 +182,11 @@ const _abi = [
         internalType: "address[]",
         name: "guardiansApproved_",
         type: "address[]",
+      },
+      {
+        internalType: "bool",
+        name: "resolved_",
+        type: "bool",
       },
     ],
     stateMutability: "view",

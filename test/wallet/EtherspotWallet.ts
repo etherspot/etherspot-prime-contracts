@@ -524,7 +524,7 @@ describe('EtherspotWallet', function () {
     });
   });
 
-  context('Guardians proposing and adding new owners', async () => {
+  context('Proposing, cosigning and deleting', async () => {
     async function addGuardians() {
       const accountOwner1 = ethers.provider.getSigner(1);
       const accountOwner2 = ethers.provider.getSigner(2);
@@ -594,7 +594,7 @@ describe('EtherspotWallet', function () {
         await expect(
           account.connect(accountOwner1).guardianPropose(accounts[2])
         )
-          .to.emit(account, 'NewOwnerProposalSubmitted')
+          .to.emit(account, 'ProposalSubmitted')
           .withArgs(await account.proposalId(), accounts[2], accountOwner1Addr);
       });
 
@@ -623,6 +623,47 @@ describe('EtherspotWallet', function () {
           'ACL:: not enough guardians to propose new owner (minimum 3)'
         );
       });
+
+      it('should only allow one active proposal at a time and throw error if trying to add another', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        await expect(
+          account.connect(accountOwner1).guardianPropose(accounts[6])
+        ).to.be.revertedWith('ACL:: latest proposal not yet resolved');
+      });
+
+      it('should allow a new proposal after the previous one has been resolved (cosigned)', async () => {
+        const { account, accountOwner1, accountOwner2 } = await loadFixture(
+          addGuardians
+        );
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        await account.connect(accountOwner2).guardianCosign(1);
+        expect(await account.isOwner(accounts[5])).to.eq(true);
+        expect(
+          await account.connect(accountOwner1).guardianPropose(accounts[6])
+        ).to.not.be.reverted;
+        const proposalData = await account.getProposal(
+          await account.proposalId()
+        );
+        expect(proposalData.ownerProposed_).to.eq(accounts[6]);
+        expect(proposalData.resolved_).to.eq(false);
+      });
+
+      it('should allow a new proposal after the previous one has been resolved (discarded)', async () => {
+        const { account, accountOwner1, accountOwner2 } = await loadFixture(
+          addGuardians
+        );
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        await account.connect(accountOwner2).discardCurrentProposal();
+        expect(
+          await account.connect(accountOwner1).guardianPropose(accounts[6])
+        ).to.not.be.reverted;
+        const proposalData = await account.getProposal(
+          await account.proposalId()
+        );
+        expect(proposalData.ownerProposed_).to.eq(accounts[6]);
+        expect(proposalData.resolved_).to.eq(false);
+      });
     });
 
     describe('#guardianCosign', async () => {
@@ -644,6 +685,9 @@ describe('EtherspotWallet', function () {
         await account.connect(accountOwner1).guardianPropose(accounts[5]);
         await account.connect(accountOwner2).guardianCosign(1);
         expect(await account.isOwner(accounts[5])).to.eq(true);
+        const proposalData = await account.getProposal(1);
+        expect(proposalData.ownerProposed_).to.eq(accounts[5]);
+        expect(proposalData.resolved_).to.eq(true);
       });
 
       it('should allow guardian to cosign proposal and reach quorum 3/4 (adds owner)', async () => {
@@ -744,6 +788,54 @@ describe('EtherspotWallet', function () {
         await expect(
           account.connect(accountOwner1).guardianCosign(2)
         ).to.be.revertedWith('ACL:: invalid proposal id');
+      });
+    });
+
+    describe('#discardCurrentProposal', async () => {
+      it('should discard current proposal', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const pId = await account.proposalId();
+        const proposalData = await account.getProposal(pId);
+        // check proposal has been added correctly
+        expect(proposalData.ownerProposed_).to.eq(accounts[5]);
+        expect(proposalData.resolved_).to.eq(false);
+        // discard current proposal
+        await account.connect(accountOwner1).discardCurrentProposal();
+        const discardProposalData = await account.getProposal(pId);
+        expect(discardProposalData.ownerProposed_).to.eq(AddressZero);
+        expect(discardProposalData.resolved_).to.eq(true);
+      });
+
+      it('should emit event on proposal discard', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const pId = await account.proposalId();
+        await expect(account.connect(accountOwner1).discardCurrentProposal())
+          .to.emit(account, 'ProposalDiscarded')
+          .withArgs(pId);
+      });
+
+      it('should only allow owner or guardian to call', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const pId = await account.proposalId();
+        const accountOwner6 = ethers.provider.getSigner(6);
+        await expect(
+          account.connect(accountOwner6).discardCurrentProposal()
+        ).to.be.revertedWith('ACL:: only owner or guardian');
+      });
+
+      it('should not allow cosigning a discarded proposal', async () => {
+        const { account, accountOwner1, accountOwner2 } = await loadFixture(
+          addGuardians
+        );
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const pId = await account.proposalId();
+        await account.connect(accountOwner1).discardCurrentProposal();
+        await expect(
+          account.connect(accountOwner2).guardianCosign(pId)
+        ).to.be.revertedWith('ACL:: proposal already resolved');
       });
     });
   });

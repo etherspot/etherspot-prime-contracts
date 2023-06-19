@@ -73,6 +73,7 @@ export interface EtherspotWalletInterface extends utils.Interface {
     "addDeposit()": FunctionFragment;
     "addGuardian(address)": FunctionFragment;
     "addOwner(address)": FunctionFragment;
+    "discardCurrentProposal()": FunctionFragment;
     "entryPoint()": FunctionFragment;
     "execute(address,uint256,bytes)": FunctionFragment;
     "executeBatch(address[],uint256[],bytes[])": FunctionFragment;
@@ -108,6 +109,7 @@ export interface EtherspotWalletInterface extends utils.Interface {
       | "addDeposit"
       | "addGuardian"
       | "addOwner"
+      | "discardCurrentProposal"
       | "entryPoint"
       | "execute"
       | "executeBatch"
@@ -149,6 +151,10 @@ export interface EtherspotWalletInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "addOwner",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "discardCurrentProposal",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "entryPoint",
@@ -302,6 +308,10 @@ export interface EtherspotWalletInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "addOwner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "discardCurrentProposal",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "entryPoint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
   decodeFunctionResult(
@@ -394,9 +404,10 @@ export interface EtherspotWalletInterface extends utils.Interface {
     "GuardianAdded(address)": EventFragment;
     "GuardianRemoved(address)": EventFragment;
     "Initialized(uint8)": EventFragment;
-    "NewOwnerProposalSubmitted(uint256,address,address)": EventFragment;
     "OwnerAdded(address)": EventFragment;
     "OwnerRemoved(address)": EventFragment;
+    "ProposalDiscarded(uint256)": EventFragment;
+    "ProposalSubmitted(uint256,address,address)": EventFragment;
     "QuorumNotReached(uint256,address,uint256)": EventFragment;
     "Upgraded(address)": EventFragment;
   };
@@ -409,9 +420,10 @@ export interface EtherspotWalletInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "GuardianAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "GuardianRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Initialized"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewOwnerProposalSubmitted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnerAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnerRemoved"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProposalDiscarded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProposalSubmitted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "QuorumNotReached"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Upgraded"): EventFragment;
 }
@@ -497,19 +509,6 @@ export type InitializedEvent = TypedEvent<[number], InitializedEventObject>;
 
 export type InitializedEventFilter = TypedEventFilter<InitializedEvent>;
 
-export interface NewOwnerProposalSubmittedEventObject {
-  proposalId: BigNumber;
-  newOwnerProposed: string;
-  proposer: string;
-}
-export type NewOwnerProposalSubmittedEvent = TypedEvent<
-  [BigNumber, string, string],
-  NewOwnerProposalSubmittedEventObject
->;
-
-export type NewOwnerProposalSubmittedEventFilter =
-  TypedEventFilter<NewOwnerProposalSubmittedEvent>;
-
 export interface OwnerAddedEventObject {
   newOwner: string;
 }
@@ -523,6 +522,30 @@ export interface OwnerRemovedEventObject {
 export type OwnerRemovedEvent = TypedEvent<[string], OwnerRemovedEventObject>;
 
 export type OwnerRemovedEventFilter = TypedEventFilter<OwnerRemovedEvent>;
+
+export interface ProposalDiscardedEventObject {
+  proposalId: BigNumber;
+}
+export type ProposalDiscardedEvent = TypedEvent<
+  [BigNumber],
+  ProposalDiscardedEventObject
+>;
+
+export type ProposalDiscardedEventFilter =
+  TypedEventFilter<ProposalDiscardedEvent>;
+
+export interface ProposalSubmittedEventObject {
+  proposalId: BigNumber;
+  newOwnerProposed: string;
+  proposer: string;
+}
+export type ProposalSubmittedEvent = TypedEvent<
+  [BigNumber, string, string],
+  ProposalSubmittedEventObject
+>;
+
+export type ProposalSubmittedEventFilter =
+  TypedEventFilter<ProposalSubmittedEvent>;
 
 export interface QuorumNotReachedEventObject {
   proposalId: BigNumber;
@@ -585,6 +608,10 @@ export interface EtherspotWallet extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    discardCurrentProposal(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     entryPoint(overrides?: CallOverrides): Promise<[string]>;
 
     execute(
@@ -609,10 +636,11 @@ export interface EtherspotWallet extends BaseContract {
       _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, string[]] & {
+      [string, BigNumber, string[], boolean] & {
         ownerProposed_: string;
         approvalCount_: BigNumber;
         guardiansApproved_: string[];
+        resolved_: boolean;
       }
     >;
 
@@ -751,6 +779,10 @@ export interface EtherspotWallet extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  discardCurrentProposal(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   entryPoint(overrides?: CallOverrides): Promise<string>;
 
   execute(
@@ -775,10 +807,11 @@ export interface EtherspotWallet extends BaseContract {
     _proposalId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, string[]] & {
+    [string, BigNumber, string[], boolean] & {
       ownerProposed_: string;
       approvalCount_: BigNumber;
       guardiansApproved_: string[];
+      resolved_: boolean;
     }
   >;
 
@@ -915,6 +948,8 @@ export interface EtherspotWallet extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    discardCurrentProposal(overrides?: CallOverrides): Promise<void>;
+
     entryPoint(overrides?: CallOverrides): Promise<string>;
 
     execute(
@@ -939,10 +974,11 @@ export interface EtherspotWallet extends BaseContract {
       _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, string[]] & {
+      [string, BigNumber, string[], boolean] & {
         ownerProposed_: string;
         approvalCount_: BigNumber;
         guardiansApproved_: string[];
+        resolved_: boolean;
       }
     >;
 
@@ -1122,22 +1158,27 @@ export interface EtherspotWallet extends BaseContract {
     "Initialized(uint8)"(version?: null): InitializedEventFilter;
     Initialized(version?: null): InitializedEventFilter;
 
-    "NewOwnerProposalSubmitted(uint256,address,address)"(
-      proposalId?: null,
-      newOwnerProposed?: null,
-      proposer?: null
-    ): NewOwnerProposalSubmittedEventFilter;
-    NewOwnerProposalSubmitted(
-      proposalId?: null,
-      newOwnerProposed?: null,
-      proposer?: null
-    ): NewOwnerProposalSubmittedEventFilter;
-
     "OwnerAdded(address)"(newOwner?: null): OwnerAddedEventFilter;
     OwnerAdded(newOwner?: null): OwnerAddedEventFilter;
 
     "OwnerRemoved(address)"(removedOwner?: null): OwnerRemovedEventFilter;
     OwnerRemoved(removedOwner?: null): OwnerRemovedEventFilter;
+
+    "ProposalDiscarded(uint256)"(
+      proposalId?: null
+    ): ProposalDiscardedEventFilter;
+    ProposalDiscarded(proposalId?: null): ProposalDiscardedEventFilter;
+
+    "ProposalSubmitted(uint256,address,address)"(
+      proposalId?: null,
+      newOwnerProposed?: null,
+      proposer?: null
+    ): ProposalSubmittedEventFilter;
+    ProposalSubmitted(
+      proposalId?: null,
+      newOwnerProposed?: null,
+      proposer?: null
+    ): ProposalSubmittedEventFilter;
 
     "QuorumNotReached(uint256,address,uint256)"(
       proposalId?: null,
@@ -1170,6 +1211,10 @@ export interface EtherspotWallet extends BaseContract {
 
     addOwner(
       _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    discardCurrentProposal(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1331,6 +1376,10 @@ export interface EtherspotWallet extends BaseContract {
 
     addOwner(
       _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    discardCurrentProposal(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

@@ -31,6 +31,7 @@ export interface AccessControllerInterface extends utils.Interface {
   functions: {
     "addGuardian(address)": FunctionFragment;
     "addOwner(address)": FunctionFragment;
+    "discardCurrentProposal()": FunctionFragment;
     "getProposal(uint256)": FunctionFragment;
     "guardianCosign(uint256)": FunctionFragment;
     "guardianCount()": FunctionFragment;
@@ -47,6 +48,7 @@ export interface AccessControllerInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "addGuardian"
       | "addOwner"
+      | "discardCurrentProposal"
       | "getProposal"
       | "guardianCosign"
       | "guardianCount"
@@ -66,6 +68,10 @@ export interface AccessControllerInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "addOwner",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "discardCurrentProposal",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "getProposal",
@@ -114,6 +120,10 @@ export interface AccessControllerInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "addOwner", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "discardCurrentProposal",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getProposal",
     data: BytesLike
   ): Result;
@@ -145,17 +155,19 @@ export interface AccessControllerInterface extends utils.Interface {
   events: {
     "GuardianAdded(address)": EventFragment;
     "GuardianRemoved(address)": EventFragment;
-    "NewOwnerProposalSubmitted(uint256,address,address)": EventFragment;
     "OwnerAdded(address)": EventFragment;
     "OwnerRemoved(address)": EventFragment;
+    "ProposalDiscarded(uint256)": EventFragment;
+    "ProposalSubmitted(uint256,address,address)": EventFragment;
     "QuorumNotReached(uint256,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "GuardianAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "GuardianRemoved"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "NewOwnerProposalSubmitted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnerAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnerRemoved"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProposalDiscarded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProposalSubmitted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "QuorumNotReached"): EventFragment;
 }
 
@@ -176,19 +188,6 @@ export type GuardianRemovedEvent = TypedEvent<
 
 export type GuardianRemovedEventFilter = TypedEventFilter<GuardianRemovedEvent>;
 
-export interface NewOwnerProposalSubmittedEventObject {
-  proposalId: BigNumber;
-  newOwnerProposed: string;
-  proposer: string;
-}
-export type NewOwnerProposalSubmittedEvent = TypedEvent<
-  [BigNumber, string, string],
-  NewOwnerProposalSubmittedEventObject
->;
-
-export type NewOwnerProposalSubmittedEventFilter =
-  TypedEventFilter<NewOwnerProposalSubmittedEvent>;
-
 export interface OwnerAddedEventObject {
   newOwner: string;
 }
@@ -202,6 +201,30 @@ export interface OwnerRemovedEventObject {
 export type OwnerRemovedEvent = TypedEvent<[string], OwnerRemovedEventObject>;
 
 export type OwnerRemovedEventFilter = TypedEventFilter<OwnerRemovedEvent>;
+
+export interface ProposalDiscardedEventObject {
+  proposalId: BigNumber;
+}
+export type ProposalDiscardedEvent = TypedEvent<
+  [BigNumber],
+  ProposalDiscardedEventObject
+>;
+
+export type ProposalDiscardedEventFilter =
+  TypedEventFilter<ProposalDiscardedEvent>;
+
+export interface ProposalSubmittedEventObject {
+  proposalId: BigNumber;
+  newOwnerProposed: string;
+  proposer: string;
+}
+export type ProposalSubmittedEvent = TypedEvent<
+  [BigNumber, string, string],
+  ProposalSubmittedEventObject
+>;
+
+export type ProposalSubmittedEventFilter =
+  TypedEventFilter<ProposalSubmittedEvent>;
 
 export interface QuorumNotReachedEventObject {
   proposalId: BigNumber;
@@ -253,14 +276,19 @@ export interface AccessController extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    discardCurrentProposal(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     getProposal(
       _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, string[]] & {
+      [string, BigNumber, string[], boolean] & {
         ownerProposed_: string;
         approvalCount_: BigNumber;
         guardiansApproved_: string[];
+        resolved_: boolean;
       }
     >;
 
@@ -311,14 +339,19 @@ export interface AccessController extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  discardCurrentProposal(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   getProposal(
     _proposalId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, string[]] & {
+    [string, BigNumber, string[], boolean] & {
       ownerProposed_: string;
       approvalCount_: BigNumber;
       guardiansApproved_: string[];
+      resolved_: boolean;
     }
   >;
 
@@ -369,14 +402,17 @@ export interface AccessController extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    discardCurrentProposal(overrides?: CallOverrides): Promise<void>;
+
     getProposal(
       _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, string[]] & {
+      [string, BigNumber, string[], boolean] & {
         ownerProposed_: string;
         approvalCount_: BigNumber;
         guardiansApproved_: string[];
+        resolved_: boolean;
       }
     >;
 
@@ -426,22 +462,27 @@ export interface AccessController extends BaseContract {
     ): GuardianRemovedEventFilter;
     GuardianRemoved(removedGuardian?: null): GuardianRemovedEventFilter;
 
-    "NewOwnerProposalSubmitted(uint256,address,address)"(
-      proposalId?: null,
-      newOwnerProposed?: null,
-      proposer?: null
-    ): NewOwnerProposalSubmittedEventFilter;
-    NewOwnerProposalSubmitted(
-      proposalId?: null,
-      newOwnerProposed?: null,
-      proposer?: null
-    ): NewOwnerProposalSubmittedEventFilter;
-
     "OwnerAdded(address)"(newOwner?: null): OwnerAddedEventFilter;
     OwnerAdded(newOwner?: null): OwnerAddedEventFilter;
 
     "OwnerRemoved(address)"(removedOwner?: null): OwnerRemovedEventFilter;
     OwnerRemoved(removedOwner?: null): OwnerRemovedEventFilter;
+
+    "ProposalDiscarded(uint256)"(
+      proposalId?: null
+    ): ProposalDiscardedEventFilter;
+    ProposalDiscarded(proposalId?: null): ProposalDiscardedEventFilter;
+
+    "ProposalSubmitted(uint256,address,address)"(
+      proposalId?: null,
+      newOwnerProposed?: null,
+      proposer?: null
+    ): ProposalSubmittedEventFilter;
+    ProposalSubmitted(
+      proposalId?: null,
+      newOwnerProposed?: null,
+      proposer?: null
+    ): ProposalSubmittedEventFilter;
 
     "QuorumNotReached(uint256,address,uint256)"(
       proposalId?: null,
@@ -463,6 +504,10 @@ export interface AccessController extends BaseContract {
 
     addOwner(
       _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    discardCurrentProposal(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -516,6 +561,10 @@ export interface AccessController extends BaseContract {
 
     addOwner(
       _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    discardCurrentProposal(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
