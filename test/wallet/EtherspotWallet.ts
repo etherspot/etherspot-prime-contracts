@@ -819,7 +819,6 @@ describe('EtherspotWallet', function () {
       it('should only allow owner or guardian to call', async () => {
         const { account, accountOwner1 } = await loadFixture(addGuardians);
         await account.connect(accountOwner1).guardianPropose(accounts[5]);
-        const pId = await account.proposalId();
         const accountOwner6 = ethers.provider.getSigner(6);
         await expect(
           account.connect(accountOwner6).discardCurrentProposal()
