@@ -6,7 +6,7 @@ import {
   EtherspotWallet__factory,
   EtherspotWalletFactory,
   ProxyFactory__factory,
-  ProxyFactory
+  ProxyFactory,
 } from '../typings';
 
 export function k256EncPack(_string: string) {
@@ -48,4 +48,16 @@ export async function createEtherspotWallet(
     accountFactory,
     proxy,
   };
+}
+
+export function errorParse(error: string) {
+  const pattern = /reverted with reason string '(.+?)'/;
+  const match = error.match(pattern);
+
+  if (match && match.length > 1) {
+    const extractedSubstring = match[1];
+    return extractedSubstring;
+  } else {
+    return 'Substring not found';
+  }
 }

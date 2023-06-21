@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import { Wallet } from 'ethers';
 import { ethers } from 'hardhat';
+import { loadFixture } from '@nomicfoundation/hardhat-network-helpers';
 import { expect } from 'chai';
 import {
   ERC1967Proxy__factory,
@@ -22,7 +23,7 @@ import {
   AddressZero,
   fund,
 } from '../../account-abstraction/test/testutils';
-import { createEtherspotWallet } from '../TestUtils';
+import { createEtherspotWallet, errorParse } from '../TestUtils';
 import {
   fillUserOpDefaults,
   getUserOpHash,
@@ -47,6 +48,20 @@ describe('EtherspotWallet', function () {
     accountOwner = createAccountOwner();
   });
 
+  async function deployAndPrefund() {
+    const { proxy: account } = await createEtherspotWallet(
+      ethers.provider.getSigner(),
+      accounts[0],
+      entryPoint
+    );
+    await ethersSigner.sendTransaction({
+      from: accounts[0],
+      to: account.address,
+      value: parseEther('2'),
+    });
+    return { account };
+  }
+
   it('should deploy wallet', async () => {
     const { proxy: account } = await createEtherspotWallet(
       ethers.provider.getSigner(),
@@ -57,30 +72,12 @@ describe('EtherspotWallet', function () {
   });
 
   it('owner should be able to call execute', async () => {
-    const { proxy: account } = await createEtherspotWallet(
-      ethers.provider.getSigner(),
-      accounts[0],
-      entryPoint
-    );
-    await ethersSigner.sendTransaction({
-      from: accounts[0],
-      to: account.address,
-      value: parseEther('2'),
-    });
+    const { account } = await loadFixture(deployAndPrefund);
     await account.execute(accounts[2], ONE_ETH, '0x');
   });
 
   it('owner should be able to call executeBatch', async () => {
-    const { proxy: account } = await createEtherspotWallet(
-      ethers.provider.getSigner(),
-      accounts[0],
-      entryPoint
-    );
-    await ethersSigner.sendTransaction({
-      from: accounts[0],
-      to: account.address,
-      value: parseEther('2'),
-    });
+    const { account } = await loadFixture(deployAndPrefund);
     await account.executeBatch(
       [accounts[2], accounts[3]],
       [ONE_ETH, ONE_ETH],
@@ -89,17 +86,7 @@ describe('EtherspotWallet', function () {
   });
 
   it('a different owner should be able to call execute', async () => {
-    const { proxy: account } = await createEtherspotWallet(
-      ethers.provider.getSigner(),
-      accounts[0],
-      entryPoint
-    );
-    await ethersSigner.sendTransaction({
-      from: accounts[0],
-      to: account.address,
-      value: parseEther('2'),
-    });
-
+    const { account } = await loadFixture(deployAndPrefund);
     await account.addOwner(accounts[1]);
     expect(await account.isOwner(accounts[1])).to.eq(true);
 
@@ -303,16 +290,7 @@ describe('EtherspotWallet', function () {
   describe('#updateEntryPoint', async () => {
     it('should update EntryPoint contract address', async () => {
       const entryPoint1 = '0x'.padEnd(42, '3');
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       const oldEntryPoint = await account.entryPoint();
       await account.updateEntryPoint(entryPoint1);
       const newEntryPoint = await account.entryPoint();
@@ -320,16 +298,7 @@ describe('EtherspotWallet', function () {
       expect(newEntryPoint).to.eq(entryPoint1);
     });
     it('should trigger error if zero address passed in', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await expect(account.updateEntryPoint(AddressZero)).to.be.revertedWith(
         'EtherspotWallet:: EntryPoint address cannot be zero'
       );
@@ -338,116 +307,49 @@ describe('EtherspotWallet', function () {
 
   describe('#isOwner', () => {
     it('should return true for valid owner', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       expect(await account.isOwner(accounts[0])).to.eq(true);
     });
 
     it('should return false for invalid owner', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       expect(await account.isOwner(accounts[1])).to.eq(false);
     });
   });
 
   describe('#addOwner', () => {
     it('should add a new owner (from owner)', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       expect(await account.isOwner(accounts[1])).to.eq(false);
       await account.addOwner(accounts[1]);
       expect(await account.isOwner(accounts[1])).to.eq(true);
     });
 
-    it('should add a new owner (from guardian)', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
-
-      const accountOwner1 = createAccountOwner();
-      await fund(accountOwner1.address);
-      await account.addGuardian(accountOwner1.address);
-      expect(await account.isGuardian(accountOwner1.address)).to.eq(true);
-      expect(await account.isOwner(accounts[2])).to.eq(false);
-      await account.connect(accountOwner1).addOwner(accounts[2]);
-      expect(await account.isOwner(accounts[2])).to.eq(true);
+    it('should increment owner count', async () => {
+      const { account } = await loadFixture(deployAndPrefund);
+      const preOwnerCount = await account.ownerCount();
+      await account.addOwner(accounts[1]);
+      await account.addOwner(accounts[2]);
+      const postOwnerCount = await account.ownerCount();
+      expect(postOwnerCount).to.eq(preOwnerCount.add(2));
     });
 
     it('should emit event on new owner added', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await expect(account.addOwner(accounts[1]))
         .to.emit(account, 'OwnerAdded')
         .withArgs(accounts[1]);
     });
 
-    it('should trigger error if caller is not owner/guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
-      await account.addGuardian(accounts[1]);
+    it('should trigger error if caller is not owner', async () => {
+      const { account } = await loadFixture(deployAndPrefund);
       await expect(
         account.connect(ethers.provider.getSigner(2)).addOwner(accounts[3])
-      ).to.be.revertedWith('ACL:: only owner or guardian');
+      ).to.be.revertedWith('ACL:: only owner');
     });
 
     it('should trigger error if already owner', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await expect(account.addOwner(accounts[0])).to.be.revertedWith(
         'ACL:: already owner'
       );
@@ -456,16 +358,7 @@ describe('EtherspotWallet', function () {
 
   describe('#removeOwner', () => {
     it('should remove an owner (from owner)', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await account.addOwner(accounts[1]);
       expect(await account.isOwner(accounts[1])).to.eq(true);
       await account.removeOwner(accounts[1]);
@@ -473,20 +366,9 @@ describe('EtherspotWallet', function () {
     });
 
     it('should remove an owner (from guardian)', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
-
+      const { account } = await loadFixture(deployAndPrefund);
       const accountOwner1 = createAccountOwner();
       await fund(accountOwner1.address);
-
       await account.addGuardian(accountOwner1.address);
       expect(await account.isGuardian(accountOwner1.address)).to.eq(true);
       await account.addOwner(accounts[2]);
@@ -495,17 +377,18 @@ describe('EtherspotWallet', function () {
       expect(await account.isOwner(accounts[2])).to.eq(false);
     });
 
+    it('should decrement owner count', async () => {
+      const { account } = await loadFixture(deployAndPrefund);
+      await account.addOwner(accounts[1]);
+      await account.addOwner(accounts[2]);
+      const preOwnerCount = await account.ownerCount();
+      await account.removeOwner(accounts[1]);
+      const postOwnerCount = await account.ownerCount();
+      expect(postOwnerCount).to.eq(preOwnerCount.sub(1));
+    });
+
     it('should emit event on removal of owner', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await account.addOwner(accounts[1]);
       expect(await account.isOwner(accounts[1])).to.eq(true);
       await expect(account.removeOwner(accounts[1]))
@@ -514,16 +397,7 @@ describe('EtherspotWallet', function () {
     });
 
     it('should trigger error caller is not owner', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await account.addOwner(accounts[1]);
       await expect(
         account.connect(ethers.provider.getSigner(2)).removeOwner(accounts[1])
@@ -531,21 +405,10 @@ describe('EtherspotWallet', function () {
     });
 
     it('should trigger error if removing self', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
-
+      const { account } = await loadFixture(deployAndPrefund);
       const accountOwner1 = ethers.provider.getSigner(1);
       const accountOwner1Addr = await accountOwner1.getAddress();
       await fund(accountOwner1Addr);
-
       await account.addOwner(accountOwner1Addr);
       await expect(
         account.connect(accountOwner1).removeOwner(accountOwner1Addr)
@@ -553,97 +416,64 @@ describe('EtherspotWallet', function () {
     });
 
     it('should trigger error if removing a non owner', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await expect(account.removeOwner(accounts[1])).to.be.revertedWith(
         'ACL:: non-existant owner'
       );
+    });
+
+    it('should trigger error if removing owner would make wallet ownerless', async () => {
+      const { account } = await loadFixture(deployAndPrefund);
+      await account.addGuardian(accounts[1]);
+      const rev = await account
+        .connect(accounts[1])
+        .removeOwner(accounts[0])
+        .catch((e) => {
+          return errorParse(e.toString());
+        });
+      expect(rev).to.eq('ACL:: wallet cannot be ownerless');
     });
   });
 
   describe('#isGuardian', () => {
     it('should return true for valid guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await account.addGuardian(accounts[1]);
       expect(await account.isGuardian(accounts[1])).to.eq(true);
     });
 
     it('should return false for invalid guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       expect(await account.isGuardian(accounts[1])).to.eq(false);
     });
   });
 
   describe('#addGuardian', () => {
     it('should add a new guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       expect(await account.isGuardian(accounts[1])).to.eq(false);
       await account.addGuardian(accounts[1]);
       expect(await account.isGuardian(accounts[1])).to.eq(true);
     });
 
+    it('should increment guardian count', async () => {
+      const { account } = await loadFixture(deployAndPrefund);
+      const preGuardianCount = await account.guardianCount();
+      await account.addGuardian(accounts[1]);
+      await account.addGuardian(accounts[2]);
+      const postGuardianCount = await account.guardianCount();
+      expect(postGuardianCount).to.eq(preGuardianCount.add(2));
+    });
+
     it('should trigger error on zero address', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await expect(account.addGuardian(AddressZero)).to.be.revertedWith(
         'ACL:: zero address'
       );
     });
 
     it('should trigger error on adding existing guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await account.addGuardian(accounts[1]);
       await expect(account.addGuardian(accounts[1])).to.be.revertedWith(
         'ACL:: already guardian'
@@ -651,16 +481,7 @@ describe('EtherspotWallet', function () {
     });
 
     it('should emit event on adding guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await expect(account.addGuardian(accounts[1]))
         .to.emit(account, 'GuardianAdded')
         .withArgs(accounts[1]);
@@ -669,16 +490,7 @@ describe('EtherspotWallet', function () {
 
   describe('#removeGuardian', () => {
     it('should remove guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       expect(await account.isGuardian(accounts[1])).to.eq(false);
       await account.addGuardian(accounts[1]);
       expect(await account.isGuardian(accounts[1])).to.eq(true);
@@ -686,37 +498,344 @@ describe('EtherspotWallet', function () {
       expect(await account.isGuardian(accounts[1])).to.eq(false);
     });
 
+    it('should decrement guardian count', async () => {
+      const { account } = await loadFixture(deployAndPrefund);
+      await account.addGuardian(accounts[1]);
+      await account.addGuardian(accounts[2]);
+      const preGuardianCount = await account.guardianCount();
+      await account.removeGuardian(accounts[1]);
+      const postGuardianCount = await account.guardianCount();
+      expect(postGuardianCount).to.eq(preGuardianCount.sub(1));
+    });
+
     it('should trigger error on removing non-existant guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await expect(account.removeGuardian(accounts[1])).to.be.revertedWith(
         'ACL:: non-existant guardian'
       );
     });
 
     it('should emit event on removing guardian', async () => {
-      const { proxy: account } = await createEtherspotWallet(
-        ethers.provider.getSigner(),
-        accounts[0],
-        entryPoint
-      );
-      await ethersSigner.sendTransaction({
-        from: accounts[0],
-        to: account.address,
-        value: parseEther('2'),
-      });
+      const { account } = await loadFixture(deployAndPrefund);
       await account.addGuardian(accounts[1]);
       await expect(account.removeGuardian(accounts[1]))
         .to.emit(account, 'GuardianRemoved')
         .withArgs(accounts[1]);
+    });
+  });
+
+  context('Proposing, cosigning and deleting', async () => {
+    async function addGuardians() {
+      const accountOwner1 = ethers.provider.getSigner(1);
+      const accountOwner2 = ethers.provider.getSigner(2);
+      const accountOwner3 = ethers.provider.getSigner(3);
+      const accountOwner4 = ethers.provider.getSigner(4);
+      const accountOwner1Addr = await accountOwner1.getAddress();
+      const accountOwner2Addr = await accountOwner2.getAddress();
+      const accountOwner3Addr = await accountOwner3.getAddress();
+      const accountOwner4Addr = await accountOwner4.getAddress();
+      const { account } = await loadFixture(deployAndPrefund);
+      const preProposalId = await account.proposalId();
+      await account.addGuardian(accountOwner1Addr);
+      await account.addGuardian(accountOwner2Addr);
+      await account.addGuardian(accountOwner3Addr);
+      return {
+        account,
+        accountOwner1,
+        accountOwner2,
+        accountOwner3,
+        accountOwner4,
+        accountOwner1Addr,
+        accountOwner2Addr,
+        accountOwner3Addr,
+        accountOwner4Addr,
+        preProposalId,
+      };
+    }
+
+    describe('#getProposal', async () => {
+      it('should return proposal data for a specified proposal id', async () => {
+        const { account, accountOwner1, accountOwner1Addr, preProposalId } =
+          await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const [newOwnerProposed, approvalCount, guardiansApproved] =
+          await account.getProposal(await account.proposalId());
+        expect(newOwnerProposed).to.eq(accounts[5]);
+        expect(approvalCount).to.eq(1);
+        expect(guardiansApproved[0]).to.eq(accountOwner1Addr);
+      });
+
+      it('should trigger error if specified proposal id is invalid', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await expect(
+          account.connect(accountOwner1).guardianCosign(2)
+        ).to.be.revertedWith('ACL:: invalid proposal id');
+      });
+    });
+
+    describe('#guardianPropose', async () => {
+      it('should allow guardian to propose a new owner', async () => {
+        const { account, accountOwner1, accountOwner1Addr, preProposalId } =
+          await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const proposalData = await account.getProposal(
+          await account.proposalId()
+        );
+        expect(await account.proposalId()).to.eq(preProposalId.add(1));
+        expect(proposalData.ownerProposed_).to.eq(accounts[5]);
+        expect(proposalData.approvalCount_).to.eq(1);
+        expect(proposalData.guardiansApproved_[0]).to.eq(accountOwner1Addr);
+      });
+
+      it('should emit event on submitting proposal', async () => {
+        const { account, accountOwner1, accountOwner1Addr } = await loadFixture(
+          addGuardians
+        );
+        await expect(
+          account.connect(accountOwner1).guardianPropose(accounts[2])
+        )
+          .to.emit(account, 'ProposalSubmitted')
+          .withArgs(await account.proposalId(), accounts[2], accountOwner1Addr);
+      });
+
+      it('should only allow guardian to call (owner can just add new owner)', async () => {
+        const { account } = await loadFixture(deployAndPrefund);
+        await expect(account.guardianPropose(accounts[2])).to.be.revertedWith(
+          'ACL:: only guardian'
+        );
+      });
+
+      it('requires minimum of 3 guardians to propose a new owner', async () => {
+        const accountOwner1 = ethers.provider.getSigner(1);
+        const accountOwner2 = ethers.provider.getSigner(2);
+        const accountOwner1Addr = await accountOwner1.getAddress();
+        const accountOwner2Addr = await accountOwner2.getAddress();
+        const { account } = await loadFixture(deployAndPrefund);
+        await account.addGuardian(accountOwner1Addr);
+        await account.addGuardian(accountOwner2Addr);
+        const rev = await account
+          .connect(accountOwner1)
+          .guardianPropose(accounts[5])
+          .catch((e) => {
+            return errorParse(e.toString());
+          });
+        expect(rev).to.eq(
+          'ACL:: not enough guardians to propose new owner (minimum 3)'
+        );
+      });
+
+      it('should only allow one active proposal at a time and throw error if trying to add another', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        await expect(
+          account.connect(accountOwner1).guardianPropose(accounts[6])
+        ).to.be.revertedWith('ACL:: latest proposal not yet resolved');
+      });
+
+      it('should allow a new proposal after the previous one has been resolved (cosigned)', async () => {
+        const { account, accountOwner1, accountOwner2 } = await loadFixture(
+          addGuardians
+        );
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        await account.connect(accountOwner2).guardianCosign(1);
+        expect(await account.isOwner(accounts[5])).to.eq(true);
+        expect(
+          await account.connect(accountOwner1).guardianPropose(accounts[6])
+        ).to.not.be.reverted;
+        const proposalData = await account.getProposal(
+          await account.proposalId()
+        );
+        expect(proposalData.ownerProposed_).to.eq(accounts[6]);
+        expect(proposalData.resolved_).to.eq(false);
+      });
+
+      it('should allow a new proposal after the previous one has been resolved (discarded)', async () => {
+        const { account, accountOwner1, accountOwner2 } = await loadFixture(
+          addGuardians
+        );
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        await account.connect(accountOwner2).discardCurrentProposal();
+        expect(
+          await account.connect(accountOwner1).guardianPropose(accounts[6])
+        ).to.not.be.reverted;
+        const proposalData = await account.getProposal(
+          await account.proposalId()
+        );
+        expect(proposalData.ownerProposed_).to.eq(accounts[6]);
+        expect(proposalData.resolved_).to.eq(false);
+      });
+    });
+
+    describe('#guardianCosign', async () => {
+      it('should allow guardian to cosign proposal and not reach quorum (emits event)', async () => {
+        const { account, accountOwner1, accountOwner2, accountOwner4Addr } =
+          await loadFixture(addGuardians);
+        await account.addGuardian(accountOwner4Addr);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const proposalId = await account.proposalId();
+        await expect(account.connect(accountOwner2).guardianCosign(proposalId))
+          .to.emit(account, 'QuorumNotReached')
+          .withArgs(proposalId, accounts[5], 2);
+      });
+
+      it('should allow guardian to cosign proposal and reach quorum 2/3 (adds owner)', async () => {
+        const { account, accountOwner1, accountOwner2 } = await loadFixture(
+          addGuardians
+        );
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        await account.connect(accountOwner2).guardianCosign(1);
+        expect(await account.isOwner(accounts[5])).to.eq(true);
+        const proposalData = await account.getProposal(1);
+        expect(proposalData.ownerProposed_).to.eq(accounts[5]);
+        expect(proposalData.resolved_).to.eq(true);
+      });
+
+      it('should allow guardian to cosign proposal and reach quorum 3/4 (adds owner)', async () => {
+        const {
+          account,
+          accountOwner1,
+          accountOwner2,
+          accountOwner4,
+          accountOwner4Addr,
+        } = await loadFixture(addGuardians);
+        await account.addGuardian(accountOwner4Addr);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const proposalId = await account.proposalId();
+        // sign with 2nd guardian (2/4)
+        await expect(account.connect(accountOwner2).guardianCosign(proposalId))
+          .to.emit(account, 'QuorumNotReached')
+          .withArgs(proposalId, accounts[5], 2);
+        expect(await account.isOwner(accounts[5])).to.eq(false);
+        // sign with 3rd guardian (3/4)
+        await account.connect(accountOwner4).guardianCosign(proposalId);
+        expect(await account.isOwner(accounts[5])).to.eq(true);
+      });
+
+      it('should allow guardian to cosign proposal and reach quorum 3/5 (adds owner)', async () => {
+        const {
+          account,
+          accountOwner1,
+          accountOwner2,
+          accountOwner4,
+          accountOwner4Addr,
+        } = await loadFixture(addGuardians);
+        await account.addGuardian(accountOwner4Addr);
+        const accountOwner6 = ethers.provider.getSigner(6);
+        const accountOwner6Addr = await accountOwner6.getAddress();
+        await account.addGuardian(accountOwner6Addr);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const proposalId = await account.proposalId();
+        // sign with 2nd guardian (2/5)
+        await expect(account.connect(accountOwner2).guardianCosign(proposalId))
+          .to.emit(account, 'QuorumNotReached')
+          .withArgs(proposalId, accounts[5], 2);
+        expect(await account.isOwner(accounts[5])).to.eq(false);
+        // sign with 3rd guardian (3/5)
+        await account.connect(accountOwner4).guardianCosign(proposalId);
+        expect(await account.isOwner(accounts[5])).to.eq(true);
+      });
+
+      it('should allow guardian to cosign proposal and reach quorum 4/6 (adds owner)', async () => {
+        const {
+          account,
+          accountOwner1,
+          accountOwner2,
+          accountOwner4,
+          accountOwner4Addr,
+        } = await loadFixture(addGuardians);
+        const accountOwner6 = ethers.provider.getSigner(6);
+        const accountOwner7 = ethers.provider.getSigner(7);
+        const accountOwner6Addr = await accountOwner6.getAddress();
+        const accountOwner7Addr = await accountOwner7.getAddress();
+        await account.addGuardian(accountOwner4Addr);
+        await account.addGuardian(accountOwner6Addr);
+        await account.addGuardian(accountOwner7Addr);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const proposalId = await account.proposalId();
+        // sign with 2nd guardian (2/6)
+        await expect(account.connect(accountOwner2).guardianCosign(proposalId))
+          .to.emit(account, 'QuorumNotReached')
+          .withArgs(proposalId, accounts[5], 2);
+        expect(await account.isOwner(accounts[5])).to.eq(false);
+        // sign with 3rd guardian (3/6)
+        await expect(account.connect(accountOwner4).guardianCosign(proposalId))
+          .to.emit(account, 'QuorumNotReached')
+          .withArgs(proposalId, accounts[5], 3);
+        expect(await account.isOwner(accounts[5])).to.eq(false);
+        // sign with 4rd guardian (4/6)
+        await account.connect(accountOwner6).guardianCosign(proposalId);
+        expect(await account.isOwner(accounts[5])).to.eq(true);
+      });
+
+      it('should only allow guardian to call (owner can just add new owner)', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[2]);
+        await expect(account.guardianCosign(1)).to.be.revertedWith(
+          'ACL:: only guardian'
+        );
+      });
+
+      it("shouldn't allow guardians to approve proposal more than once", async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        await expect(account.guardianCosign(1)).to.be.revertedWith(
+          'ACL:: only guardian'
+        );
+      });
+
+      it('should throw error is invalid proposal id', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await expect(
+          account.connect(accountOwner1).guardianCosign(2)
+        ).to.be.revertedWith('ACL:: invalid proposal id');
+      });
+    });
+
+    describe('#discardCurrentProposal', async () => {
+      it('should discard current proposal', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const pId = await account.proposalId();
+        const proposalData = await account.getProposal(pId);
+        // check proposal has been added correctly
+        expect(proposalData.ownerProposed_).to.eq(accounts[5]);
+        expect(proposalData.resolved_).to.eq(false);
+        // discard current proposal
+        await account.connect(accountOwner1).discardCurrentProposal();
+        const discardProposalData = await account.getProposal(pId);
+        expect(discardProposalData.ownerProposed_).to.eq(AddressZero);
+        expect(discardProposalData.resolved_).to.eq(true);
+      });
+
+      it('should emit event on proposal discard', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const pId = await account.proposalId();
+        await expect(account.connect(accountOwner1).discardCurrentProposal())
+          .to.emit(account, 'ProposalDiscarded')
+          .withArgs(pId);
+      });
+
+      it('should only allow owner or guardian to call', async () => {
+        const { account, accountOwner1 } = await loadFixture(addGuardians);
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const accountOwner6 = ethers.provider.getSigner(6);
+        await expect(
+          account.connect(accountOwner6).discardCurrentProposal()
+        ).to.be.revertedWith('ACL:: only owner or guardian');
+      });
+
+      it('should not allow cosigning a discarded proposal', async () => {
+        const { account, accountOwner1, accountOwner2 } = await loadFixture(
+          addGuardians
+        );
+        await account.connect(accountOwner1).guardianPropose(accounts[5]);
+        const pId = await account.proposalId();
+        await account.connect(accountOwner1).discardCurrentProposal();
+        await expect(
+          account.connect(accountOwner2).guardianCosign(pId)
+        ).to.be.revertedWith('ACL:: proposal already resolved');
+      });
     });
   });
 
