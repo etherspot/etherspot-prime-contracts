@@ -44,10 +44,50 @@ const config: HardhatUserConfig = {
     hardhat: {
       // allowUnlimitedContractSize: true,
     },
+    mainnet: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
+    arbitrum: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
+    optimism: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
+    polygon: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
+    fuse: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
+    goerli: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
+    sepolia: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
+    arbitrumGoerli: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
+    optimismGoerli: {
+      url: ,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+    },
     mumbai: {
       chainId: 80001,
       url: 'https://rpc.ankr.com/polygon_mumbai',
       accounts: [process.env.PRIVATE_KEY!],
+    },
+    fuse: {
+      url: ,
+      accounts: [],
     },
     dev: { url: 'http://localhost:8545' },
   },
