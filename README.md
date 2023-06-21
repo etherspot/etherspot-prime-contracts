@@ -1,6 +1,7 @@
-# Etherspot Lite Solidity contracts
+# Etherspot Prime Solidity contracts
 
 [![NPM version][npm-image]][npm-url]
+![MIT licensed][license-image]
 
 ## How to run this repo
 
@@ -35,5 +36,6 @@ MIT
 
 [npm-image]: https://badge.fury.io/js/%40etherspot%2Flite-contracts.svg
 [npm-url]: https://npmjs.org/package/@etherspot/lite-contracts
+[license-image]: https://img.shields.io/badge/license-MIT-blue.svg
 
 
