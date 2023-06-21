@@ -38,7 +38,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      // allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: true,
     },
     mumbai: {
       chainId: 80001,

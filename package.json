@@ -66,11 +66,11 @@
     "ethereumjs-util": "7.1.5",
     "ethereumjs-wallet": "1.0.2",
     "ethers": "5.7.2",
-    "hardhat": "2.12.7",
     "hardhat-deploy": "0.11.31",
     "hardhat-deploy-ethers": "0.3.0-beta.13",
     "hardhat-exposed": "0.3.2",
     "hardhat-tracer": "2.2.2",
+    "minimatch": "3.0.5",
     "xdeployer": "1.2.2"
   },
   "resolutions": {
