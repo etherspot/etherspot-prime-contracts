@@ -60,7 +60,7 @@
   "devDependencies": {
     "@ethereumjs/tx": "4.1.2",
     "@nomicfoundation/hardhat-toolbox": "2.0.2",
-    "@openzeppelin/contracts": "4.8.3",
+    "@openzeppelin/contracts": "4.9.2",
     "@openzeppelin/hardhat-upgrades": "1.22.1",
     "@openzeppelin/test-helpers": "0.5.16",
     "ethereumjs-util": "7.1.5",
