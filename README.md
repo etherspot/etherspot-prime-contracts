@@ -1,4 +1,4 @@
-# Etherspot Prime Solidity contracts
+# Etherspot Prime Contracts
 
 [![NPM version][npm-image]][npm-url]
 ![MIT licensed][license-image]
@@ -14,7 +14,7 @@
 ## Installation
 
 ```bash
-$ npm i @etherspot/lite-contracts -S
+import "@etherspot/prime-contracts/src/wallet/EtherspotWallet.sol";
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ $ npm i @etherspot/lite-contracts -S
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "@etherspot/lite-contracts/src/EtherspotWallet.sol";
+import "@etherspot/prime-contracts/src/wallet/EtherspotWallet.sol";
 
 // ...
 ```
@@ -37,5 +37,3 @@ MIT
 [npm-image]: https://badge.fury.io/js/%40etherspot%2Flite-contracts.svg
 [npm-url]: https://npmjs.org/package/@etherspot/lite-contracts
 [license-image]: https://img.shields.io/badge/license-MIT-blue.svg
-
-
