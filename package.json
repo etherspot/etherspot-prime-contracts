@@ -72,8 +72,7 @@
     "hardhat-deploy": "0.11.23",
     "hardhat-deploy-ethers": "0.3.0-beta.13",
     "hardhat-exposed": "0.3.2",
-    "hardhat-tracer": "2.2.2",
-    "xdeployer": "1.2.2"
+    "hardhat-tracer": "2.2.2"
   },
   "resolutions": {
     "hardhat/**/@ethereumjs/tx": "3.5.0"

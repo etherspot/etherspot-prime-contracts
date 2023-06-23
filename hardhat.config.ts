@@ -6,11 +6,9 @@ import '@nomiclabs/hardhat-etherscan';
 import '@typechain/hardhat';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
-import 'hardhat-gas-reporter';
 import 'hardhat-tracer';
 import 'hardhat-exposed';
 import 'solidity-coverage';
-import 'xdeployer';
 
 dotenv.config({ path: __dirname + '/.env' });
 

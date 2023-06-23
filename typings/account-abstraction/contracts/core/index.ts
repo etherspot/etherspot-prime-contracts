@@ -2,4 +2,3 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { BaseAccount } from "./BaseAccount";
-export type { BasePaymaster } from "./BasePaymaster";
