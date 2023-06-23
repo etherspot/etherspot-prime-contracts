@@ -14,7 +14,9 @@ const deployEtherspotWalletFactory: DeployFunction = async function (
     from,
     args: [],
     gasLimit: 6e6,
+    // gasLimit: 1000000000, // arbitrum
     log: true,
+    deterministicDeployment: true,
   });
   console.log('EtherspotWalletFactory deployed at:', ret.address);
 

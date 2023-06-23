@@ -51,7 +51,7 @@ const config: HardhatUserConfig = {
     },
     arbitrum: {
       chainId: 42161,
-      url: 'https://rpc.ankr.com/arbitrum',
+      url: 'https://arbitrum-one.publicnode.com',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     optimism: {
@@ -67,6 +67,11 @@ const config: HardhatUserConfig = {
     fuse: {
       chainId: 122,
       url: 'https://rpc.fuse.io',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    gnosis: {
+      chainId: 100,
+      url: 'https://rpc.ankr.com/gnosis',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     goerli: {
@@ -85,7 +90,7 @@ const config: HardhatUserConfig = {
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     optimismGoerli: {
-      chainId: 80001,
+      chainId: 420,
       url: 'https://goerli.optimism.io',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
@@ -99,6 +104,16 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.fusespark.io',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    baseGoerli: {
+      chainId: 84531,
+      url: 'https://goerli.base.org',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    chiado: {
+      chainId: 10200,
+      url: 'https://rpc.chiadochain.net',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   mocha: {
@@ -106,15 +121,53 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
-      mumbai: process.env.POLYSCAN_API_KEY!,
+      mainnet: process.env.ETHERSCAN_API_KEY!,
+      arbitrumOne: process.env.ARBISCAN_API_KEY!,
+      optimisticEthereum: process.env.OPTIMISM_EXPLORER_API_KEY!,
+      polygon: process.env.POLYSCAN_API_KEY!,
+      fuse: process.env.FUSE_EXPLORER_API_KEY!,
+      gnosis: process.env.GNOSISSCAN_API_KEY!,
+
+      goerli: process.env.ETHERSCAN_API_KEY!,
+      sepolia: process.env.ETHERSCAN_API_KEY!,
+      arbitrumGoerli: process.env.ARBISCAN_API_KEY!,
+      optimisticGoerli: process.env.OPTIMISM_EXPLORER_API_KEY!,
+      polygonMumbai: process.env.POLYSCAN_API_KEY!,
+      fuseSparknet: process.env.FUSE_EXPLORER_API_KEY!,
+      baseGoerli: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
+      chiado: process.env.CHIADO_EXPLORER_API_KEY!,
     },
     customChains: [
       {
-        network: 'mumbai',
-        chainId: 80001,
+        network: 'baseGoerli',
+        chainId: 84531,
         urls: {
-          apiURL: 'https://api-testnet.polygonscan.com/api',
-          browserURL: 'https://mumbai.polygonscan.com/',
+          apiURL: 'https://base-goerli.blockscout.com/api',
+          browserURL: 'https://base-goerli.blockscout.com/',
+        },
+      },
+      {
+        network: 'fuse',
+        chainId: 122,
+        urls: {
+          apiURL: 'https://explorer.fuse.io/api',
+          browserURL: 'https://explorer.fuse.io/',
+        },
+      },
+      {
+        network: 'fuseSparknet',
+        chainId: 123,
+        urls: {
+          apiURL: 'https://explorer.fusespark.io/api',
+          browserURL: 'https://explorer.fusespark.io/',
+        },
+      },
+      {
+        network: 'chiado',
+        chainId: 10200,
+        urls: {
+          apiURL: 'https://blockscout.chiadochain.net/api',
+          browserURL: 'https://blockscout.chiadochain.net/',
         },
       },
     ],
