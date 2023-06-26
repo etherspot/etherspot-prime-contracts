@@ -32,8 +32,6 @@ export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
 export type { BaseAccount } from "./account-abstraction/contracts/core/BaseAccount";
 export { BaseAccount__factory } from "./factories/account-abstraction/contracts/core/BaseAccount__factory";
-export type { BasePaymaster } from "./account-abstraction/contracts/core/BasePaymaster";
-export { BasePaymaster__factory } from "./factories/account-abstraction/contracts/core/BasePaymaster__factory";
 export type { IAccount } from "./account-abstraction/contracts/interfaces/IAccount";
 export { IAccount__factory } from "./factories/account-abstraction/contracts/interfaces/IAccount__factory";
 export type { IAggregator } from "./account-abstraction/contracts/interfaces/IAggregator";
@@ -62,6 +60,8 @@ export type { IEtherspotWallet } from "./src/interfaces/IEtherspotWallet";
 export { IEtherspotWallet__factory } from "./factories/src/interfaces/IEtherspotWallet__factory";
 export type { IWhitelist } from "./src/interfaces/IWhitelist";
 export { IWhitelist__factory } from "./factories/src/interfaces/IWhitelist__factory";
+export type { BasePaymaster } from "./src/paymaster/BasePaymaster";
+export { BasePaymaster__factory } from "./factories/src/paymaster/BasePaymaster__factory";
 export type { EtherspotPaymaster } from "./src/paymaster/EtherspotPaymaster";
 export { EtherspotPaymaster__factory } from "./factories/src/paymaster/EtherspotPaymaster__factory";
 export type { Whitelist } from "./src/paymaster/Whitelist";

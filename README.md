@@ -6,10 +6,11 @@
 ## How to run this repo
 
 
-1. `git submodule init --update`
+1. `git submodule init && git submodule update`
 2. `npm i`
 3. `cd account-abstraction && yarn && npx hardhat compile`
-4. `npx hardhat test`
+4. `cd ..`
+5. `npx hardhat test`
 
 ## Installation
 

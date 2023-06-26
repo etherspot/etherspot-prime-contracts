@@ -2,4 +2,3 @@
 /* tslint:disable */
 /* eslint-disable */
 export { BaseAccount__factory } from "./BaseAccount__factory";
-export { BasePaymaster__factory } from "./BasePaymaster__factory";

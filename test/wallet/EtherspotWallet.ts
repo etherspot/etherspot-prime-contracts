@@ -142,7 +142,7 @@ describe('EtherspotWallet', function () {
 
     before(async () => {
       entryPointEoa = accounts[2];
-      const epAsSigner = await ethers.getSigner(entryPointEoa);
+      const epAsSigner = await ethers.provider.getSigner(entryPointEoa);
 
       // cant use "EtherspotWalletFactory", since it attempts to increment nonce first
       const implementation = await new EtherspotWallet__factory(
@@ -222,7 +222,7 @@ describe('EtherspotWallet', function () {
       // that's the account of ethersSigner
       const entryPoint = accounts[2];
       ({ proxy: account } = await createEtherspotWallet(
-        await ethers.getSigner(entryPoint),
+        await ethers.provider.getSigner(entryPoint),
         accountOwner.address,
         entryPoint
       ));
@@ -595,7 +595,7 @@ describe('EtherspotWallet', function () {
           account.connect(accountOwner1).guardianPropose(accounts[2])
         )
           .to.emit(account, 'ProposalSubmitted')
-          .withArgs(await account.proposalId(), accounts[2], accountOwner1Addr);
+          .withArgs(1, accounts[2], accountOwner1Addr);
       });
 
       it('should only allow guardian to call (owner can just add new owner)', async () => {

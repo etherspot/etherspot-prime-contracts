@@ -1,16 +1,9 @@
 import * as dotenv from 'dotenv';
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
-import '@nomicfoundation/hardhat-chai-matchers';
-import '@nomiclabs/hardhat-etherscan';
-import '@typechain/hardhat';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
-import 'hardhat-gas-reporter';
-import 'hardhat-tracer';
 import 'hardhat-exposed';
-import 'solidity-coverage';
-import 'xdeployer';
 
 dotenv.config({ path: __dirname + '/.env' });
 
