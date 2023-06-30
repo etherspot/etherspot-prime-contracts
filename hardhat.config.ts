@@ -107,6 +107,11 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.chiadochain.net',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    rskt: {
+      chainId: 31,
+      url: 'https://public-node.testnet.rsk.co',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   mocha: {
