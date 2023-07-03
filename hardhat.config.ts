@@ -112,6 +112,21 @@ const config: HardhatUserConfig = {
       url: 'https://public-node.testnet.rsk.co',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    rskm: {
+      chainId: 30,
+      url: 'https://public-node.rsk.co',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    kroma: {
+      chainId: 2357,
+      url: 'https://api.sepolia.kroma.network/',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    taikot: {
+      chainId: 167005,
+      url: 'https://rpc.test.taiko.xyz',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   mocha: {
