@@ -75,7 +75,6 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     "addStake(uint32)": FunctionFragment;
     "check(address,address)": FunctionFragment;
     "checkSponsorFunds(address)": FunctionFragment;
-    "deposit()": FunctionFragment;
     "depositFunds()": FunctionFragment;
     "entryPoint()": FunctionFragment;
     "getDeposit()": FunctionFragment;
@@ -102,7 +101,6 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
       | "addStake"
       | "check"
       | "checkSponsorFunds"
-      | "deposit"
       | "depositFunds"
       | "entryPoint"
       | "getDeposit"
@@ -142,7 +140,6 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     functionFragment: "checkSponsorFunds",
     values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "deposit", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "depositFunds",
     values?: undefined
@@ -229,7 +226,6 @@ export interface EtherspotPaymasterInterface extends utils.Interface {
     functionFragment: "checkSponsorFunds",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "depositFunds",
     data: BytesLike
@@ -447,10 +443,6 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    deposit(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
     depositFunds(
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -565,10 +557,6 @@ export interface EtherspotPaymaster extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  deposit(
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
   depositFunds(
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -682,8 +670,6 @@ export interface EtherspotPaymaster extends BaseContract {
       _sponsor: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
-
-    deposit(overrides?: CallOverrides): Promise<void>;
 
     depositFunds(overrides?: CallOverrides): Promise<void>;
 
@@ -866,10 +852,6 @@ export interface EtherspotPaymaster extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    deposit(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
     depositFunds(
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
@@ -977,10 +959,6 @@ export interface EtherspotPaymaster extends BaseContract {
     checkSponsorFunds(
       _sponsor: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    deposit(
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     depositFunds(
