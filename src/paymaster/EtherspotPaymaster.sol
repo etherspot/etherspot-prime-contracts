@@ -26,7 +26,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
     // calculated cost of the postOp
     uint256 private constant COST_OF_POST = 40000;
 
-    mapping(address => uint256) public sponsorFunds;
+    mapping(address => uint256) private sponsorFunds;
 
     event SponsorSuccessful(address paymaster, address sender);
     event SponsorUnsuccessful(address paymaster, address sender);
