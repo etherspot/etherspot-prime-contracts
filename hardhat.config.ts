@@ -127,6 +127,11 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.test.taiko.xyz',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    verse: {
+      chainId: 20197,
+      url: 'https://rpc.sandverse.oasys.games',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   mocha: {
