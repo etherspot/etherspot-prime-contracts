@@ -20,11 +20,11 @@ const deployEtherspotPaymaster: DeployFunction = async function (
   });
   console.log('EtherspotPaymaster deployed at:', ret.address);
 
-  await hre.run('verify:verify', {
-    address: ret.address,
-    contract: 'src/paymaster/EtherspotPaymaster.sol:EtherspotPaymaster',
-    constructorArguments: [entrypoint],
-  });
+  // await hre.run('verify:verify', {
+  //   address: ret.address,
+  //   contract: 'src/paymaster/EtherspotPaymaster.sol:EtherspotPaymaster',
+  //   constructorArguments: [entrypoint],
+  // });
 };
 
 deployEtherspotPaymaster.tags = ['aa-4337', 'etherspot-paymaster', 'required'];
