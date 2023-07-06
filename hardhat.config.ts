@@ -106,6 +106,7 @@ const config: HardhatUserConfig = {
       chainId: 10200,
       url: 'https://rpc.chiadochain.net',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+      initialBaseFeePerGas: 7,
     },
     dev: { url: 'http://localhost:8545' },
   },

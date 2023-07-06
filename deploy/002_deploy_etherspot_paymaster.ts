@@ -27,6 +27,6 @@ const deployEtherspotPaymaster: DeployFunction = async function (
   });
 };
 
-deployEtherspotPaymaster.tags = ['aa-4337', 'etherspot-paymaster'];
+deployEtherspotPaymaster.tags = ['aa-4337', 'etherspot-paymaster', 'required'];
 
 module.exports = deployEtherspotPaymaster;

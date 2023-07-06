@@ -3,24 +3,38 @@
 [![NPM version][npm-image]][npm-url]
 ![MIT licensed][license-image]
 
-## How to run this repo
+## Installation & Setup
 
+1. Initalize submodule and update  
+`git submodule init && git submodule update`
+2. Install dependencies  
+`npm i`
+3. Install submodule dependencies and compile  
+`cd account-abstraction && yarn && npx hardhat compile`
 
-1. `git submodule init && git submodule update`
-2. `npm i`
-3. `cd account-abstraction && yarn && npx hardhat compile`
-4. `cd ..`
-5. `npx hardhat test`
+## Contract Deployments
 
-## Installation
+### Prerequisites
 
-```bash
-import "@etherspot/prime-contracts/src/wallet/EtherspotWallet.sol";
-```
+Set up your `.env` file following the example found in `.env.example`.
 
-## Usage
+### Etherspot Wallet Factory deployment
 
-### Solidity
+`npx hardhat deploy --network <NETWORK_NAME> --tags 'etherspot-wallet-factory'`
+
+### Etherspot Paymaster deployment
+
+`npx hardhat deploy --network <NETWORK_NAME> --tags 'etherspot-paymaster'`
+
+### Etherspot Wallet Factory & Etherspot Paymaster deployment
+
+`npx hardhat deploy --network <NETWORK_NAME> --tags 'required'`
+
+## Test Suite
+
+`npx hardhat test`
+
+### Solidity Usage
 
 ```solidity
 // SPDX-License-Identifier: MIT

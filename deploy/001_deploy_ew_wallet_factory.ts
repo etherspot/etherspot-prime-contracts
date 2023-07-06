@@ -27,6 +27,10 @@ const deployEtherspotWalletFactory: DeployFunction = async function (
   });
 };
 
-deployEtherspotWalletFactory.tags = ['aa-4337', 'etherspot-wallet-factory'];
+deployEtherspotWalletFactory.tags = [
+  'aa-4337',
+  'etherspot-wallet-factory',
+  'required',
+];
 
 export default deployEtherspotWalletFactory;
