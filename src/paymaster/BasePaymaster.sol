@@ -69,13 +69,6 @@ abstract contract BasePaymaster is IPaymaster, Ownable {
     }
 
     /**
-     * add a deposit for this paymaster, used for paying for transaction fees
-     */
-    function deposit() public payable {
-        entryPoint.depositTo{value: msg.value}(address(this));
-    }
-
-    /**
      * add stake for this paymaster.
      * This method can also carry eth value to add to the current stake.
      * @param unstakeDelaySec - the unstake delay for this paymaster. Can only be increased.

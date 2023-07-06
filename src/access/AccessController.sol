@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "hardhat/console.sol";
-
 abstract contract AccessController {
     uint128 immutable MULTIPLY_FACTOR = 1000;
     uint16 immutable SIXTY_PERCENT = 600;
