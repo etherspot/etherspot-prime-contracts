@@ -20,13 +20,17 @@ const deployEtherspotWalletFactory: DeployFunction = async function (
   });
   console.log('EtherspotWalletFactory deployed at:', ret.address);
 
-  // await hre.run('verify:verify', {
-  //   address: ret.address,
-  //   contract: 'src/wallet/EtherspotWalletFactory.sol:EtherspotWalletFactory',
-  //   constructorArguments: [],
-  // });
+  await hre.run('verify:verify', {
+    address: ret.address,
+    contract: 'src/wallet/EtherspotWalletFactory.sol:EtherspotWalletFactory',
+    constructorArguments: [],
+  });
 };
 
-deployEtherspotWalletFactory.tags = ['aa-4337', 'etherspot-wallet-factory'];
+deployEtherspotWalletFactory.tags = [
+  'aa-4337',
+  'etherspot-wallet-factory',
+  'required',
+];
 
 export default deployEtherspotWalletFactory;

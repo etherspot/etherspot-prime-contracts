@@ -106,6 +106,7 @@ const config: HardhatUserConfig = {
       chainId: 10200,
       url: 'https://rpc.chiadochain.net',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+      initialBaseFeePerGas: 7,
     },
     rskt: {
       chainId: 31,
@@ -154,6 +155,9 @@ const config: HardhatUserConfig = {
       fuseSparknet: process.env.FUSE_EXPLORER_API_KEY!,
       baseGoerli: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
       chiado: process.env.CHIADO_EXPLORER_API_KEY!,
+      kroma: '', // not yet available
+      taikot: '', // not yet available
+      verse: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
     },
     customChains: [
       {
@@ -186,6 +190,30 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://blockscout.chiadochain.net/api',
           browserURL: 'https://blockscout.chiadochain.net/',
+        },
+      },
+      {
+        network: 'kroma',
+        chainId: 2357,
+        urls: {
+          apiURL: 'https://blockscout.sepolia.kroma.network/api',
+          browserURL: 'https://blockscout.sepolia.kroma.network/',
+        },
+      },
+      {
+        network: 'taikot',
+        chainId: 167005,
+        urls: {
+          apiURL: 'https://explorer.test.taiko.xyz/api',
+          browserURL: 'https://explorer.test.taiko.xyz/',
+        },
+      },
+      {
+        network: 'verse',
+        chainId: 20197,
+        urls: {
+          apiURL: 'https://scan.sandverse.oasys.games/api',
+          browserURL: 'https://scan.sandverse.oasys.games/',
         },
       },
     ],
