@@ -132,6 +132,16 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.sandverse.oasys.games',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    bifrostt: {
+      chainId: 49088,
+      url: 'https://bifrost-testnet.rpc.thirdweb.com',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    klaytnt: {
+      chainId: 1001,
+      url: 'https://public-en-baobab.klaytn.net',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   mocha: {
