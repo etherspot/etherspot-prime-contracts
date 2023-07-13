@@ -133,6 +133,16 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.sandverse.oasys.games',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    mantleTestnet: {
+      chainId: 5001,
+      url: 'https://rpc.testnet.mantle.xyz',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    mantle: {
+      chainId: 5000,
+      url: 'https://rpc.mantle.xyz',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   mocha: {
