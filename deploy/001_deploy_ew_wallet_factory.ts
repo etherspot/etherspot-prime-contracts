@@ -18,9 +18,6 @@ const deployEtherspotWalletFactory: DeployFunction = async function (
     log: true,
   });
 
-  console.log(`Expected address: ${EXPECTED_WALLET_FACTORY_ADDRESS}`);
-  console.log(`Pre-determined address: ${determined.address}`);
-
   if (determined.address !== EXPECTED_WALLET_FACTORY_ADDRESS) {
     console.log('Pre-detemined address is different to what is expected!');
   } else {
