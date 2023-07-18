@@ -30,12 +30,6 @@ const deployEtherspotWalletFactory: DeployFunction = async function (
       deterministicDeployment: true,
     });
     console.log('EtherspotWalletFactory deployed at:', ret.address);
-
-    await hre.run('verify:verify', {
-      address: ret.address,
-      contract: 'src/wallet/EtherspotWalletFactory.sol:EtherspotWalletFactory',
-      constructorArguments: [],
-    });
   }
 };
 
