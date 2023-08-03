@@ -28,91 +28,72 @@ import type {
 
 export interface WhitelistInterface extends utils.Interface {
   functions: {
-    "add(address)": FunctionFragment;
-    "addBatch(address[])": FunctionFragment;
+    "addBatchToWhitelist(address[])": FunctionFragment;
+    "addToWhitelist(address)": FunctionFragment;
     "check(address,address)": FunctionFragment;
-    "owner()": FunctionFragment;
-    "remove(address)": FunctionFragment;
-    "removeBatch(address[])": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
+    "removeBatchFromWhitelist(address[])": FunctionFragment;
+    "removeFromWhitelist(address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "add"
-      | "addBatch"
+      | "addBatchToWhitelist"
+      | "addToWhitelist"
       | "check"
-      | "owner"
-      | "remove"
-      | "removeBatch"
-      | "renounceOwnership"
-      | "transferOwnership"
+      | "removeBatchFromWhitelist"
+      | "removeFromWhitelist"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "add",
-    values: [PromiseOrValue<string>]
+    functionFragment: "addBatchToWhitelist",
+    values: [PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "addBatch",
-    values: [PromiseOrValue<string>[]]
+    functionFragment: "addToWhitelist",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "check",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "remove",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeBatch",
+    functionFragment: "removeBatchFromWhitelist",
     values: [PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
+    functionFragment: "removeFromWhitelist",
     values: [PromiseOrValue<string>]
   ): string;
 
-  decodeFunctionResult(functionFragment: "add", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "addBatch", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "addBatchToWhitelist",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addToWhitelist",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "check", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "remove", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "removeBatch",
+    functionFragment: "removeBatchFromWhitelist",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
+    functionFragment: "removeFromWhitelist",
     data: BytesLike
   ): Result;
 
   events: {
     "AddedBatchToWhitelist(address,address[])": EventFragment;
     "AddedToWhitelist(address,address)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
     "RemovedBatchFromWhitelist(address,address[])": EventFragment;
     "RemovedFromWhitelist(address,address)": EventFragment;
-    "WhitelistInitialized(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddedBatchToWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AddedToWhitelist"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemovedBatchFromWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemovedFromWhitelist"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "WhitelistInitialized"): EventFragment;
 }
 
 export interface AddedBatchToWhitelistEventObject {
@@ -139,18 +120,6 @@ export type AddedToWhitelistEvent = TypedEvent<
 export type AddedToWhitelistEventFilter =
   TypedEventFilter<AddedToWhitelistEvent>;
 
-export interface OwnershipTransferredEventObject {
-  previousOwner: string;
-  newOwner: string;
-}
-export type OwnershipTransferredEvent = TypedEvent<
-  [string, string],
-  OwnershipTransferredEventObject
->;
-
-export type OwnershipTransferredEventFilter =
-  TypedEventFilter<OwnershipTransferredEvent>;
-
 export interface RemovedBatchFromWhitelistEventObject {
   paymaster: string;
   accounts: string[];
@@ -174,17 +143,6 @@ export type RemovedFromWhitelistEvent = TypedEvent<
 
 export type RemovedFromWhitelistEventFilter =
   TypedEventFilter<RemovedFromWhitelistEvent>;
-
-export interface WhitelistInitializedEventObject {
-  owner: string;
-}
-export type WhitelistInitializedEvent = TypedEvent<
-  [string],
-  WhitelistInitializedEventObject
->;
-
-export type WhitelistInitializedEventFilter =
-  TypedEventFilter<WhitelistInitializedEvent>;
 
 export interface Whitelist extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -213,13 +171,13 @@ export interface Whitelist extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    add(
-      _account: PromiseOrValue<string>,
+    addBatchToWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    addBatch(
-      _accounts: PromiseOrValue<string>[],
+    addToWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -229,35 +187,24 @@ export interface Whitelist extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    owner(overrides?: CallOverrides): Promise<[string]>;
-
-    remove(
-      _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    removeBatch(
+    removeBatchFromWhitelist(
       _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
+    removeFromWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
 
-  add(
-    _account: PromiseOrValue<string>,
+  addBatchToWhitelist(
+    _accounts: PromiseOrValue<string>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  addBatch(
-    _accounts: PromiseOrValue<string>[],
+  addToWhitelist(
+    _account: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -267,35 +214,24 @@ export interface Whitelist extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  owner(overrides?: CallOverrides): Promise<string>;
-
-  remove(
-    _account: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  removeBatch(
+  removeBatchFromWhitelist(
     _accounts: PromiseOrValue<string>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  renounceOwnership(
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  transferOwnership(
-    newOwner: PromiseOrValue<string>,
+  removeFromWhitelist(
+    _account: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    add(
-      _account: PromiseOrValue<string>,
+    addBatchToWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    addBatch(
-      _accounts: PromiseOrValue<string>[],
+    addToWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -305,22 +241,13 @@ export interface Whitelist extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    owner(overrides?: CallOverrides): Promise<string>;
-
-    remove(
-      _account: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    removeBatch(
+    removeBatchFromWhitelist(
       _accounts: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    renounceOwnership(overrides?: CallOverrides): Promise<void>;
-
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
+    removeFromWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -344,15 +271,6 @@ export interface Whitelist extends BaseContract {
       account?: PromiseOrValue<string> | null
     ): AddedToWhitelistEventFilter;
 
-    "OwnershipTransferred(address,address)"(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
-    ): OwnershipTransferredEventFilter;
-    OwnershipTransferred(
-      previousOwner?: PromiseOrValue<string> | null,
-      newOwner?: PromiseOrValue<string> | null
-    ): OwnershipTransferredEventFilter;
-
     "RemovedBatchFromWhitelist(address,address[])"(
       paymaster?: PromiseOrValue<string> | null,
       accounts?: PromiseOrValue<string>[] | null
@@ -370,21 +288,16 @@ export interface Whitelist extends BaseContract {
       paymaster?: PromiseOrValue<string> | null,
       account?: PromiseOrValue<string> | null
     ): RemovedFromWhitelistEventFilter;
-
-    "WhitelistInitialized(address)"(
-      owner?: null
-    ): WhitelistInitializedEventFilter;
-    WhitelistInitialized(owner?: null): WhitelistInitializedEventFilter;
   };
 
   estimateGas: {
-    add(
-      _account: PromiseOrValue<string>,
+    addBatchToWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    addBatch(
-      _accounts: PromiseOrValue<string>[],
+    addToWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -394,36 +307,25 @@ export interface Whitelist extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    owner(overrides?: CallOverrides): Promise<BigNumber>;
-
-    remove(
-      _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    removeBatch(
+    removeBatchFromWhitelist(
       _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
+    removeFromWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    add(
-      _account: PromiseOrValue<string>,
+    addBatchToWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    addBatch(
-      _accounts: PromiseOrValue<string>[],
+    addToWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -433,24 +335,13 @@ export interface Whitelist extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    remove(
-      _account: PromiseOrValue<string>,
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    removeBatch(
+    removeBatchFromWhitelist(
       _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    renounceOwnership(
-      overrides?: Overrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    transferOwnership(
-      newOwner: PromiseOrValue<string>,
+    removeFromWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

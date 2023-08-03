@@ -1,22 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
+import "hardhat/console.sol";
+
 abstract contract AccessController {
     uint128 immutable MULTIPLY_FACTOR = 1000;
     uint16 immutable SIXTY_PERCENT = 600;
+    uint24 immutable INITIAL_PROPOSAL_TIMELOCK = 24 hours;
 
     uint256 public ownerCount;
     uint256 public guardianCount;
     uint256 public proposalId;
+    uint256 public proposalTimelock;
     mapping(address => bool) private owners;
     mapping(address => bool) private guardians;
     mapping(uint256 => NewOwnerProposal) private proposals;
 
     struct NewOwnerProposal {
         address newOwnerProposed;
+        bool resolved;
         uint256 approvalCount;
         address[] guardiansApproved;
-        bool resolved;
+        uint256 proposedAt;
     }
 
     event OwnerAdded(address newOwner);
@@ -31,9 +36,9 @@ abstract contract AccessController {
     event QuorumNotReached(
         uint256 proposalId,
         address newOwnerProposed,
-        uint256 guardiansApproved
+        uint256 approvalCount
     );
-    event ProposalDiscarded(uint256 proposalId);
+    event ProposalDiscarded(uint256 proposalId, address discardedBy);
 
     modifier onlyOwner() {
         require(
@@ -60,7 +65,9 @@ abstract contract AccessController {
 
     modifier onlyOwnerOrEntryPoint(address _entryPoint) {
         require(
-            msg.sender == _entryPoint || isOwner(msg.sender),
+            msg.sender == _entryPoint ||
+                msg.sender == address(this) ||
+                isOwner(msg.sender),
             "ACL:: not owner or entryPoint"
         );
         _;
@@ -78,7 +85,7 @@ abstract contract AccessController {
         _addOwner(_newOwner);
     }
 
-    function removeOwner(address _owner) external onlyOwnerOrGuardian {
+    function removeOwner(address _owner) external onlyOwner {
         _removeOwner(_owner);
     }
 
@@ -90,6 +97,10 @@ abstract contract AccessController {
         _removeGuardian(_guardian);
     }
 
+    function changeProposalTimelock(uint256 _newTimelock) external onlyOwner {
+        proposalTimelock = _newTimelock;
+    }
+
     function getProposal(
         uint256 _proposalId
     )
@@ -99,25 +110,43 @@ abstract contract AccessController {
             address ownerProposed_,
             uint256 approvalCount_,
             address[] memory guardiansApproved_,
-            bool resolved_
+            bool resolved_,
+            uint256 proposedAt_
         )
     {
-        require(_proposalId <= proposalId, "ACL:: invalid proposal id");
+        require(
+            _proposalId != 0 && _proposalId <= proposalId,
+            "ACL:: invalid proposal id"
+        );
         NewOwnerProposal memory proposal = proposals[_proposalId];
         return (
             proposal.newOwnerProposed,
             proposal.approvalCount,
             proposal.guardiansApproved,
-            proposal.resolved
+            proposal.resolved,
+            proposal.proposedAt
         );
     }
 
     function discardCurrentProposal() external onlyOwnerOrGuardian {
-        delete proposals[proposalId].newOwnerProposed;
-        delete proposals[proposalId].guardiansApproved;
-        delete proposals[proposalId].approvalCount;
+        require(
+            !proposals[proposalId].resolved,
+            "ACL:: proposal already resolved"
+        );
+        if (isGuardian(msg.sender) && proposalTimelock > 0)
+            require(
+                (proposals[proposalId].proposedAt + proposalTimelock) <
+                    block.timestamp,
+                "ACL:: guardian cannot discard proposal until timelock relased"
+            );
+        if (isGuardian(msg.sender) && proposalTimelock == 0)
+            require(
+                (proposals[proposalId].proposedAt + INITIAL_PROPOSAL_TIMELOCK) <
+                    block.timestamp,
+                "ACL:: guardian cannot discard proposal until timelock relased"
+            );
         proposals[proposalId].resolved = true;
-        emit ProposalDiscarded(proposalId);
+        emit ProposalDiscarded(proposalId, msg.sender);
     }
 
     function guardianPropose(address _newOwner) external onlyGuardian {
@@ -135,11 +164,15 @@ abstract contract AccessController {
         proposals[proposalId].guardiansApproved.push(msg.sender);
         proposals[proposalId].approvalCount += 1;
         proposals[proposalId].resolved = false;
+        proposals[proposalId].proposedAt = block.timestamp;
         emit ProposalSubmitted(proposalId, _newOwner, msg.sender);
     }
 
     function guardianCosign(uint256 _proposalId) external onlyGuardian {
-        require(_proposalId <= proposalId, "ACL:: invalid proposal id");
+        require(
+            _proposalId != 0 && _proposalId <= proposalId,
+            "ACL:: invalid proposal id"
+        );
         require(
             !_checkIfSigned(_proposalId),
             "ACL:: guardian already signed proposal"
@@ -185,7 +218,6 @@ abstract contract AccessController {
     }
 
     function _removeOwner(address _owner) internal {
-        require(msg.sender != _owner, "ACL:: removing self");
         require(owners[_owner], "ACL:: non-existant owner");
         require(ownerCount > 1, "ACL:: wallet cannot be ownerless");
         emit OwnerRemoved(_owner);

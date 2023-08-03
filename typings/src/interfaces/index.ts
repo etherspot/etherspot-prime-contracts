@@ -3,6 +3,8 @@
 /* eslint-disable */
 import type * as ierc721WalletSol from "./IERC721Wallet.sol";
 export type { ierc721WalletSol };
+export type { IAccessController } from "./IAccessController";
 export type { IEtherspotPaymaster } from "./IEtherspotPaymaster";
 export type { IEtherspotWallet } from "./IEtherspotWallet";
+export type { IEtherspotWalletFactory } from "./IEtherspotWalletFactory";
 export type { IWhitelist } from "./IWhitelist";

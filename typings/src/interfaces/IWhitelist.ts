@@ -28,49 +28,58 @@ import type {
 
 export interface IWhitelistInterface extends utils.Interface {
   functions: {
-    "add(address)": FunctionFragment;
-    "addBatch(address[])": FunctionFragment;
+    "addBatchToWhitelist(address[])": FunctionFragment;
+    "addToWhitelist(address)": FunctionFragment;
     "check(address,address)": FunctionFragment;
-    "remove(address)": FunctionFragment;
-    "removeBatch(address[])": FunctionFragment;
+    "removeBatchFromWhitelist(address[])": FunctionFragment;
+    "removeFromWhitelist(address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "add"
-      | "addBatch"
+      | "addBatchToWhitelist"
+      | "addToWhitelist"
       | "check"
-      | "remove"
-      | "removeBatch"
+      | "removeBatchFromWhitelist"
+      | "removeFromWhitelist"
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "add",
-    values: [PromiseOrValue<string>]
+    functionFragment: "addBatchToWhitelist",
+    values: [PromiseOrValue<string>[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "addBatch",
-    values: [PromiseOrValue<string>[]]
+    functionFragment: "addToWhitelist",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "check",
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "remove",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "removeBatch",
+    functionFragment: "removeBatchFromWhitelist",
     values: [PromiseOrValue<string>[]]
   ): string;
+  encodeFunctionData(
+    functionFragment: "removeFromWhitelist",
+    values: [PromiseOrValue<string>]
+  ): string;
 
-  decodeFunctionResult(functionFragment: "add", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "addBatch", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "check", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "remove", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "removeBatch",
+    functionFragment: "addBatchToWhitelist",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "addToWhitelist",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "check", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "removeBatchFromWhitelist",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "removeFromWhitelist",
     data: BytesLike
   ): Result;
 
@@ -79,14 +88,12 @@ export interface IWhitelistInterface extends utils.Interface {
     "AddedToWhitelist(address,address)": EventFragment;
     "RemovedBatchFromWhitelist(address,address[])": EventFragment;
     "RemovedFromWhitelist(address,address)": EventFragment;
-    "WhitelistInitialized(address,string)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AddedBatchToWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AddedToWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemovedBatchFromWhitelist"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RemovedFromWhitelist"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "WhitelistInitialized"): EventFragment;
 }
 
 export interface AddedBatchToWhitelistEventObject {
@@ -137,18 +144,6 @@ export type RemovedFromWhitelistEvent = TypedEvent<
 export type RemovedFromWhitelistEventFilter =
   TypedEventFilter<RemovedFromWhitelistEvent>;
 
-export interface WhitelistInitializedEventObject {
-  owner: string;
-  version: string;
-}
-export type WhitelistInitializedEvent = TypedEvent<
-  [string, string],
-  WhitelistInitializedEventObject
->;
-
-export type WhitelistInitializedEventFilter =
-  TypedEventFilter<WhitelistInitializedEvent>;
-
 export interface IWhitelist extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
@@ -176,13 +171,13 @@ export interface IWhitelist extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    add(
-      _account: PromiseOrValue<string>,
+    addBatchToWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    addBatch(
-      _accounts: PromiseOrValue<string>[],
+    addToWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -192,24 +187,24 @@ export interface IWhitelist extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    remove(
-      _account: PromiseOrValue<string>,
+    removeBatchFromWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    removeBatch(
-      _accounts: PromiseOrValue<string>[],
+    removeFromWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
 
-  add(
-    _account: PromiseOrValue<string>,
+  addBatchToWhitelist(
+    _accounts: PromiseOrValue<string>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  addBatch(
-    _accounts: PromiseOrValue<string>[],
+  addToWhitelist(
+    _account: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -219,24 +214,24 @@ export interface IWhitelist extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  remove(
-    _account: PromiseOrValue<string>,
-    overrides?: Overrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  removeBatch(
+  removeBatchFromWhitelist(
     _accounts: PromiseOrValue<string>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  removeFromWhitelist(
+    _account: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
-    add(
-      _account: PromiseOrValue<string>,
+    addBatchToWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    addBatch(
-      _accounts: PromiseOrValue<string>[],
+    addToWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -246,13 +241,13 @@ export interface IWhitelist extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    remove(
-      _account: PromiseOrValue<string>,
+    removeBatchFromWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: CallOverrides
     ): Promise<void>;
 
-    removeBatch(
-      _accounts: PromiseOrValue<string>[],
+    removeFromWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -293,25 +288,16 @@ export interface IWhitelist extends BaseContract {
       paymaster?: PromiseOrValue<string> | null,
       account?: PromiseOrValue<string> | null
     ): RemovedFromWhitelistEventFilter;
-
-    "WhitelistInitialized(address,string)"(
-      owner?: null,
-      version?: null
-    ): WhitelistInitializedEventFilter;
-    WhitelistInitialized(
-      owner?: null,
-      version?: null
-    ): WhitelistInitializedEventFilter;
   };
 
   estimateGas: {
-    add(
-      _account: PromiseOrValue<string>,
+    addBatchToWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    addBatch(
-      _accounts: PromiseOrValue<string>[],
+    addToWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -321,25 +307,25 @@ export interface IWhitelist extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    remove(
-      _account: PromiseOrValue<string>,
+    removeBatchFromWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    removeBatch(
-      _accounts: PromiseOrValue<string>[],
+    removeFromWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    add(
-      _account: PromiseOrValue<string>,
+    addBatchToWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    addBatch(
-      _accounts: PromiseOrValue<string>[],
+    addToWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -349,13 +335,13 @@ export interface IWhitelist extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    remove(
-      _account: PromiseOrValue<string>,
+    removeBatchFromWhitelist(
+      _accounts: PromiseOrValue<string>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    removeBatch(
-      _accounts: PromiseOrValue<string>[],
+    removeFromWhitelist(
+      _account: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

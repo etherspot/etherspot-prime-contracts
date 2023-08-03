@@ -23,13 +23,13 @@ Solidity pragma version `^0.8.12`.
 ### External Functions
 
 - `function check(address _sponsor, address _account) external view returns (bool)`: Checks if an account is whitelisted for a specific sponsor.  
-- `function add(address _account) external`: Adds an account to the whitelist for the caller.
+- `function addToWhitelist(address _account) external`: Adds an account to the whitelist for the caller.
   - Emits `AddedToWhitelist(msg.sender, _account)`.  
-- `function addBatch(address[] calldata _accounts) external`: Adds multiple accounts to the whitelist for the caller.
+- `function addBatchToWhitelist(address[] calldata _accounts) external`: Adds multiple accounts to the whitelist for the caller.
   - Emits`AddedBatchToWhitelist(msg.sender, _accounts)`.  
-- `function remove(address _account) external`: Removes an account from the whitelist for the caller.
+- `function removeFromWhitelist(address _account) external`: Removes an account from the whitelist for the caller.
   - Emits `RemovedFromWhitelist(msg.sender, _account)`.  
-- `function removeBatch(address[] calldata _accounts) external`: Removes multiple accounts from the whitelist for the caller.
+- `function removeBatchFromWhitelist(address[] calldata _accounts) external`: Removes multiple accounts from the whitelist for the caller.
   - Emits `RemovedBatchFromWhitelist(msg.sender, _accounts)`.  
 
 ### Internal Functions

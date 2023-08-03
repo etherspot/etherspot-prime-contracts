@@ -31,31 +31,65 @@ import type {
 export interface IEtherspotWalletInterface extends utils.Interface {
   functions: {
     "addDeposit()": FunctionFragment;
+    "addGuardian(address)": FunctionFragment;
+    "addOwner(address)": FunctionFragment;
+    "changeProposalTimelock(uint256)": FunctionFragment;
+    "discardCurrentProposal()": FunctionFragment;
     "entryPoint()": FunctionFragment;
     "execute(address,uint256,bytes)": FunctionFragment;
-    "executeBatch(address[],bytes[])": FunctionFragment;
+    "executeBatch(address[],uint256[],bytes[])": FunctionFragment;
     "getDeposit()": FunctionFragment;
+    "getProposal(uint256)": FunctionFragment;
+    "guardianCosign(uint256)": FunctionFragment;
+    "guardianPropose(address)": FunctionFragment;
     "isGuardian(address)": FunctionFragment;
     "isOwner(address)": FunctionFragment;
-    "nonce()": FunctionFragment;
-    "updateEntryPoint(address)": FunctionFragment;
+    "isValidSignature(bytes32,bytes)": FunctionFragment;
+    "removeGuardian(address)": FunctionFragment;
+    "removeOwner(address)": FunctionFragment;
+    "withdrawDepositTo(address,uint256)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "addDeposit"
+      | "addGuardian"
+      | "addOwner"
+      | "changeProposalTimelock"
+      | "discardCurrentProposal"
       | "entryPoint"
       | "execute"
       | "executeBatch"
       | "getDeposit"
+      | "getProposal"
+      | "guardianCosign"
+      | "guardianPropose"
       | "isGuardian"
       | "isOwner"
-      | "nonce"
-      | "updateEntryPoint"
+      | "isValidSignature"
+      | "removeGuardian"
+      | "removeOwner"
+      | "withdrawDepositTo"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "addDeposit",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addGuardian",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addOwner",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "changeProposalTimelock",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "discardCurrentProposal",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -72,11 +106,27 @@ export interface IEtherspotWalletInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "executeBatch",
-    values: [PromiseOrValue<string>[], PromiseOrValue<BytesLike>[]]
+    values: [
+      PromiseOrValue<string>[],
+      PromiseOrValue<BigNumberish>[],
+      PromiseOrValue<BytesLike>[]
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "getDeposit",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getProposal",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "guardianCosign",
+    values: [PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "guardianPropose",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "isGuardian",
@@ -86,13 +136,37 @@ export interface IEtherspotWalletInterface extends utils.Interface {
     functionFragment: "isOwner",
     values: [PromiseOrValue<string>]
   ): string;
-  encodeFunctionData(functionFragment: "nonce", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "updateEntryPoint",
+    functionFragment: "isValidSignature",
+    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "removeGuardian",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "removeOwner",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawDepositTo",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(functionFragment: "addDeposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "addGuardian",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "addOwner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "changeProposalTimelock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "discardCurrentProposal",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "entryPoint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
   decodeFunctionResult(
@@ -100,40 +174,59 @@ export interface IEtherspotWalletInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "getDeposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getProposal",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "guardianCosign",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "guardianPropose",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "isGuardian", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "isOwner", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "nonce", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "updateEntryPoint",
+    functionFragment: "isValidSignature",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "removeGuardian",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "removeOwner",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawDepositTo",
     data: BytesLike
   ): Result;
 
   events: {
-    "EntryPointChanged(address,address)": EventFragment;
     "EtherspotWalletInitialized(address,address)": EventFragment;
     "EtherspotWalletReceived(address,uint256)": EventFragment;
-    "OwnerAdded(address,uint256)": EventFragment;
-    "OwnerRemoved(address,uint256)": EventFragment;
+    "GuardianAdded(address)": EventFragment;
+    "GuardianRemoved(address)": EventFragment;
+    "OwnerAdded(address)": EventFragment;
+    "OwnerRemoved(address)": EventFragment;
+    "ProposalDiscarded(uint256,address)": EventFragment;
+    "ProposalSubmitted(uint256,address,address)": EventFragment;
+    "QuorumNotReached(uint256,address,uint256)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "EntryPointChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EtherspotWalletInitialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "EtherspotWalletReceived"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "GuardianAdded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "GuardianRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnerAdded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnerRemoved"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProposalDiscarded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProposalSubmitted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "QuorumNotReached"): EventFragment;
 }
-
-export interface EntryPointChangedEventObject {
-  oldEntryPoint: string;
-  newEntryPoint: string;
-}
-export type EntryPointChangedEvent = TypedEvent<
-  [string, string],
-  EntryPointChangedEventObject
->;
-
-export type EntryPointChangedEventFilter =
-  TypedEventFilter<EntryPointChangedEvent>;
 
 export interface EtherspotWalletInitializedEventObject {
   entryPoint: string;
@@ -159,27 +252,74 @@ export type EtherspotWalletReceivedEvent = TypedEvent<
 export type EtherspotWalletReceivedEventFilter =
   TypedEventFilter<EtherspotWalletReceivedEvent>;
 
+export interface GuardianAddedEventObject {
+  newGuardian: string;
+}
+export type GuardianAddedEvent = TypedEvent<[string], GuardianAddedEventObject>;
+
+export type GuardianAddedEventFilter = TypedEventFilter<GuardianAddedEvent>;
+
+export interface GuardianRemovedEventObject {
+  removedGuardian: string;
+}
+export type GuardianRemovedEvent = TypedEvent<
+  [string],
+  GuardianRemovedEventObject
+>;
+
+export type GuardianRemovedEventFilter = TypedEventFilter<GuardianRemovedEvent>;
+
 export interface OwnerAddedEventObject {
   newOwner: string;
-  blockFrom: BigNumber;
 }
-export type OwnerAddedEvent = TypedEvent<
-  [string, BigNumber],
-  OwnerAddedEventObject
->;
+export type OwnerAddedEvent = TypedEvent<[string], OwnerAddedEventObject>;
 
 export type OwnerAddedEventFilter = TypedEventFilter<OwnerAddedEvent>;
 
 export interface OwnerRemovedEventObject {
   removedOwner: string;
-  blockFrom: BigNumber;
 }
-export type OwnerRemovedEvent = TypedEvent<
-  [string, BigNumber],
-  OwnerRemovedEventObject
->;
+export type OwnerRemovedEvent = TypedEvent<[string], OwnerRemovedEventObject>;
 
 export type OwnerRemovedEventFilter = TypedEventFilter<OwnerRemovedEvent>;
+
+export interface ProposalDiscardedEventObject {
+  proposalId: BigNumber;
+  discardedBy: string;
+}
+export type ProposalDiscardedEvent = TypedEvent<
+  [BigNumber, string],
+  ProposalDiscardedEventObject
+>;
+
+export type ProposalDiscardedEventFilter =
+  TypedEventFilter<ProposalDiscardedEvent>;
+
+export interface ProposalSubmittedEventObject {
+  proposalId: BigNumber;
+  newOwnerProposed: string;
+  proposer: string;
+}
+export type ProposalSubmittedEvent = TypedEvent<
+  [BigNumber, string, string],
+  ProposalSubmittedEventObject
+>;
+
+export type ProposalSubmittedEventFilter =
+  TypedEventFilter<ProposalSubmittedEvent>;
+
+export interface QuorumNotReachedEventObject {
+  proposalId: BigNumber;
+  newOwnerProposed: string;
+  approvalCount: BigNumber;
+}
+export type QuorumNotReachedEvent = TypedEvent<
+  [BigNumber, string, BigNumber],
+  QuorumNotReachedEventObject
+>;
+
+export type QuorumNotReachedEventFilter =
+  TypedEventFilter<QuorumNotReachedEvent>;
 
 export interface IEtherspotWallet extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -212,6 +352,25 @@ export interface IEtherspotWallet extends BaseContract {
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    addGuardian(
+      _newGuardian: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    addOwner(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    changeProposalTimelock(
+      _newTimelock: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    discardCurrentProposal(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     entryPoint(overrides?: CallOverrides): Promise<[string]>;
 
     execute(
@@ -223,32 +382,90 @@ export interface IEtherspotWallet extends BaseContract {
 
     executeBatch(
       dest: PromiseOrValue<string>[],
+      value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     getDeposit(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    getProposal(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, string[], boolean, BigNumber] & {
+        ownerProposed_: string;
+        approvalCount_: BigNumber;
+        guardiansApproved_: string[];
+        resolved_: boolean;
+        proposedAt_: BigNumber;
+      }
+    >;
+
+    guardianCosign(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    guardianPropose(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     isGuardian(
-      _guardian: PromiseOrValue<string>,
+      _address: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     isOwner(
-      _owner: PromiseOrValue<string>,
+      _address: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    nonce(overrides?: CallOverrides): Promise<[BigNumber]>;
+    isValidSignature(
+      hash: PromiseOrValue<BytesLike>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<[string] & { magicValue: string }>;
 
-    updateEntryPoint(
-      _newEntryPoint: PromiseOrValue<string>,
+    removeGuardian(
+      _guardian: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    removeOwner(
+      _owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawDepositTo(
+      withdrawAddress: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
 
   addDeposit(
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addGuardian(
+    _newGuardian: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  addOwner(
+    _newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  changeProposalTimelock(
+    _newTimelock: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  discardCurrentProposal(
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   entryPoint(overrides?: CallOverrides): Promise<string>;
@@ -262,31 +479,87 @@ export interface IEtherspotWallet extends BaseContract {
 
   executeBatch(
     dest: PromiseOrValue<string>[],
+    value: PromiseOrValue<BigNumberish>[],
     func: PromiseOrValue<BytesLike>[],
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
+  getProposal(
+    _proposalId: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, BigNumber, string[], boolean, BigNumber] & {
+      ownerProposed_: string;
+      approvalCount_: BigNumber;
+      guardiansApproved_: string[];
+      resolved_: boolean;
+      proposedAt_: BigNumber;
+    }
+  >;
+
+  guardianCosign(
+    _proposalId: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  guardianPropose(
+    _newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   isGuardian(
-    _guardian: PromiseOrValue<string>,
+    _address: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
   isOwner(
-    _owner: PromiseOrValue<string>,
+    _address: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  nonce(overrides?: CallOverrides): Promise<BigNumber>;
+  isValidSignature(
+    hash: PromiseOrValue<BytesLike>,
+    signature: PromiseOrValue<BytesLike>,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
-  updateEntryPoint(
-    _newEntryPoint: PromiseOrValue<string>,
+  removeGuardian(
+    _guardian: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  removeOwner(
+    _owner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawDepositTo(
+    withdrawAddress: PromiseOrValue<string>,
+    amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
     addDeposit(overrides?: CallOverrides): Promise<void>;
+
+    addGuardian(
+      _newGuardian: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    addOwner(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    changeProposalTimelock(
+      _newTimelock: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    discardCurrentProposal(overrides?: CallOverrides): Promise<void>;
 
     entryPoint(overrides?: CallOverrides): Promise<string>;
 
@@ -299,40 +572,70 @@ export interface IEtherspotWallet extends BaseContract {
 
     executeBatch(
       dest: PromiseOrValue<string>[],
+      value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: CallOverrides
     ): Promise<void>;
 
     getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getProposal(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, BigNumber, string[], boolean, BigNumber] & {
+        ownerProposed_: string;
+        approvalCount_: BigNumber;
+        guardiansApproved_: string[];
+        resolved_: boolean;
+        proposedAt_: BigNumber;
+      }
+    >;
+
+    guardianCosign(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    guardianPropose(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     isGuardian(
-      _guardian: PromiseOrValue<string>,
+      _address: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     isOwner(
-      _owner: PromiseOrValue<string>,
+      _address: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    nonce(overrides?: CallOverrides): Promise<BigNumber>;
+    isValidSignature(
+      hash: PromiseOrValue<BytesLike>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
-    updateEntryPoint(
-      _newEntryPoint: PromiseOrValue<string>,
+    removeGuardian(
+      _guardian: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    removeOwner(
+      _owner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawDepositTo(
+      withdrawAddress: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
 
   filters: {
-    "EntryPointChanged(address,address)"(
-      oldEntryPoint?: null,
-      newEntryPoint?: null
-    ): EntryPointChangedEventFilter;
-    EntryPointChanged(
-      oldEntryPoint?: null,
-      newEntryPoint?: null
-    ): EntryPointChangedEventFilter;
-
     "EtherspotWalletInitialized(address,address)"(
       entryPoint?: PromiseOrValue<string> | null,
       owner?: PromiseOrValue<string> | null
@@ -351,25 +654,74 @@ export interface IEtherspotWallet extends BaseContract {
       amount?: PromiseOrValue<BigNumberish> | null
     ): EtherspotWalletReceivedEventFilter;
 
-    "OwnerAdded(address,uint256)"(
-      newOwner?: null,
-      blockFrom?: null
-    ): OwnerAddedEventFilter;
-    OwnerAdded(newOwner?: null, blockFrom?: null): OwnerAddedEventFilter;
+    "GuardianAdded(address)"(newGuardian?: null): GuardianAddedEventFilter;
+    GuardianAdded(newGuardian?: null): GuardianAddedEventFilter;
 
-    "OwnerRemoved(address,uint256)"(
-      removedOwner?: null,
-      blockFrom?: null
-    ): OwnerRemovedEventFilter;
-    OwnerRemoved(
-      removedOwner?: null,
-      blockFrom?: null
-    ): OwnerRemovedEventFilter;
+    "GuardianRemoved(address)"(
+      removedGuardian?: null
+    ): GuardianRemovedEventFilter;
+    GuardianRemoved(removedGuardian?: null): GuardianRemovedEventFilter;
+
+    "OwnerAdded(address)"(newOwner?: null): OwnerAddedEventFilter;
+    OwnerAdded(newOwner?: null): OwnerAddedEventFilter;
+
+    "OwnerRemoved(address)"(removedOwner?: null): OwnerRemovedEventFilter;
+    OwnerRemoved(removedOwner?: null): OwnerRemovedEventFilter;
+
+    "ProposalDiscarded(uint256,address)"(
+      proposalId?: null,
+      discardedBy?: null
+    ): ProposalDiscardedEventFilter;
+    ProposalDiscarded(
+      proposalId?: null,
+      discardedBy?: null
+    ): ProposalDiscardedEventFilter;
+
+    "ProposalSubmitted(uint256,address,address)"(
+      proposalId?: null,
+      newOwnerProposed?: null,
+      proposer?: null
+    ): ProposalSubmittedEventFilter;
+    ProposalSubmitted(
+      proposalId?: null,
+      newOwnerProposed?: null,
+      proposer?: null
+    ): ProposalSubmittedEventFilter;
+
+    "QuorumNotReached(uint256,address,uint256)"(
+      proposalId?: null,
+      newOwnerProposed?: null,
+      approvalCount?: null
+    ): QuorumNotReachedEventFilter;
+    QuorumNotReached(
+      proposalId?: null,
+      newOwnerProposed?: null,
+      approvalCount?: null
+    ): QuorumNotReachedEventFilter;
   };
 
   estimateGas: {
     addDeposit(
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addGuardian(
+      _newGuardian: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    addOwner(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changeProposalTimelock(
+      _newTimelock: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    discardCurrentProposal(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     entryPoint(overrides?: CallOverrides): Promise<BigNumber>;
@@ -383,26 +735,57 @@ export interface IEtherspotWallet extends BaseContract {
 
     executeBatch(
       dest: PromiseOrValue<string>[],
+      value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     getDeposit(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getProposal(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    guardianCosign(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    guardianPropose(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     isGuardian(
-      _guardian: PromiseOrValue<string>,
+      _address: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     isOwner(
-      _owner: PromiseOrValue<string>,
+      _address: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    nonce(overrides?: CallOverrides): Promise<BigNumber>;
+    isValidSignature(
+      hash: PromiseOrValue<BytesLike>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
-    updateEntryPoint(
-      _newEntryPoint: PromiseOrValue<string>,
+    removeGuardian(
+      _guardian: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    removeOwner(
+      _owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawDepositTo(
+      withdrawAddress: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
@@ -410,6 +793,25 @@ export interface IEtherspotWallet extends BaseContract {
   populateTransaction: {
     addDeposit(
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addGuardian(
+      _newGuardian: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    addOwner(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changeProposalTimelock(
+      _newTimelock: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    discardCurrentProposal(
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     entryPoint(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -423,26 +825,57 @@ export interface IEtherspotWallet extends BaseContract {
 
     executeBatch(
       dest: PromiseOrValue<string>[],
+      value: PromiseOrValue<BigNumberish>[],
       func: PromiseOrValue<BytesLike>[],
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     getDeposit(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getProposal(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    guardianCosign(
+      _proposalId: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    guardianPropose(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
     isGuardian(
-      _guardian: PromiseOrValue<string>,
+      _address: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isOwner(
-      _owner: PromiseOrValue<string>,
+      _address: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    nonce(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    isValidSignature(
+      hash: PromiseOrValue<BytesLike>,
+      signature: PromiseOrValue<BytesLike>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
-    updateEntryPoint(
-      _newEntryPoint: PromiseOrValue<string>,
+    removeGuardian(
+      _guardian: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    removeOwner(
+      _owner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawDepositTo(
+      withdrawAddress: PromiseOrValue<string>,
+      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };

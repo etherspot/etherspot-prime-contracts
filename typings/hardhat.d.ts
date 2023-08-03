@@ -93,13 +93,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AccessController__factory>;
     getContractFactory(
-      name: "UniversalSigValidator",
+      name: "IAccessController",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.UniversalSigValidator__factory>;
-    getContractFactory(
-      name: "ValidateSigOffchain",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ValidateSigOffchain__factory>;
+    ): Promise<Contracts.IAccessController__factory>;
     getContractFactory(
       name: "IERC1271Wallet",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -112,6 +108,10 @@ declare module "hardhat/types/runtime" {
       name: "IEtherspotWallet",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IEtherspotWallet__factory>;
+    getContractFactory(
+      name: "IEtherspotWalletFactory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IEtherspotWalletFactory__factory>;
     getContractFactory(
       name: "IWhitelist",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -242,15 +242,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.AccessController>;
     getContractAt(
-      name: "UniversalSigValidator",
+      name: "IAccessController",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.UniversalSigValidator>;
-    getContractAt(
-      name: "ValidateSigOffchain",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ValidateSigOffchain>;
+    ): Promise<Contracts.IAccessController>;
     getContractAt(
       name: "IERC1271Wallet",
       address: string,
@@ -266,6 +261,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IEtherspotWallet>;
+    getContractAt(
+      name: "IEtherspotWalletFactory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IEtherspotWalletFactory>;
     getContractAt(
       name: "IWhitelist",
       address: string,

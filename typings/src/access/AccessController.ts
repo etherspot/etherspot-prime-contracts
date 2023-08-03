@@ -31,6 +31,7 @@ export interface AccessControllerInterface extends utils.Interface {
   functions: {
     "addGuardian(address)": FunctionFragment;
     "addOwner(address)": FunctionFragment;
+    "changeProposalTimelock(uint256)": FunctionFragment;
     "discardCurrentProposal()": FunctionFragment;
     "getProposal(uint256)": FunctionFragment;
     "guardianCosign(uint256)": FunctionFragment;
@@ -40,6 +41,7 @@ export interface AccessControllerInterface extends utils.Interface {
     "isOwner(address)": FunctionFragment;
     "ownerCount()": FunctionFragment;
     "proposalId()": FunctionFragment;
+    "proposalTimelock()": FunctionFragment;
     "removeGuardian(address)": FunctionFragment;
     "removeOwner(address)": FunctionFragment;
   };
@@ -48,6 +50,7 @@ export interface AccessControllerInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "addGuardian"
       | "addOwner"
+      | "changeProposalTimelock"
       | "discardCurrentProposal"
       | "getProposal"
       | "guardianCosign"
@@ -57,6 +60,7 @@ export interface AccessControllerInterface extends utils.Interface {
       | "isOwner"
       | "ownerCount"
       | "proposalId"
+      | "proposalTimelock"
       | "removeGuardian"
       | "removeOwner"
   ): FunctionFragment;
@@ -68,6 +72,10 @@ export interface AccessControllerInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "addOwner",
     values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "changeProposalTimelock",
+    values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
     functionFragment: "discardCurrentProposal",
@@ -106,6 +114,10 @@ export interface AccessControllerInterface extends utils.Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "proposalTimelock",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "removeGuardian",
     values: [PromiseOrValue<string>]
   ): string;
@@ -119,6 +131,10 @@ export interface AccessControllerInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "addOwner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "changeProposalTimelock",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "discardCurrentProposal",
     data: BytesLike
@@ -144,6 +160,10 @@ export interface AccessControllerInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "ownerCount", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "proposalId", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "proposalTimelock",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "removeGuardian",
     data: BytesLike
   ): Result;
@@ -157,7 +177,7 @@ export interface AccessControllerInterface extends utils.Interface {
     "GuardianRemoved(address)": EventFragment;
     "OwnerAdded(address)": EventFragment;
     "OwnerRemoved(address)": EventFragment;
-    "ProposalDiscarded(uint256)": EventFragment;
+    "ProposalDiscarded(uint256,address)": EventFragment;
     "ProposalSubmitted(uint256,address,address)": EventFragment;
     "QuorumNotReached(uint256,address,uint256)": EventFragment;
   };
@@ -204,9 +224,10 @@ export type OwnerRemovedEventFilter = TypedEventFilter<OwnerRemovedEvent>;
 
 export interface ProposalDiscardedEventObject {
   proposalId: BigNumber;
+  discardedBy: string;
 }
 export type ProposalDiscardedEvent = TypedEvent<
-  [BigNumber],
+  [BigNumber, string],
   ProposalDiscardedEventObject
 >;
 
@@ -229,7 +250,7 @@ export type ProposalSubmittedEventFilter =
 export interface QuorumNotReachedEventObject {
   proposalId: BigNumber;
   newOwnerProposed: string;
-  guardiansApproved: BigNumber;
+  approvalCount: BigNumber;
 }
 export type QuorumNotReachedEvent = TypedEvent<
   [BigNumber, string, BigNumber],
@@ -276,6 +297,11 @@ export interface AccessController extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
+    changeProposalTimelock(
+      _newTimelock: PromiseOrValue<BigNumberish>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     discardCurrentProposal(
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
@@ -284,11 +310,12 @@ export interface AccessController extends BaseContract {
       _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, string[], boolean] & {
+      [string, BigNumber, string[], boolean, BigNumber] & {
         ownerProposed_: string;
         approvalCount_: BigNumber;
         guardiansApproved_: string[];
         resolved_: boolean;
+        proposedAt_: BigNumber;
       }
     >;
 
@@ -318,6 +345,8 @@ export interface AccessController extends BaseContract {
 
     proposalId(overrides?: CallOverrides): Promise<[BigNumber]>;
 
+    proposalTimelock(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     removeGuardian(
       _guardian: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -339,6 +368,11 @@ export interface AccessController extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
+  changeProposalTimelock(
+    _newTimelock: PromiseOrValue<BigNumberish>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   discardCurrentProposal(
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
@@ -347,11 +381,12 @@ export interface AccessController extends BaseContract {
     _proposalId: PromiseOrValue<BigNumberish>,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, string[], boolean] & {
+    [string, BigNumber, string[], boolean, BigNumber] & {
       ownerProposed_: string;
       approvalCount_: BigNumber;
       guardiansApproved_: string[];
       resolved_: boolean;
+      proposedAt_: BigNumber;
     }
   >;
 
@@ -381,6 +416,8 @@ export interface AccessController extends BaseContract {
 
   proposalId(overrides?: CallOverrides): Promise<BigNumber>;
 
+  proposalTimelock(overrides?: CallOverrides): Promise<BigNumber>;
+
   removeGuardian(
     _guardian: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -402,17 +439,23 @@ export interface AccessController extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    changeProposalTimelock(
+      _newTimelock: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     discardCurrentProposal(overrides?: CallOverrides): Promise<void>;
 
     getProposal(
       _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, string[], boolean] & {
+      [string, BigNumber, string[], boolean, BigNumber] & {
         ownerProposed_: string;
         approvalCount_: BigNumber;
         guardiansApproved_: string[];
         resolved_: boolean;
+        proposedAt_: BigNumber;
       }
     >;
 
@@ -442,6 +485,8 @@ export interface AccessController extends BaseContract {
 
     proposalId(overrides?: CallOverrides): Promise<BigNumber>;
 
+    proposalTimelock(overrides?: CallOverrides): Promise<BigNumber>;
+
     removeGuardian(
       _guardian: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -468,10 +513,14 @@ export interface AccessController extends BaseContract {
     "OwnerRemoved(address)"(removedOwner?: null): OwnerRemovedEventFilter;
     OwnerRemoved(removedOwner?: null): OwnerRemovedEventFilter;
 
-    "ProposalDiscarded(uint256)"(
-      proposalId?: null
+    "ProposalDiscarded(uint256,address)"(
+      proposalId?: null,
+      discardedBy?: null
     ): ProposalDiscardedEventFilter;
-    ProposalDiscarded(proposalId?: null): ProposalDiscardedEventFilter;
+    ProposalDiscarded(
+      proposalId?: null,
+      discardedBy?: null
+    ): ProposalDiscardedEventFilter;
 
     "ProposalSubmitted(uint256,address,address)"(
       proposalId?: null,
@@ -487,12 +536,12 @@ export interface AccessController extends BaseContract {
     "QuorumNotReached(uint256,address,uint256)"(
       proposalId?: null,
       newOwnerProposed?: null,
-      guardiansApproved?: null
+      approvalCount?: null
     ): QuorumNotReachedEventFilter;
     QuorumNotReached(
       proposalId?: null,
       newOwnerProposed?: null,
-      guardiansApproved?: null
+      approvalCount?: null
     ): QuorumNotReachedEventFilter;
   };
 
@@ -504,6 +553,11 @@ export interface AccessController extends BaseContract {
 
     addOwner(
       _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    changeProposalTimelock(
+      _newTimelock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -542,6 +596,8 @@ export interface AccessController extends BaseContract {
 
     proposalId(overrides?: CallOverrides): Promise<BigNumber>;
 
+    proposalTimelock(overrides?: CallOverrides): Promise<BigNumber>;
+
     removeGuardian(
       _guardian: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
@@ -561,6 +617,11 @@ export interface AccessController extends BaseContract {
 
     addOwner(
       _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    changeProposalTimelock(
+      _newTimelock: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -598,6 +659,8 @@ export interface AccessController extends BaseContract {
     ownerCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     proposalId(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    proposalTimelock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     removeGuardian(
       _guardian: PromiseOrValue<string>,

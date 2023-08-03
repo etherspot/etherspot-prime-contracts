@@ -1,27 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../interfaces/IWhitelist.sol";
 
-contract Whitelist is Ownable {
+contract Whitelist is IWhitelist {
     // Mappings
     mapping(address => mapping(address => bool)) private whitelist;
-
-    // Events
-    event WhitelistInitialized(address owner);
-    event AddedToWhitelist(address indexed paymaster, address indexed account);
-    event AddedBatchToWhitelist(
-        address indexed paymaster,
-        address[] indexed accounts
-    );
-    event RemovedFromWhitelist(
-        address indexed paymaster,
-        address indexed account
-    );
-    event RemovedBatchFromWhitelist(
-        address indexed paymaster,
-        address[] indexed accounts
-    );
 
     // External
     function check(
@@ -31,22 +15,22 @@ contract Whitelist is Ownable {
         return _check(_sponsor, _account);
     }
 
-    function add(address _account) external {
+    function addToWhitelist(address _account) external {
         _add(_account);
         emit AddedToWhitelist(msg.sender, _account);
     }
 
-    function addBatch(address[] calldata _accounts) external {
+    function addBatchToWhitelist(address[] calldata _accounts) external {
         _addBatch(_accounts);
         emit AddedBatchToWhitelist(msg.sender, _accounts);
     }
 
-    function remove(address _account) external {
+    function removeFromWhitelist(address _account) external {
         _remove(_account);
         emit RemovedFromWhitelist(msg.sender, _account);
     }
 
-    function removeBatch(address[] calldata _accounts) external {
+    function removeBatchFromWhitelist(address[] calldata _accounts) external {
         _removeBatch(_accounts);
         emit RemovedBatchFromWhitelist(msg.sender, _accounts);
     }

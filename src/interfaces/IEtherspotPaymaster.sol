@@ -2,92 +2,59 @@
 pragma solidity ^0.8.12;
 
 import "../../account-abstraction/contracts/interfaces/UserOperation.sol";
+import "../interfaces/IWhitelist.sol";
 
-/**
- * the interface exposed by a paymaster contract, who agrees to pay the gas for user's operations.
- * a paymaster must hold a stake to cover the required entrypoint stake and also the gas for the transaction.
- */
-interface IEtherspotPaymaster {
+interface IEtherspotPaymaster is IWhitelist {
     enum PostOpMode {
-        opSucceeded, // user op succeeded
-        opReverted, // user op reverted. still has to pay for gas.
-        postOpReverted //user op succeeded, but caused postOp to revert. Now it's a 2nd call, after user's op was deliberately reverted.
+        opSucceeded,
+        opReverted,
+        postOpReverted
     }
 
-    event SponsorTransaction(
-        bool success,
-        address paymaster,
-        address sender,
-        bytes userOpHash
-    );
+    event SponsorSuccessful(address paymaster, address sender);
 
-    /**
-     * payment validation: check if paymaster agrees to pay.
-     * Must verify sender is the entryPoint.
-     * Revert to reject this request.
-     * Note that bundlers will reject this method if it changes the state, unless the paymaster is trusted (whitelisted)
-     * The paymaster pre-pays using its deposit, and receive back a refund after the postOp method returns.
-     * @param userOp the user operation
-     * @param userOpHash hash of the user's request data.
-     * @param maxCost the maximum cost of this transaction (based on maximum gas and gas price from userOp)
-     * @return context value to send to a postOp
-     *      zero length to signify postOp is not required.
-     * @return validationData signature and time-range of this operation, encoded the same as the return value of validateUserOperation
-     *      <20-byte> sigAuthorizer - 0 for valid signature, 1 to mark signature failure,
-     *         otherwise, an address of an "authorizer" contract.
-     *      <6-byte> validUntil - last timestamp this operation is valid. 0 for "indefinite"
-     *      <6-byte> validAfter - first timestamp this operation is valid
-     *      Note that the validation code cannot use block.timestamp (or block.number) directly.
-     */
+    function depositFunds() external payable;
+
+    function withdrawFunds(address payable _sponsor, uint256 _amount) external;
+
+    function getSponsorBalance(
+        address _sponsor
+    ) external view returns (uint256);
+
+    function addStake(uint32 unstakeDelaySec) external payable;
+
+    function unlockStake() external;
+
+    function withdrawStake(address payable withdrawAddress) external;
+
+    function getDeposit() external view returns (uint256);
+
     function validatePaymasterUserOp(
         UserOperation calldata userOp,
         bytes32 userOpHash,
         uint256 maxCost
     ) external returns (bytes memory context, uint256 validationData);
 
-    /**
-     * post-operation handler.
-     * Must verify sender is the entryPoint
-     * @param mode enum with the following options:
-     *      opSucceeded - user operation succeeded.
-     *      opReverted  - user op reverted. still has to pay for gas.
-     *      postOpReverted - user op succeeded, but caused postOp (in mode=opSucceeded) to revert.
-     *                       Now this is the 2nd call, after user's op was deliberately reverted.
-     * @param context - the context value returned by validatePaymasterUserOp
-     * @param actualGasCost - actual gas used so far (without this postOp call).
-     * return will emit SponsorTransaction on result from EntryPoint
-     *      if sponsor is successful, costs will be deducted from paymaster's deposited balance
-     *      if sponsor is unsuccessful, no costs will be deducted
-     */
+    function parsePaymasterAndData(
+        bytes calldata paymasterAndData
+    )
+        external
+        pure
+        returns (
+            uint48 validUntil,
+            uint48 validAfter,
+            bytes calldata signature
+        );
+
     function postOp(
         PostOpMode mode,
         bytes calldata context,
         uint256 actualGasCost
     ) external;
 
-    /**
-     * hashes UserOperation for signing off-chain.
-     * called on-chain from the validatePaymasterUserOp, to validate the signature.
-     * @param userOp - user operation to hash.
-     * @return - returns hash of user operation.
-     */
     function getHash(
-        UserOperation calldata userOp
-    ) external pure returns (bytes32);
-
-    /**
-     * sponsor fund deposit.
-     * Note deposited funds allocated to msg.sender.
-     * Must verify that sponsor balance is >= amount deposited.
-     */
-    function depositFunds() external payable;
-
-    /**
-     * check sponsor balance.
-     * @param _sponsor - address of sponsor to check fund balance.
-     * @return - current balance of sponsor.
-     */
-    function checkSponsorFunds(
-        address _sponsor
-    ) external view returns (uint256);
+        UserOperation calldata userOp,
+        uint48 validUntil,
+        uint48 validAfter
+    ) external view returns (bytes32);
 }

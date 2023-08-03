@@ -2,6 +2,8 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as ierc721WalletSol from "./IERC721Wallet.sol";
+export { IAccessController__factory } from "./IAccessController__factory";
 export { IEtherspotPaymaster__factory } from "./IEtherspotPaymaster__factory";
 export { IEtherspotWallet__factory } from "./IEtherspotWallet__factory";
+export { IEtherspotWalletFactory__factory } from "./IEtherspotWalletFactory__factory";
 export { IWhitelist__factory } from "./IWhitelist__factory";
