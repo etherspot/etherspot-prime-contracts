@@ -81,7 +81,7 @@ export interface EtherspotWalletInterface extends utils.Interface {
     "getDeposit()": FunctionFragment;
     "getNonce()": FunctionFragment;
     "getProposal(uint256)": FunctionFragment;
-    "guardianCosign(uint256)": FunctionFragment;
+    "guardianCosign()": FunctionFragment;
     "guardianCount()": FunctionFragment;
     "guardianPropose(address)": FunctionFragment;
     "initialize(address)": FunctionFragment;
@@ -193,7 +193,7 @@ export interface EtherspotWalletInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "guardianCosign",
-    values: [PromiseOrValue<BigNumberish>]
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "guardianCount",
@@ -648,7 +648,6 @@ export interface EtherspotWallet extends BaseContract {
     >;
 
     guardianCosign(
-      _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -821,7 +820,6 @@ export interface EtherspotWallet extends BaseContract {
   >;
 
   guardianCosign(
-    _proposalId: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -989,10 +987,7 @@ export interface EtherspotWallet extends BaseContract {
       }
     >;
 
-    guardianCosign(
-      _proposalId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    guardianCosign(overrides?: CallOverrides): Promise<void>;
 
     guardianCount(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1247,7 +1242,6 @@ export interface EtherspotWallet extends BaseContract {
     ): Promise<BigNumber>;
 
     guardianCosign(
-      _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1413,7 +1407,6 @@ export interface EtherspotWallet extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     guardianCosign(
-      _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

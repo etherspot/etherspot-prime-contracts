@@ -334,13 +334,7 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_proposalId",
-        type: "uint256",
-      },
-    ],
+    inputs: [],
     name: "guardianCosign",
     outputs: [],
     stateMutability: "nonpayable",

@@ -49,5 +49,5 @@ interface IAccessController {
 
     function guardianPropose(address _newOwner) external;
 
-    function guardianCosign(uint256 _proposalId) external;
+    function guardianCosign() external;
 }

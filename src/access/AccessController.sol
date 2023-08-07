@@ -168,30 +168,27 @@ abstract contract AccessController {
         emit ProposalSubmitted(proposalId, _newOwner, msg.sender);
     }
 
-    function guardianCosign(uint256 _proposalId) external onlyGuardian {
+    function guardianCosign() external onlyGuardian {
+        require(proposalId != 0, "ACL:: invalid proposal id");
         require(
-            _proposalId != 0 && _proposalId <= proposalId,
-            "ACL:: invalid proposal id"
-        );
-        require(
-            !_checkIfSigned(_proposalId),
+            !_checkIfSigned(proposalId),
             "ACL:: guardian already signed proposal"
         );
         require(
             !proposals[proposalId].resolved,
             "ACL:: proposal already resolved"
         );
-        proposals[_proposalId].guardiansApproved.push(msg.sender);
-        proposals[_proposalId].approvalCount += 1;
-        address newOwner = proposals[_proposalId].newOwnerProposed;
-        if (_checkQuorumReached(_proposalId)) {
+        proposals[proposalId].guardiansApproved.push(msg.sender);
+        proposals[proposalId].approvalCount += 1;
+        address newOwner = proposals[proposalId].newOwnerProposed;
+        if (_checkQuorumReached(proposalId)) {
             proposals[proposalId].resolved = true;
             _addOwner(newOwner);
         } else {
             emit QuorumNotReached(
-                _proposalId,
+                proposalId,
                 newOwner,
-                proposals[_proposalId].approvalCount
+                proposals[proposalId].approvalCount
             );
         }
     }

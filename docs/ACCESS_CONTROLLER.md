@@ -59,7 +59,7 @@ Solidity pragma version `^0.8.12`.
 - `function guardianPropose(address _newOwner) external onlyGuardian`: Allows a guardian to propose adding a new `EtherspotWallet` owner. Only one proposal is allowed at any time and needs to either be actioned or discarded for another proposal to be submitted.
   - Error `ACL:: not enough guardians to propose new owner (minimum 3)`: Requires minimum amount of 3 guardians to add a new owner.
   - Emits `ProposalSubmitted(proposalId, _newOwner, msg.sender)`.
-- `function guardianCosign(uint256 _proposalId) external onlyGuardian`: Allows other guardians than the one that proposed adding a new owner to cosign the proposal. If quorum (60% of total guardians) is not reached then `QuorumNotReached` event will be emitted. If quorum is reached, it will add a new owner.
+- `function guardianCosign() external onlyGuardian`: Allows other guardians than the one that proposed adding a new owner to cosign the proposal. If quorum (60% of total guardians) is not reached then `QuorumNotReached` event will be emitted. If quorum is reached, it will add a new owner. It will only allow for cosiging the current proposal as long as it is unresolved.
   - Error `ACL:: invalid proposal id`: Has to be a valid proposal.
   - Error `ACL:: guardian already signed proposal`: Guardian cannot sign proposal more than once.
   - Emits `QuorumNotReached(_proposalId, newOwner, proposals[_proposalId].approvalCount)`.

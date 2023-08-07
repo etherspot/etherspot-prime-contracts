@@ -40,7 +40,7 @@ export interface IEtherspotWalletInterface extends utils.Interface {
     "executeBatch(address[],uint256[],bytes[])": FunctionFragment;
     "getDeposit()": FunctionFragment;
     "getProposal(uint256)": FunctionFragment;
-    "guardianCosign(uint256)": FunctionFragment;
+    "guardianCosign()": FunctionFragment;
     "guardianPropose(address)": FunctionFragment;
     "isGuardian(address)": FunctionFragment;
     "isOwner(address)": FunctionFragment;
@@ -122,7 +122,7 @@ export interface IEtherspotWalletInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "guardianCosign",
-    values: [PromiseOrValue<BigNumberish>]
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "guardianPropose",
@@ -403,7 +403,6 @@ export interface IEtherspotWallet extends BaseContract {
     >;
 
     guardianCosign(
-      _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -500,7 +499,6 @@ export interface IEtherspotWallet extends BaseContract {
   >;
 
   guardianCosign(
-    _proposalId: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -592,10 +590,7 @@ export interface IEtherspotWallet extends BaseContract {
       }
     >;
 
-    guardianCosign(
-      _proposalId: PromiseOrValue<BigNumberish>,
-      overrides?: CallOverrides
-    ): Promise<void>;
+    guardianCosign(overrides?: CallOverrides): Promise<void>;
 
     guardianPropose(
       _newOwner: PromiseOrValue<string>,
@@ -748,7 +743,6 @@ export interface IEtherspotWallet extends BaseContract {
     ): Promise<BigNumber>;
 
     guardianCosign(
-      _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -838,7 +832,6 @@ export interface IEtherspotWallet extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     guardianCosign(
-      _proposalId: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

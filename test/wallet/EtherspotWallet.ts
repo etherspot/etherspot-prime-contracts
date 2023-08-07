@@ -522,7 +522,7 @@ describe('EtherspotWallet', function () {
       it('should trigger error if specified proposal id is invalid', async () => {
         const { account, guardian1 } = await loadFixture(addGuardians);
         await expect(
-          account.connect(guardian1).guardianCosign(2)
+          account.connect(guardian1).guardianCosign()
         ).to.be.revertedWith('ACL:: invalid proposal id');
       });
     });
@@ -589,7 +589,7 @@ describe('EtherspotWallet', function () {
           addGuardians
         );
         await account.connect(guardian1).guardianPropose(accounts[5]);
-        await account.connect(guardian2).guardianCosign(1);
+        await account.connect(guardian2).guardianCosign();
         expect(await account.isOwner(accounts[5])).to.eq(true);
         expect(await account.connect(guardian1).guardianPropose(accounts[6])).to
           .not.be.reverted;
@@ -621,7 +621,7 @@ describe('EtherspotWallet', function () {
         await account.addGuardian(guardian4Addr);
         await account.connect(guardian1).guardianPropose(accounts[5]);
         const proposalId = await account.proposalId();
-        await expect(account.connect(guardian2).guardianCosign(proposalId))
+        await expect(account.connect(guardian2).guardianCosign())
           .to.emit(account, 'QuorumNotReached')
           .withArgs(proposalId, accounts[5], 2);
       });
@@ -631,7 +631,7 @@ describe('EtherspotWallet', function () {
           addGuardians
         );
         await account.connect(guardian1).guardianPropose(accounts[5]);
-        await account.connect(guardian2).guardianCosign(1);
+        await account.connect(guardian2).guardianCosign();
         expect(await account.isOwner(accounts[5])).to.eq(true);
         const proposalData = await account.getProposal(1);
         expect(proposalData.ownerProposed_).to.eq(accounts[5]);
@@ -645,12 +645,12 @@ describe('EtherspotWallet', function () {
         await account.connect(guardian1).guardianPropose(accounts[5]);
         const proposalId = await account.proposalId();
         // sign with 2nd guardian (2/4)
-        await expect(account.connect(guardian2).guardianCosign(proposalId))
+        await expect(account.connect(guardian2).guardianCosign())
           .to.emit(account, 'QuorumNotReached')
           .withArgs(proposalId, accounts[5], 2);
         expect(await account.isOwner(accounts[5])).to.eq(false);
         // sign with 3rd guardian (3/4)
-        await account.connect(guardian4).guardianCosign(proposalId);
+        await account.connect(guardian4).guardianCosign();
         expect(await account.isOwner(accounts[5])).to.eq(true);
       });
 
@@ -664,12 +664,12 @@ describe('EtherspotWallet', function () {
         await account.connect(guardian1).guardianPropose(accounts[5]);
         const proposalId = await account.proposalId();
         // sign with 2nd guardian (2/5)
-        await expect(account.connect(guardian2).guardianCosign(proposalId))
+        await expect(account.connect(guardian2).guardianCosign())
           .to.emit(account, 'QuorumNotReached')
           .withArgs(proposalId, accounts[5], 2);
         expect(await account.isOwner(accounts[5])).to.eq(false);
         // sign with 3rd guardian (3/5)
-        await account.connect(guardian4).guardianCosign(proposalId);
+        await account.connect(guardian4).guardianCosign();
         expect(await account.isOwner(accounts[5])).to.eq(true);
       });
 
@@ -686,24 +686,24 @@ describe('EtherspotWallet', function () {
         await account.connect(guardian1).guardianPropose(accounts[5]);
         const proposalId = await account.proposalId();
         // sign with 2nd guardian (2/6)
-        await expect(account.connect(guardian2).guardianCosign(proposalId))
+        await expect(account.connect(guardian2).guardianCosign())
           .to.emit(account, 'QuorumNotReached')
           .withArgs(proposalId, accounts[5], 2);
         expect(await account.isOwner(accounts[5])).to.eq(false);
         // sign with 3rd guardian (3/6)
-        await expect(account.connect(guardian4).guardianCosign(proposalId))
+        await expect(account.connect(guardian4).guardianCosign())
           .to.emit(account, 'QuorumNotReached')
           .withArgs(proposalId, accounts[5], 3);
         expect(await account.isOwner(accounts[5])).to.eq(false);
         // sign with 4rd guardian (4/6)
-        await account.connect(guardian6).guardianCosign(proposalId);
+        await account.connect(guardian6).guardianCosign();
         expect(await account.isOwner(accounts[5])).to.eq(true);
       });
 
       it('should only allow guardian to call (owner can just add new owner)', async () => {
         const { account, guardian1 } = await loadFixture(addGuardians);
         await account.connect(guardian1).guardianPropose(accounts[2]);
-        await expect(account.guardianCosign(1)).to.be.revertedWith(
+        await expect(account.guardianCosign()).to.be.revertedWith(
           'ACL:: only guardian'
         );
       });
@@ -711,7 +711,7 @@ describe('EtherspotWallet', function () {
       it("shouldn't allow guardians to approve proposal more than once", async () => {
         const { account, guardian1 } = await loadFixture(addGuardians);
         await account.connect(guardian1).guardianPropose(accounts[5]);
-        await expect(account.guardianCosign(1)).to.be.revertedWith(
+        await expect(account.guardianCosign()).to.be.revertedWith(
           'ACL:: only guardian'
         );
       });
@@ -719,7 +719,7 @@ describe('EtherspotWallet', function () {
       it('should throw error is invalid proposal id', async () => {
         const { account, guardian1 } = await loadFixture(addGuardians);
         await expect(
-          account.connect(guardian1).guardianCosign(2)
+          account.connect(guardian1).guardianCosign()
         ).to.be.revertedWith('ACL:: invalid proposal id');
       });
     });
@@ -809,7 +809,7 @@ describe('EtherspotWallet', function () {
         );
         await account.connect(guardian1).guardianPropose(accounts[5]);
         const pId = await account.proposalId();
-        await account.connect(guardian2).guardianCosign(pId);
+        await account.connect(guardian2).guardianCosign();
         expect(await account.isOwner(accounts[5])).to.eq(true);
         const rev = await account
           .connect(accounts[0])
@@ -828,7 +828,7 @@ describe('EtherspotWallet', function () {
         const pId = await account.proposalId();
         await account.discardCurrentProposal();
         await expect(
-          account.connect(guardian2).guardianCosign(pId)
+          account.connect(guardian2).guardianCosign()
         ).to.be.revertedWith('ACL:: proposal already resolved');
       });
     });
