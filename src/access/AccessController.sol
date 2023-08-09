@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "hardhat/console.sol";
+import "../interfaces/IAccessController.sol";
 
-abstract contract AccessController {
+abstract contract AccessController is IAccessController {
     uint128 immutable MULTIPLY_FACTOR = 1000;
     uint16 immutable SIXTY_PERCENT = 600;
     uint24 immutable INITIAL_PROPOSAL_TIMELOCK = 24 hours;
@@ -24,22 +24,6 @@ abstract contract AccessController {
         uint256 proposedAt;
     }
 
-    event OwnerAdded(address newOwner);
-    event OwnerRemoved(address removedOwner);
-    event GuardianAdded(address newGuardian);
-    event GuardianRemoved(address removedGuardian);
-    event ProposalSubmitted(
-        uint256 proposalId,
-        address newOwnerProposed,
-        address proposer
-    );
-    event QuorumNotReached(
-        uint256 proposalId,
-        address newOwnerProposed,
-        uint256 approvalCount
-    );
-    event ProposalDiscarded(uint256 proposalId, address discardedBy);
-
     modifier onlyOwner() {
         require(
             isOwner(msg.sender) || msg.sender == address(this),
@@ -55,9 +39,7 @@ abstract contract AccessController {
 
     modifier onlyOwnerOrGuardian() {
         require(
-            isOwner(msg.sender) ||
-                msg.sender == address(this) ||
-                isGuardian(msg.sender),
+            isOwner(msg.sender) || isGuardian(msg.sender),
             "ACL:: only owner or guardian"
         );
         _;
@@ -65,9 +47,7 @@ abstract contract AccessController {
 
     modifier onlyOwnerOrEntryPoint(address _entryPoint) {
         require(
-            msg.sender == _entryPoint ||
-                msg.sender == address(this) ||
-                isOwner(msg.sender),
+            msg.sender == _entryPoint || isOwner(msg.sender),
             "ACL:: not owner or entryPoint"
         );
         _;
@@ -99,6 +79,7 @@ abstract contract AccessController {
 
     function changeProposalTimelock(uint256 _newTimelock) external onlyOwner {
         proposalTimelock = _newTimelock;
+        emit ProposalTimelockChanged(_newTimelock);
     }
 
     function getProposal(

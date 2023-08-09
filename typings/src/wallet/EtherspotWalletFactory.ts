@@ -31,6 +31,7 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
   functions: {
     "accountCreationCode()": FunctionFragment;
     "accountImplementation()": FunctionFragment;
+    "changeOwner(address)": FunctionFragment;
     "checkImplementation(address)": FunctionFragment;
     "createAccount(address,uint256)": FunctionFragment;
     "getAddress(address,uint256)": FunctionFragment;
@@ -42,6 +43,7 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "accountCreationCode"
       | "accountImplementation"
+      | "changeOwner"
       | "checkImplementation"
       | "createAccount"
       | "getAddress"
@@ -56,6 +58,10 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "accountImplementation",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "changeOwner",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "checkImplementation",
@@ -81,6 +87,10 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "accountImplementation",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "changeOwner",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -161,6 +171,11 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     accountImplementation(overrides?: CallOverrides): Promise<[string]>;
 
+    changeOwner(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     checkImplementation(
       _impl: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -190,6 +205,11 @@ export interface EtherspotWalletFactory extends BaseContract {
 
   accountImplementation(overrides?: CallOverrides): Promise<string>;
 
+  changeOwner(
+    _newOwner: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   checkImplementation(
     _impl: PromiseOrValue<string>,
     overrides?: CallOverrides
@@ -218,6 +238,11 @@ export interface EtherspotWalletFactory extends BaseContract {
     accountCreationCode(overrides?: CallOverrides): Promise<string>;
 
     accountImplementation(overrides?: CallOverrides): Promise<string>;
+
+    changeOwner(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     checkImplementation(
       _impl: PromiseOrValue<string>,
@@ -267,6 +292,11 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     accountImplementation(overrides?: CallOverrides): Promise<BigNumber>;
 
+    changeOwner(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
     checkImplementation(
       _impl: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -299,6 +329,11 @@ export interface EtherspotWalletFactory extends BaseContract {
 
     accountImplementation(
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    changeOwner(
+      _newOwner: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     checkImplementation(

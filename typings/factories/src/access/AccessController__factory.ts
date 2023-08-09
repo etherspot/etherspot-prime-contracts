@@ -112,6 +112,19 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "newTimelock",
+        type: "uint256",
+      },
+    ],
+    name: "ProposalTimelockChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "proposalId",
         type: "uint256",
       },

@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "../../account-abstraction/contracts/core/BaseAccount.sol";
 import "../../account-abstraction/contracts/samples/callback/TokenCallbackHandler.sol";
-import "../interfaces/IERC721Wallet.sol";
+import "../interfaces/IEtherspotWallet.sol";
 import "../interfaces/IEtherspotWalletFactory.sol";
 import "../access/AccessController.sol";
 
@@ -20,7 +20,7 @@ contract EtherspotWallet is
     Initializable,
     TokenCallbackHandler,
     AccessController,
-    IERC1271Wallet
+    IEtherspotWallet
 {
     using ECDSA for bytes32;
 
@@ -29,15 +29,7 @@ contract EtherspotWallet is
     IEtherspotWalletFactory private immutable _walletFactory;
     bytes4 private constant ERC1271_SUCCESS = 0x1626ba7e;
 
-    /// EVENTS
-    event EtherspotWalletInitialized(
-        IEntryPoint indexed entryPoint,
-        address indexed owner
-    );
-    event EtherspotWalletReceived(address indexed from, uint256 indexed amount);
-
     /// EXTERNAL METHODS
-
     constructor(
         IEntryPoint anEntryPoint,
         IEtherspotWalletFactory anWalletFactory
@@ -105,7 +97,13 @@ contract EtherspotWallet is
     /// PUBLIC
 
     /// @inheritdoc BaseAccount
-    function entryPoint() public view virtual override returns (IEntryPoint) {
+    function entryPoint()
+        public
+        view
+        virtual
+        override(BaseAccount, IEtherspotWallet)
+        returns (IEntryPoint)
+    {
         return _entryPoint;
     }
 
@@ -172,6 +170,5 @@ contract EtherspotWallet is
             _walletFactory.checkImplementation(newImplementation),
             "EtherspotWallet:: upgrade implementation invalid"
         );
-        (newImplementation);
     }
 }

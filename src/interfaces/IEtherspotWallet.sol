@@ -3,8 +3,9 @@ pragma solidity ^0.8.12;
 
 import {IEntryPoint} from "../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import "../interfaces/IAccessController.sol";
+import "../interfaces/IERC1271Wallet.sol";
 
-interface IEtherspotWallet is IAccessController {
+interface IEtherspotWallet is IAccessController, IERC1271Wallet {
     event EtherspotWalletInitialized(
         IEntryPoint indexed entryPoint,
         address indexed owner

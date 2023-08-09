@@ -93,6 +93,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AccessController__factory>;
     getContractFactory(
+      name: "UniversalSigValidator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UniversalSigValidator__factory>;
+    getContractFactory(
+      name: "ValidateSigOffchain",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ValidateSigOffchain__factory>;
+    getContractFactory(
       name: "IAccessController",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IAccessController__factory>;
@@ -241,6 +249,16 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.AccessController>;
+    getContractAt(
+      name: "UniversalSigValidator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UniversalSigValidator>;
+    getContractAt(
+      name: "ValidateSigOffchain",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ValidateSigOffchain>;
     getContractAt(
       name: "IAccessController",
       address: string,

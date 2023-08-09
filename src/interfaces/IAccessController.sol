@@ -17,6 +17,7 @@ interface IAccessController {
         uint256 approvalCount
     );
     event ProposalDiscarded(uint256 proposalId, address discardedBy);
+    event ProposalTimelockChanged(uint256 newTimelock);
 
     function isOwner(address _address) external view returns (bool);
 

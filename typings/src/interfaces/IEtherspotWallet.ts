@@ -214,6 +214,7 @@ export interface IEtherspotWalletInterface extends utils.Interface {
     "OwnerRemoved(address)": EventFragment;
     "ProposalDiscarded(uint256,address)": EventFragment;
     "ProposalSubmitted(uint256,address,address)": EventFragment;
+    "ProposalTimelockChanged(uint256)": EventFragment;
     "QuorumNotReached(uint256,address,uint256)": EventFragment;
   };
 
@@ -225,6 +226,7 @@ export interface IEtherspotWalletInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "OwnerRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProposalDiscarded"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProposalSubmitted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ProposalTimelockChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "QuorumNotReached"): EventFragment;
 }
 
@@ -307,6 +309,17 @@ export type ProposalSubmittedEvent = TypedEvent<
 
 export type ProposalSubmittedEventFilter =
   TypedEventFilter<ProposalSubmittedEvent>;
+
+export interface ProposalTimelockChangedEventObject {
+  newTimelock: BigNumber;
+}
+export type ProposalTimelockChangedEvent = TypedEvent<
+  [BigNumber],
+  ProposalTimelockChangedEventObject
+>;
+
+export type ProposalTimelockChangedEventFilter =
+  TypedEventFilter<ProposalTimelockChangedEvent>;
 
 export interface QuorumNotReachedEventObject {
   proposalId: BigNumber;
@@ -682,6 +695,13 @@ export interface IEtherspotWallet extends BaseContract {
       newOwnerProposed?: null,
       proposer?: null
     ): ProposalSubmittedEventFilter;
+
+    "ProposalTimelockChanged(uint256)"(
+      newTimelock?: null
+    ): ProposalTimelockChangedEventFilter;
+    ProposalTimelockChanged(
+      newTimelock?: null
+    ): ProposalTimelockChangedEventFilter;
 
     "QuorumNotReached(uint256,address,uint256)"(
       proposalId?: null,

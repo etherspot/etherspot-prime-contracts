@@ -3,18 +3,12 @@ pragma solidity ^0.8.0;
 
 import "./EtherspotWallet.sol";
 import "./Proxy.sol";
+import "../interfaces/IEtherspotWalletFactory.sol";
 
 /**
  * @title Proxy Factory - Allows to create a new proxy contract and execute a message call to the new proxy within one transaction.
  */
-contract EtherspotWalletFactory {
-    event AccountCreation(
-        address indexed wallet,
-        address indexed owner,
-        uint256 index
-    );
-    event ImplementationSet(address newImplementation);
-
+contract EtherspotWalletFactory is IEtherspotWalletFactory {
     address public accountImplementation;
     address public owner;
 
@@ -138,7 +132,7 @@ contract EtherspotWalletFactory {
      * @dev Allows to set a new implementation contract address
      * @param _newImpl new implementation EtherspotWalletContract
      */
-    function setImplementation(EtherspotWallet _newImpl) public onlyOwner {
+    function setImplementation(EtherspotWallet _newImpl) external onlyOwner {
         accountImplementation = address(_newImpl);
         emit ImplementationSet(accountImplementation);
     }
@@ -148,7 +142,11 @@ contract EtherspotWalletFactory {
      * @param _impl address to check against
      * @return boolean (true if accountImplementation == address)
      */
-    function checkImplementation(address _impl) public view returns (bool) {
+    function checkImplementation(address _impl) external view returns (bool) {
         return accountImplementation == _impl;
+    }
+
+    function changeOwner(address _newOwner) external onlyOwner {
+        owner = _newOwner;
     }
 }
