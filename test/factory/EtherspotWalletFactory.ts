@@ -113,4 +113,27 @@ describe('EtherspotWalletFactory', () => {
     );
     expect(callStaticAddress).to.eq(repeatAddress);
   });
+
+  it('should change wallet factory owner', async () => {
+    const firstOwner = await accountFactory.owner();
+    await accountFactory.changeOwner(accounts[9]);
+    const secondOwner = await accountFactory.owner();
+    expect(firstOwner).to.not.eq(secondOwner);
+    expect(secondOwner).to.eq(accounts[9]);
+  });
+
+  it('should check that new owner is not zero address', async () => {
+    await expect(
+      accountFactory.connect(accounts[9]).changeOwner(AddressZero)
+    ).to.be.rejectedWith(
+      'EtherspotWalletFactory:: new owner cannot be zero address'
+    );
+  });
+
+  it('should only allow owner to change owner', async () => {
+    const anotherSigner = ethers.provider.getSigner(2);
+    await expect(
+      accountFactory.connect(anotherSigner).changeOwner(accounts[9])
+    ).to.be.revertedWith('EtherspotWalletFactory:: only owner');
+  });
 });

@@ -111,10 +111,12 @@ export interface EtherspotWalletFactoryInterface extends utils.Interface {
   events: {
     "AccountCreation(address,address,uint256)": EventFragment;
     "ImplementationSet(address)": EventFragment;
+    "OwnerChanged(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "AccountCreation"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ImplementationSet"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnerChanged"): EventFragment;
 }
 
 export interface AccountCreationEventObject {
@@ -139,6 +141,13 @@ export type ImplementationSetEvent = TypedEvent<
 
 export type ImplementationSetEventFilter =
   TypedEventFilter<ImplementationSetEvent>;
+
+export interface OwnerChangedEventObject {
+  newOwner: string;
+}
+export type OwnerChangedEvent = TypedEvent<[string], OwnerChangedEventObject>;
+
+export type OwnerChangedEventFilter = TypedEventFilter<OwnerChangedEvent>;
 
 export interface EtherspotWalletFactory extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -285,6 +294,9 @@ export interface EtherspotWalletFactory extends BaseContract {
       newImplementation?: null
     ): ImplementationSetEventFilter;
     ImplementationSet(newImplementation?: null): ImplementationSetEventFilter;
+
+    "OwnerChanged(address)"(newOwner?: null): OwnerChangedEventFilter;
+    OwnerChanged(newOwner?: null): OwnerChangedEventFilter;
   };
 
   estimateGas: {

@@ -12,6 +12,8 @@ contract EtherspotWalletFactory is IEtherspotWalletFactory {
     address public accountImplementation;
     address public owner;
 
+    event OwnerChanged(address newOwner);
+
     modifier onlyOwner() {
         require(owner == msg.sender, "EtherspotWalletFactory:: only owner");
         _;
@@ -147,6 +149,11 @@ contract EtherspotWalletFactory is IEtherspotWalletFactory {
     }
 
     function changeOwner(address _newOwner) external onlyOwner {
+        require(
+            _newOwner != address(0),
+            "EtherspotWalletFactory:: new owner cannot be zero address"
+        );
         owner = _newOwner;
+        emit OwnerChanged(_newOwner);
     }
 }
