@@ -133,6 +133,11 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.sandverse.oasys.games',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    mantle: {
+      chainId: 5000,
+      url: 'https://rpc.mantle.xyz',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   mocha: {
@@ -146,7 +151,8 @@ const config: HardhatUserConfig = {
       polygon: process.env.POLYSCAN_API_KEY!,
       fuse: process.env.FUSE_EXPLORER_API_KEY!,
       gnosis: process.env.GNOSISSCAN_API_KEY!,
-
+      mantle: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
+      ////////////////////////////////////
       goerli: process.env.ETHERSCAN_API_KEY!,
       sepolia: process.env.ETHERSCAN_API_KEY!,
       arbitrumGoerli: process.env.ARBISCAN_API_KEY!,
@@ -188,8 +194,8 @@ const config: HardhatUserConfig = {
         network: 'chiado',
         chainId: 10200,
         urls: {
-          apiURL: 'https://blockscout.chiadochain.net/api',
-          browserURL: 'https://blockscout.chiadochain.net/',
+          apiURL: 'https://gnosis-chiado.blockscout.com/api',
+          browserURL: 'https://gnosis-chiado.blockscout.com/',
         },
       },
       {
@@ -214,6 +220,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://scan.sandverse.oasys.games/api',
           browserURL: 'https://scan.sandverse.oasys.games/',
+        },
+      },
+      {
+        network: 'mantle',
+        chainId: 5000,
+        urls: {
+          apiURL: 'https://explorer.mantle.xyz/api',
+          browserURL: 'https://explorer.mantle.xyz/',
         },
       },
     ],

@@ -20,13 +20,6 @@ const deployUniversalSigValidator: DeployFunction = async function (
     log: true,
   });
   console.log('UniversalSigValidator deployed at:', ret.address);
-
-  await hre.run('verify:verify', {
-    address: ret.address,
-    contract:
-      'src/helpers/UniversalSignatureValidator.sol:UniversalSigValidator',
-    constructorArguments: [],
-  });
 };
 
 deployUniversalSigValidator.tags = ['aa-4337', 'universal-signature-validator'];
