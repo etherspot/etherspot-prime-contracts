@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "../interfaces/IERC721Wallet.sol";
+import "../interfaces/IERC1271Wallet.sol";
 
 error ERC1271Revert(bytes error);
 error ERC6492DeployFailed(bytes error);

@@ -5,8 +5,6 @@ import {
   EtherspotWalletFactory__factory,
   EtherspotWallet__factory,
   EtherspotWalletFactory,
-  ProxyFactory__factory,
-  ProxyFactory,
 } from '../typings';
 
 export function k256EncPack(_string: string) {
@@ -34,14 +32,18 @@ export async function createEtherspotWallet(
 }> {
   const accountFactory =
     _factory ??
-    (await new EtherspotWalletFactory__factory(ethersSigner).deploy());
-  const implementation = await accountFactory.accountImplementation();
-  await accountFactory.createAccount(entryPoint, accountOwner, 0);
-  const accountAddress = await accountFactory.getAddress(
+    (await new EtherspotWalletFactory__factory(ethersSigner).deploy(
+      await ethersSigner.getAddress()
+    ));
+  const impl = await new EtherspotWallet__factory(ethersSigner).deploy(
     entryPoint,
-    accountOwner,
-    0
+    accountFactory.address
   );
+  await accountFactory.setImplementation(impl.address);
+  const implementation = await accountFactory.accountImplementation();
+
+  await accountFactory.createAccount(accountOwner, 0);
+  const accountAddress = await accountFactory.getAddress(accountOwner, 0);
   const proxy = EtherspotWallet__factory.connect(accountAddress, ethersSigner);
   return {
     implementation,

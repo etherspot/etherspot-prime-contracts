@@ -2,7 +2,6 @@
 pragma solidity ^0.8.12;
 
 interface IWhitelist {
-    event WhitelistInitialized(address owner, string version);
     event AddedToWhitelist(address indexed paymaster, address indexed account);
     event AddedBatchToWhitelist(
         address indexed paymaster,
@@ -22,11 +21,11 @@ interface IWhitelist {
         address _account
     ) external view returns (bool);
 
-    function add(address _account) external;
+    function addToWhitelist(address _account) external;
 
-    function addBatch(address[] calldata _accounts) external;
+    function addBatchToWhitelist(address[] calldata _accounts) external;
 
-    function remove(address _account) external;
+    function removeFromWhitelist(address _account) external;
 
-    function removeBatch(address[] calldata _accounts) external;
+    function removeBatchFromWhitelist(address[] calldata _accounts) external;
 }

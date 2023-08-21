@@ -71,6 +71,12 @@ const _abi = [
         name: "proposalId",
         type: "uint256",
       },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "discardedBy",
+        type: "address",
+      },
     ],
     name: "ProposalDiscarded",
     type: "event",
@@ -106,6 +112,19 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
+        name: "newTimelock",
+        type: "uint256",
+      },
+    ],
+    name: "ProposalTimelockChanged",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "uint256",
         name: "proposalId",
         type: "uint256",
       },
@@ -118,7 +137,7 @@ const _abi = [
       {
         indexed: false,
         internalType: "uint256",
-        name: "guardiansApproved",
+        name: "approvalCount",
         type: "uint256",
       },
     ],
@@ -147,6 +166,19 @@ const _abi = [
       },
     ],
     name: "addOwner",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_newTimelock",
+        type: "uint256",
+      },
+    ],
+    name: "changeProposalTimelock",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -188,18 +220,17 @@ const _abi = [
         name: "resolved_",
         type: "bool",
       },
+      {
+        internalType: "uint256",
+        name: "proposedAt_",
+        type: "uint256",
+      },
     ],
     stateMutability: "view",
     type: "function",
   },
   {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_proposalId",
-        type: "uint256",
-      },
-    ],
+    inputs: [],
     name: "guardianCosign",
     outputs: [],
     stateMutability: "nonpayable",
@@ -285,6 +316,19 @@ const _abi = [
   {
     inputs: [],
     name: "proposalId",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "proposalTimelock",
     outputs: [
       {
         internalType: "uint256",

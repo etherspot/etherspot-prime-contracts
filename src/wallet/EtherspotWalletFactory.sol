@@ -3,21 +3,24 @@ pragma solidity ^0.8.0;
 
 import "./EtherspotWallet.sol";
 import "./Proxy.sol";
+import "../interfaces/IEtherspotWalletFactory.sol";
 
 /**
  * @title Proxy Factory - Allows to create a new proxy contract and execute a message call to the new proxy within one transaction.
  */
-contract EtherspotWalletFactory {
-    event AccountCreation(
-        address indexed wallet,
-        address indexed owner,
-        uint256 index
-    );
+contract EtherspotWalletFactory is IEtherspotWalletFactory {
+    address public accountImplementation;
+    address public owner;
 
-    address public immutable accountImplementation;
+    event OwnerChanged(address newOwner);
 
-    constructor() {
-        accountImplementation = address(new EtherspotWallet());
+    modifier onlyOwner() {
+        require(owner == msg.sender, "EtherspotWalletFactory:: only owner");
+        _;
+    }
+
+    constructor(address _owner) {
+        owner = _owner;
     }
 
     /// @dev Allows to retrieve the creation code used for the Proxy deployment. With this it is easily possible to calculate predicted address.
@@ -27,25 +30,27 @@ contract EtherspotWalletFactory {
 
     /**
      * @notice Creates a new account
-     * @param entryPoint address of the EntryPoint contract
-     * @param owner owner of the account to be deployed
-     * @param index extra salt that allows to deploy more account if needed for same owner
+     * @param _owner owner of the account to be deployed
+     * @param _index extra salt that allows to deploy more account if needed for same owner
      * @return ret the address of the deployed account
      */
     function createAccount(
-        IEntryPoint entryPoint,
-        address owner,
-        uint256 index
-    ) public returns (address ret) {
-        address account = getAddress(entryPoint, owner, index);
+        address _owner,
+        uint256 _index
+    ) external returns (address ret) {
+        require(
+            accountImplementation != address(0),
+            "EtherspotWalletFactory:: implementation not set"
+        );
+        address account = getAddress(_owner, _index);
         if (account.code.length > 0) {
             return account;
         }
 
-        bytes memory initializer = getInitializer(entryPoint, owner);
+        bytes memory initializer = getInitializer(_owner);
 
         bytes32 salt = keccak256(
-            abi.encodePacked(keccak256(initializer), index)
+            abi.encodePacked(keccak256(initializer), _index)
         );
 
         bytes memory deploymentData = abi.encodePacked(
@@ -84,23 +89,25 @@ contract EtherspotWalletFactory {
                 }
             }
         }
-        emit AccountCreation(ret, owner, index);
+        emit AccountCreation(ret, _owner, _index);
     }
 
     /**
      * @notice Deploys account using create2
-     * @param entryPoint address of the EntryPoint contract
-     * @param owner owner of the account to be deployed
-     * @param index extra salt that allows to deploy more account if needed for same owner
+     * @param _owner owner of the account to be deployed
+     * @param _index extra salt that allows to deploy more account if needed for same owner
      */
     function getAddress(
-        IEntryPoint entryPoint,
-        address owner,
-        uint256 index
+        address _owner,
+        uint256 _index
     ) public view returns (address proxy) {
-        bytes memory initializer = getInitializer(entryPoint, owner);
+        require(
+            accountImplementation != address(0),
+            "EtherspotWalletFactory:: implementation not set"
+        );
+        bytes memory initializer = getInitializer(_owner);
         bytes32 salt = keccak256(
-            abi.encodePacked(keccak256(initializer), index)
+            abi.encodePacked(keccak256(initializer), _index)
         );
         bytes memory code = abi.encodePacked(
             type(Proxy).creationCode,
@@ -114,14 +121,39 @@ contract EtherspotWalletFactory {
 
     /**
      * @dev Allows to retrieve the initializer data for the account.
-     * @param entryPoint EntryPoint contract address
-     * @param owner EOA signatory for the account to be deployed
+     * @param _owner EOA signatory for the account to be deployed
      * @return initializer bytes for init method
      */
     function getInitializer(
-        IEntryPoint entryPoint,
-        address owner
+        address _owner
     ) internal pure returns (bytes memory) {
-        return abi.encodeCall(EtherspotWallet.initialize, (entryPoint, owner));
+        return abi.encodeCall(EtherspotWallet.initialize, (_owner));
+    }
+
+    /**
+     * @dev Allows to set a new implementation contract address
+     * @param _newImpl new implementation EtherspotWalletContract
+     */
+    function setImplementation(EtherspotWallet _newImpl) external onlyOwner {
+        accountImplementation = address(_newImpl);
+        emit ImplementationSet(accountImplementation);
+    }
+
+    /**
+     * @dev Checks implementation address matches address
+     * @param _impl address to check against
+     * @return boolean (true if accountImplementation == address)
+     */
+    function checkImplementation(address _impl) external view returns (bool) {
+        return accountImplementation == _impl;
+    }
+
+    function changeOwner(address _newOwner) external onlyOwner {
+        require(
+            _newOwner != address(0),
+            "EtherspotWalletFactory:: new owner cannot be zero address"
+        );
+        owner = _newOwner;
+        emit OwnerChanged(_newOwner);
     }
 }

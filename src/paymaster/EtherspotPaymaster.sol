@@ -26,44 +26,36 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
     // calculated cost of the postOp
     uint256 private constant COST_OF_POST = 40000;
 
-    mapping(address => uint256) private sponsorFunds;
+    mapping(address => uint256) private _sponsorBalances;
 
     event SponsorSuccessful(address paymaster, address sender);
-    event SponsorUnsuccessful(address paymaster, address sender);
 
     constructor(IEntryPoint _entryPoint) BasePaymaster(_entryPoint) {}
 
     function depositFunds() external payable nonReentrant {
-        entryPoint.depositTo{value: msg.value}(address(this));
         _creditSponsor(msg.sender, msg.value);
+        entryPoint.depositTo{value: msg.value}(address(this));
     }
 
-    function withdrawFunds(
-        address payable _sponsor,
-        uint256 _amount
-    ) external nonReentrant {
+    function withdrawFunds(uint256 _amount) external nonReentrant {
         require(
-            msg.sender == _sponsor,
-            "EtherspotPaymaster:: can only withdraw own funds"
-        );
-        require(
-            checkSponsorFunds(_sponsor) >= _amount,
+            getSponsorBalance(msg.sender) >= _amount,
             "EtherspotPaymaster:: not enough deposited funds"
         );
-        _debitSponsor(_sponsor, _amount);
-        entryPoint.withdrawTo(_sponsor, _amount);
+        _debitSponsor(msg.sender, _amount);
+        entryPoint.withdrawTo(payable(msg.sender), _amount);
     }
 
-    function checkSponsorFunds(address _sponsor) public view returns (uint256) {
-        return sponsorFunds[_sponsor];
+    function getSponsorBalance(address _sponsor) public view returns (uint256) {
+        return _sponsorBalances[_sponsor];
     }
 
     function _debitSponsor(address _sponsor, uint256 _amount) internal {
-        sponsorFunds[_sponsor] -= _amount;
+        _sponsorBalances[_sponsor] -= _amount;
     }
 
     function _creditSponsor(address _sponsor, uint256 _amount) internal {
-        sponsorFunds[_sponsor] += _amount;
+        _sponsorBalances[_sponsor] += _amount;
     }
 
     function _pack(
@@ -151,19 +143,20 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
 
         // check sponsor has enough funds deposited to pay for gas
         require(
-            checkSponsorFunds(sponsorSig) >= requiredPreFund,
+            getSponsorBalance(sponsorSig) >= requiredPreFund,
             "EtherspotPaymaster:: Sponsor paymaster funds too low"
         );
 
         uint256 costOfPost = userOp.maxFeePerGas * COST_OF_POST;
+        uint256 totalPreFund = requiredPreFund + costOfPost;
 
         // debit requiredPreFund amount
-        _debitSponsor(sponsorSig, requiredPreFund);
+        _debitSponsor(sponsorSig, totalPreFund);
 
         // no need for other on-chain validation: entire UserOp should have been checked
         // by the external service prior to signing it.
         return (
-            abi.encode(sponsorSig, sig, requiredPreFund, costOfPost),
+            abi.encode(sponsorSig, sig, totalPreFund, costOfPost),
             _packValidationData(false, validUntil, validAfter)
         );
     }
@@ -183,25 +176,17 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
     }
 
     function _postOp(
-        PostOpMode mode,
+        PostOpMode,
         bytes calldata context,
         uint256 actualGasCost
     ) internal override {
         (
             address paymaster,
             address sender,
-            uint256 prefundedAmount,
+            uint256 totalPrefund,
             uint256 costOfPost
         ) = abi.decode(context, (address, address, uint256, uint256));
-        if (mode == PostOpMode.postOpReverted) {
-            _creditSponsor(paymaster, prefundedAmount);
-            emit SponsorUnsuccessful(paymaster, sender);
-        } else {
-            _creditSponsor(
-                paymaster,
-                prefundedAmount - (actualGasCost + costOfPost)
-            );
-            emit SponsorSuccessful(paymaster, sender);
-        }
+        _creditSponsor(paymaster, totalPrefund - (actualGasCost + costOfPost));
+        emit SponsorSuccessful(paymaster, sender);
     }
 }

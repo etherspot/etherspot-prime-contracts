@@ -23,13 +23,11 @@ Solidity pragma version `^0.8.12`.
   
 ## Mappings
 
-- `sponsorFunds`: A mapping of type `mapping(address => uint256)` used to store the amount of sponsor funds transferred to the paymaster contract.  
-- `senderNonce`: A mapping of type `mapping(address => uint256)` used to store the nonce of the sender.  
+- `sponsorBalances`: A mapping of type `mapping(address => uint256)` used to store the amount of sponsor funds transferred to the paymaster contract.  
 
 ## Events
 
 - `SponsorSuccessful`: An event emitted when a sponsor successfully sponsors a user operation.
-- `SponsorUnsuccessful`: An event emitted when a sponsor is unsuccessful in sponsoring a user operation.  
   
 ## Constructor
 
@@ -42,7 +40,7 @@ Solidity pragma version `^0.8.12`.
 - `withdrawFunds() address payable _sponsor, uint256 _amount) external`: A function used to withdraw sponsor funds from paymaster.
   - Error `EtherspotPaymaster:: can only withdraw own funds`: Checks `msg.sender` matches the sponsor address provided.
   - Error `EtherspotPaymaster:: not enough deposited funds`: Checks amount is >= deposited funds for the given sponsor.
-- `checkSponsorFunds(address _sponsor) public view returns (uint256)`: A function used to check the amount of sponsor funds transferred to the paymaster contract for a given sponsor.  
+- `getSponsorBalance(address _sponsor) public view returns (uint256)`: A function used to check the amount of sponsor funds transferred to the paymaster contract for a given sponsor.  
 - `function getHash(UserOperation calldata userOp, uint48 validUntil, uint48 validAfter) public view returns (bytes32)`: A function to return the hash to be sign off-chain (and validate on-chain) by a sponsor.  
 - `function parsePaymasterAndData(bytes calldata paymasterAndData) public pure returns (uint48 validUntil, uint48 validAfter, bytes calldata signature)`: Extracts `validUntil`, `validAfter` and `signature` from `paymasterAndData` passed in as input.  
 
@@ -56,7 +54,6 @@ Solidity pragma version `^0.8.12`.
   - Error `EtherspotPaymaster:: Sponsor paymaster funds too low`: Checks sponsor has enough funds to pay the gas costs for a sponsored UserOperation.  
 - `_postOp(PostOpMode mode, bytes calldata context, uint256 actualGasCost) internal override`: A function that overrides the `_postOp` function from `BasePaymaster.sol` that checks for a validated UserOperation and credits back any remaining funds after the gas cost for the UserOperation execution plus `_postOp` call.
   - Emits `SponsorSuccessful(paymaster, sender, userOpHash)` on successfully sponsored UserOperation.
-  - Emits `SponsorUnsuccessful(paymaster, sender, userOpHash)` on unsuccessfully sponsored UserOperation.  
 
 ## License
 
