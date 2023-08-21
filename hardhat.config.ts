@@ -138,7 +138,26 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.mantle.xyz',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    bifrostTest: {
+      chainId: 49088,
+      url: 'https://public-01.testnet.thebifrost.io/rpc',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    bifrost: {
+      chainId: 3068,
+      url: 'https://public-01.mainnet.thebifrost.io/rpc',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
+  },
+  deterministicDeployment: {
+    [49088]: {
+      factory: '0x20F697b303481445Cb84ad836c8336634E7b53ad',
+      deployer: '0xE1CB04A0fA36DdD16a06ea828007E35e1a3cBC37',
+      funding: '10000000000000000',
+      signedTx:
+        '0xf8a88085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf3830150f6a032b2a806bfc34024c6638848c3798213261304af82de14002ca2b4961a643b95a03c74c13eda5ff6b9b821fbccd1a67f160eb6a0ca50dad04b7a3e564e2599722e',
+    },
   },
   mocha: {
     timeout: 10000,
@@ -228,6 +247,22 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://explorer.mantle.xyz/api',
           browserURL: 'https://explorer.mantle.xyz/',
+        },
+      },
+      {
+        network: 'bifrostTest',
+        chainId: 49088,
+        urls: {
+          apiURL: 'https://public-01.testnet.thebifrost.io/rpc',
+          browserURL: '',
+        },
+      },
+      {
+        network: 'bifrost',
+        chainId: 3068,
+        urls: {
+          apiURL: 'https://public-01.mainnet.thebifrost.io/rpc',
+          browserURL: '',
         },
       },
     ],
