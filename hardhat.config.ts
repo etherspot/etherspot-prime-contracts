@@ -138,6 +138,16 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.mantle.xyz',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    klaytnTest: {
+      chainId: 1001,
+      url: 'https://public-en-baobab.klaytn.net',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    klaytn: {
+      chainId: 8217,
+      url: 'https://public-node-api.klaytnapi.com/v1/cypress',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   mocha: {
