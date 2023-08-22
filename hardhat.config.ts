@@ -146,6 +146,14 @@ const config: HardhatUserConfig = {
     bifrost: {
       chainId: 3068,
       url: 'https://public-01.mainnet.thebifrost.io/rpc',
+    klaytnTest: {
+      chainId: 1001,
+      url: 'https://public-en-baobab.klaytn.net',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    klaytn: {
+      chainId: 8217,
+      url: 'https://public-node-api.klaytnapi.com/v1/cypress',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     dev: { url: 'http://localhost:8545' },
