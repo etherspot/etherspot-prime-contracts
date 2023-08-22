@@ -74,7 +74,7 @@ const config: HardhatUserConfig = {
     },
     sepolia: {
       chainId: 11155111,
-      url: 'https://rpc.sepolia.org',
+      url: 'https://eth-sepolia.public.blastapi.io',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     arbitrumGoerli: {
@@ -120,7 +120,7 @@ const config: HardhatUserConfig = {
     },
     kromaSepolia: {
       chainId: 2358,
-      url: 'https://api.sepolia.kroma.network/',
+      url: 'https://api.sepolia.kroma.network',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     taikot: {
@@ -166,6 +166,14 @@ const config: HardhatUserConfig = {
       verse: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
     },
     customChains: [
+      {
+        network: 'sepolia',
+        chainId: 11155111,
+        urls: {
+          apiURL: 'https://api-sepolia.etherscan.io/api',
+          browserURL: 'https://api-sepolia.etherscan.io/',
+        },
+      },
       {
         network: 'baseGoerli',
         chainId: 84531,
