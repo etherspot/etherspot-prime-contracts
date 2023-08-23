@@ -74,7 +74,7 @@ const config: HardhatUserConfig = {
     },
     sepolia: {
       chainId: 11155111,
-      url: 'https://rpc.sepolia.org',
+      url: 'https://eth-sepolia.public.blastapi.io',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     arbitrumGoerli: {
@@ -118,9 +118,9 @@ const config: HardhatUserConfig = {
       url: 'https://public-node.rsk.co',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
-    kroma: {
-      chainId: 2357,
-      url: 'https://api.sepolia.kroma.network/',
+    kromaSepolia: {
+      chainId: 2358,
+      url: 'https://api.sepolia.kroma.network',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     taikot: {
@@ -171,11 +171,19 @@ const config: HardhatUserConfig = {
       fuseSparknet: process.env.FUSE_EXPLORER_API_KEY!,
       baseGoerli: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
       chiado: process.env.CHIADO_EXPLORER_API_KEY!,
-      kroma: '', // not yet available
+      kromaSepolia: '', // not yet available
       taikot: '', // not yet available
       verse: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
     },
     customChains: [
+      {
+        network: 'sepolia',
+        chainId: 11155111,
+        urls: {
+          apiURL: 'https://api-sepolia.etherscan.io/api',
+          browserURL: 'https://api-sepolia.etherscan.io/',
+        },
+      },
       {
         network: 'baseGoerli',
         chainId: 84531,
@@ -209,8 +217,8 @@ const config: HardhatUserConfig = {
         },
       },
       {
-        network: 'kroma',
-        chainId: 2357,
+        network: 'kromaSepolia',
+        chainId: 2358,
         urls: {
           apiURL: 'https://blockscout.sepolia.kroma.network/api',
           browserURL: 'https://blockscout.sepolia.kroma.network/',
