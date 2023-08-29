@@ -25,9 +25,9 @@ const deployEtherspotWalletFactoryAndImplementation: DeployFunction =
       const ewf = await deploy('EtherspotWalletFactory', {
         from,
         args: [from],
-        // gasLimit: 6e6,
+        gasLimit: 6e6,
         // gasLimit: 1000000000, // arbitrum
-        gasLimit: 9000000, // baseGoerli
+        // gasLimit: 9000000, // baseGoerli
         log: true,
         deterministicDeployment: true,
       });
