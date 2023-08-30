@@ -84,7 +84,7 @@ const config: HardhatUserConfig = {
     },
     optimismGoerli: {
       chainId: 420,
-      url: 'https://goerli.optimism.io',
+      url: 'https://optimism-goerli.publicnode.com',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     mumbai: {
@@ -170,7 +170,7 @@ const config: HardhatUserConfig = {
     },
     base: {
       chainId: 8453,
-      url: 'https://base-mainnet.public.blastapi.io',
+      url: 'https://base.publicnode.com',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     linea: {
@@ -183,7 +183,33 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.goerli.linea.build',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    bifrostTest: {
+      chainId: 49088,
+      url: 'https://public-01.testnet.thebifrost.io/rpc',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    bifrost: {
+      chainId: 3068,
+      url: 'https://public-01.mainnet.thebifrost.io/rpc',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
+  },
+  deterministicDeployment: {
+    [49088]: {
+      factory: '0x20F697b303481445Cb84ad836c8336634E7b53ad',
+      deployer: '0xE1CB04A0fA36DdD16a06ea828007E35e1a3cBC37',
+      funding: '10000000000000000',
+      signedTx:
+        '0xf8a88085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf3830150f6a032b2a806bfc34024c6638848c3798213261304af82de14002ca2b4961a643b95a03c74c13eda5ff6b9b821fbccd1a67f160eb6a0ca50dad04b7a3e564e2599722e',
+    },
+    [3068]: {
+      factory: '0x74981a89B74bC6bed15Db203Fa6B6c16A8877aE4',
+      deployer: '0xE1CB04A0fA36DdD16a06ea828007E35e1a3cBC37',
+      funding: '10000000000000000',
+      signedTx:
+        '0xf8a88085174876e800830186a08080b853604580600e600039806000f350fe7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe03601600081602082378035828234f58015156039578182fd5b8082525050506014600cf3830150f6a032b2a806bfc34024c6638848c3798213261304af82de14002ca2b4961a643b95a03c74c13eda5ff6b9b821fbccd1a67f160eb6a0ca50dad04b7a3e564e2599722e',
+    },
   },
   mocha: {
     timeout: 10000,
@@ -196,7 +222,7 @@ const config: HardhatUserConfig = {
       polygon: process.env.POLYSCAN_API_KEY!,
       fuse: process.env.FUSE_EXPLORER_API_KEY!,
       gnosis: process.env.GNOSISSCAN_API_KEY!,
-      mantle: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
+      mantle: process.env.BASESCAN_API_KEY!, // works with same key
       avalanche: process.env.AVALANCHE_EXPLORER_API_KEY!,
       bsc: process.env.BSC_EXPLORER_API_KEY!,
       base: process.env.BASESCAN_API_KEY!,
@@ -212,7 +238,7 @@ const config: HardhatUserConfig = {
       chiado: process.env.CHIADO_EXPLORER_API_KEY!,
       kromaSepolia: '', // not yet available
       taikot: '', // not yet available
-      verse: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
+      verse: process.env.BASESCAN_API_KEY!, // works with same key
       avalancheFujiTestnet: process.env.AVALANCHE_EXPLORER_API_KEY!,
       bscTestnet: process.env.BSC_EXPLORER_API_KEY!,
       lineaTestnet: process.env.LINEASCAN_API_KEY!,
@@ -304,6 +330,22 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api-testnet.lineascan.build/api',
           browserURL: 'https://goerli.lineascan.build/',
+        },
+      },
+      {
+        network: 'bifrostTest',
+        chainId: 49088,
+        urls: {
+          apiURL: 'https://public-01.testnet.thebifrost.io/rpc',
+          browserURL: '',
+        },
+      },
+      {
+        network: 'bifrost',
+        chainId: 3068,
+        urls: {
+          apiURL: 'https://public-01.mainnet.thebifrost.io/rpc',
+          browserURL: '',
         },
       },
     ],
