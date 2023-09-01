@@ -193,6 +193,11 @@ const config: HardhatUserConfig = {
       url: 'https://public-01.mainnet.thebifrost.io/rpc',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    scrollSepolia: {
+      chainId: 534351,
+      url: 'https://sepolia-rpc.scroll.io/',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   deterministicDeployment: {
@@ -242,6 +247,7 @@ const config: HardhatUserConfig = {
       avalancheFujiTestnet: process.env.AVALANCHE_EXPLORER_API_KEY!,
       bscTestnet: process.env.BSC_EXPLORER_API_KEY!,
       lineaTestnet: process.env.LINEASCAN_API_KEY!,
+      scrollSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
     },
     customChains: [
       {
@@ -346,6 +352,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://public-01.mainnet.thebifrost.io/rpc',
           browserURL: '',
+        },
+      },
+      {
+        network: 'scrollSepolia',
+        chainId: 534351,
+        urls: {
+          apiURL: 'https://sepolia-blockscout.scroll.io/api',
+          browserURL: 'https://sepolia-blockscout.scroll.io/',
         },
       },
     ],
