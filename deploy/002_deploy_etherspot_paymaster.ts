@@ -16,8 +16,8 @@ const deployEtherspotPaymaster: DeployFunction = async function (
     args: [entrypoint],
     gasLimit: 6e6,
     // gasLimit: 1000000000, // arbitrum
-    // gasLimit: 9000000, // baseGoerli
-    // gasLimit: 50000000,
+    // gasLimit: 10000000, // baseGoerli
+    // gasLimit: 20000000, // kromaSepolia
     log: true,
   });
   console.log('EtherspotPaymaster deployed at:', ret.address);
