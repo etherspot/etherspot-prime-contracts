@@ -141,14 +141,14 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
             return ("", _packValidationData(true, validUntil, validAfter));
         }
 
-        // check sponsor has enough funds deposited to pay for gas
-        require(
-            getSponsorBalance(sponsorSig) >= requiredPreFund,
-            "EtherspotPaymaster:: Sponsor paymaster funds too low"
-        );
-
         uint256 costOfPost = userOp.maxFeePerGas * COST_OF_POST;
         uint256 totalPreFund = requiredPreFund + costOfPost;
+
+        // check sponsor has enough funds deposited to pay for gas
+        require(
+            getSponsorBalance(sponsorSig) >= totalPreFund,
+            "EtherspotPaymaster:: Sponsor paymaster funds too low"
+        );
 
         // debit requiredPreFund amount
         _debitSponsor(sponsorSig, totalPreFund);

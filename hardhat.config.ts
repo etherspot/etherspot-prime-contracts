@@ -74,7 +74,7 @@ const config: HardhatUserConfig = {
     },
     sepolia: {
       chainId: 11155111,
-      url: 'https://rpc.sepolia.org',
+      url: 'https://eth-sepolia.public.blastapi.io',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     arbitrumGoerli: {
@@ -84,7 +84,7 @@ const config: HardhatUserConfig = {
     },
     optimismGoerli: {
       chainId: 420,
-      url: 'https://goerli.optimism.io',
+      url: 'https://optimism-goerli.publicnode.com',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     mumbai: {
@@ -118,9 +118,9 @@ const config: HardhatUserConfig = {
       url: 'https://public-node.rsk.co',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
-    kroma: {
-      chainId: 2357,
-      url: 'https://api.sepolia.kroma.network/',
+    kromaSepolia: {
+      chainId: 2358,
+      url: 'https://api.sepolia.kroma.network',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     taikot: {
@@ -156,6 +156,56 @@ const config: HardhatUserConfig = {
       url: 'https://public-node-api.klaytnapi.com/v1/cypress',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    avalanche: {
+      chainId: 43114,
+      url: 'https://avalanche-c-chain.publicnode.com',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    fuji: {
+      chainId: 43113,
+      url: 'https://avalanche-fuji-c-chain.publicnode.com',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    bsc: {
+      chainId: 56,
+      url: 'https://bsc.publicnode.com',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    bscTestnet: {
+      chainId: 97,
+      url: 'https://bsc-testnet.publicnode.com',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    base: {
+      chainId: 8453,
+      url: 'https://base.publicnode.com',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    linea: {
+      chainId: 59144,
+      url: 'https://linea.blockpi.network/v1/rpc/public',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    lineaTestnet: {
+      chainId: 59140,
+      url: 'https://rpc.goerli.linea.build',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    bifrostTest: {
+      chainId: 49088,
+      url: 'https://public-01.testnet.thebifrost.io/rpc',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    bifrost: {
+      chainId: 3068,
+      url: 'https://public-01.mainnet.thebifrost.io/rpc',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    scrollSepolia: {
+      chainId: 534351,
+      url: 'https://sepolia-rpc.scroll.io/',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   deterministicDeployment: {
@@ -185,7 +235,11 @@ const config: HardhatUserConfig = {
       polygon: process.env.POLYSCAN_API_KEY!,
       fuse: process.env.FUSE_EXPLORER_API_KEY!,
       gnosis: process.env.GNOSISSCAN_API_KEY!,
-      mantle: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
+      mantle: process.env.BASESCAN_API_KEY!, // works with same key
+      avalanche: process.env.AVALANCHE_EXPLORER_API_KEY!,
+      bsc: process.env.BSC_EXPLORER_API_KEY!,
+      base: process.env.BASESCAN_API_KEY!,
+      linea: process.env.LINEASCAN_API_KEY!,
       ////////////////////////////////////
       goerli: process.env.ETHERSCAN_API_KEY!,
       sepolia: process.env.ETHERSCAN_API_KEY!,
@@ -193,19 +247,23 @@ const config: HardhatUserConfig = {
       optimisticGoerli: process.env.OPTIMISM_EXPLORER_API_KEY!,
       polygonMumbai: process.env.POLYSCAN_API_KEY!,
       fuseSparknet: process.env.FUSE_EXPLORER_API_KEY!,
-      baseGoerli: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
+      baseGoerli: process.env.BASESCAN_API_KEY!,
       chiado: process.env.CHIADO_EXPLORER_API_KEY!,
-      kroma: '', // not yet available
+      kromaSepolia: '', // not yet available
       taikot: '', // not yet available
-      verse: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
+      verse: process.env.BASESCAN_API_KEY!, // works with same key
+      avalancheFujiTestnet: process.env.AVALANCHE_EXPLORER_API_KEY!,
+      bscTestnet: process.env.BSC_EXPLORER_API_KEY!,
+      lineaTestnet: process.env.LINEASCAN_API_KEY!,
+      scrollSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
     },
     customChains: [
       {
         network: 'baseGoerli',
         chainId: 84531,
         urls: {
-          apiURL: 'https://base-goerli.blockscout.com/api',
-          browserURL: 'https://base-goerli.blockscout.com/',
+          apiURL: 'https://goerli.basescan.org/api',
+          browserURL: 'https://goerli.basescan.org/',
         },
       },
       {
@@ -233,8 +291,8 @@ const config: HardhatUserConfig = {
         },
       },
       {
-        network: 'kroma',
-        chainId: 2357,
+        network: 'kromaSepolia',
+        chainId: 2358,
         urls: {
           apiURL: 'https://blockscout.sepolia.kroma.network/api',
           browserURL: 'https://blockscout.sepolia.kroma.network/',
@@ -265,6 +323,30 @@ const config: HardhatUserConfig = {
         },
       },
       {
+        network: 'base',
+        chainId: 8453,
+        urls: {
+          apiURL: 'https://api.basescan.org/api',
+          browserURL: 'https://basescan.org/',
+        },
+      },
+      {
+        network: 'linea',
+        chainId: 59144,
+        urls: {
+          apiURL: 'https://api.lineascan.build/api',
+          browserURL: 'https://lineascan.build/',
+        },
+      },
+      {
+        network: 'lineaTestnet',
+        chainId: 59140,
+        urls: {
+          apiURL: 'https://api-testnet.lineascan.build/api',
+          browserURL: 'https://goerli.lineascan.build/',
+        },
+      },
+      {
         network: 'bifrostTest',
         chainId: 49088,
         urls: {
@@ -278,6 +360,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://public-01.mainnet.thebifrost.io/rpc',
           browserURL: '',
+        },
+      },
+      {
+        network: 'scrollSepolia',
+        chainId: 534351,
+        urls: {
+          apiURL: 'https://sepolia-blockscout.scroll.io/api',
+          browserURL: 'https://sepolia-blockscout.scroll.io/',
         },
       },
     ],
