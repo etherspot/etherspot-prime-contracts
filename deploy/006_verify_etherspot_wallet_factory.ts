@@ -4,7 +4,7 @@ import { DeployFunction } from 'hardhat-deploy/types';
 const verifyWalletFactory: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
-  const { deployments, getNamedAccounts } = hre;
+  const { getNamedAccounts } = hre;
   const { from } = await getNamedAccounts();
 
   const WALLET_FACTORY_ADDRESS = '0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E';
