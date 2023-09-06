@@ -146,6 +146,7 @@ const config: HardhatUserConfig = {
     bifrost: {
       chainId: 3068,
       url: 'https://public-01.mainnet.thebifrost.io/rpc',
+    },
     klaytnTest: {
       chainId: 1001,
       url: 'https://public-en-baobab.klaytn.net',
@@ -189,16 +190,6 @@ const config: HardhatUserConfig = {
     lineaTestnet: {
       chainId: 59140,
       url: 'https://rpc.goerli.linea.build',
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
-    },
-    bifrostTest: {
-      chainId: 49088,
-      url: 'https://public-01.testnet.thebifrost.io/rpc',
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
-    },
-    bifrost: {
-      chainId: 3068,
-      url: 'https://public-01.mainnet.thebifrost.io/rpc',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     scrollSepolia: {
