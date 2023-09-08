@@ -138,7 +138,12 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.mantle.xyz',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
-    bifrostTest: {
+    mantleTestnet: {
+      chainId: 5001,
+      url: 'https://rpc.testnet.mantle.xyz',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+        bifrostTest: {
       chainId: 49088,
       url: 'https://public-01.testnet.thebifrost.io/rpc',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
@@ -247,6 +252,7 @@ const config: HardhatUserConfig = {
       bscTestnet: process.env.BSC_EXPLORER_API_KEY!,
       lineaTestnet: process.env.LINEASCAN_API_KEY!,
       scrollSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
+      mantleTestnet: process.env.BASESCAN_API_KEY!, // works with same key
     },
     customChains: [
       {
@@ -359,6 +365,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://sepolia-blockscout.scroll.io/api',
           browserURL: 'https://sepolia-blockscout.scroll.io/',
+        },
+      },
+      {
+        network: 'mantleTestnet',
+        chainId: 5001,
+        urls: {
+          apiURL: 'https://explorer.testnet.mantle.xyz/api',
+          browserURL: 'https://explorer.testnet.mantle.xyz/',
         },
       },
     ],
