@@ -33,6 +33,7 @@ const setWalletImplementation: DeployFunction = async function (
       from,
       args: [ENTRYPOINT, EXPECTED_WALLET_FACTORY_ADDRESS],
       log: true,
+      // gasLimit: 9000000, // baseGoerli
       deterministicDeployment: true,
     });
     console.log('Implementation deployed at:', impl.address);
@@ -43,8 +44,8 @@ const setWalletImplementation: DeployFunction = async function (
       'EtherspotWalletFactory',
       {
         from,
-        gasLimit: 6e6,
         log: true,
+        // gasLimit: 9000000, // baseGoerli
       },
       'setImplementation',
       impl.address
