@@ -35,12 +35,13 @@ const deployEtherspotWalletFactoryAndImplementation: DeployFunction =
         `EtherspotWalletFactory deployed at: ${ewf.address} using ${ewf.receipt?.gasUsed}`
       );
 
-      console.log('starting implementation...');
+      console.log('deploying determinitic wallet implementation...');
 
       const impl = await deploy('EtherspotWallet', {
         from,
         args: [ENTRYPOINT, ewf.address],
         log: true,
+        deterministicDeployment: true,
       });
       console.log('Implementation deployed at:', impl.address);
 
