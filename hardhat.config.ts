@@ -143,7 +143,7 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.testnet.mantle.xyz',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
-        bifrostTest: {
+    bifrostTest: {
       chainId: 49088,
       url: 'https://public-01.testnet.thebifrost.io/rpc',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
@@ -151,6 +151,7 @@ const config: HardhatUserConfig = {
     bifrost: {
       chainId: 3068,
       url: 'https://public-01.mainnet.thebifrost.io/rpc',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
     klaytnTest: {
       chainId: 1001,
