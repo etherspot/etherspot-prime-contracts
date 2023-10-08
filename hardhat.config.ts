@@ -203,6 +203,11 @@ const config: HardhatUserConfig = {
       url: 'https://sepolia-rpc.scroll.io/',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    coston2: {
+      chainId: 114,
+      url: 'https://coston2-api.flare.network/ext/C/rpc',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   deterministicDeployment: {
@@ -254,6 +259,7 @@ const config: HardhatUserConfig = {
       lineaTestnet: process.env.LINEASCAN_API_KEY!,
       scrollSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
       mantleTestnet: process.env.BASESCAN_API_KEY!, // works with same key
+      coston2: process.env.FLARE_API_KEY!,
     },
     customChains: [
       {
@@ -374,6 +380,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://explorer.testnet.mantle.xyz/api',
           browserURL: 'https://explorer.testnet.mantle.xyz/',
+        },
+      },
+      {
+        network: 'coston2',
+        chainId: 114,
+        urls: {
+          apiURL: 'https://coston2-explorer.flare.network/api',
+          browserURL: 'https://coston2-explorer.flare.network/',
         },
       },
     ],
