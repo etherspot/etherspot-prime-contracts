@@ -46,7 +46,9 @@
 | `EtherspotPaymaster` | `bifrost` | [0xB3AD9B9B06c6016f81404ee8FcCD0526F018Cf0C](https://explorer.mainnet.thebifrost.io/address/0xB3AD9B9B06c6016f81404ee8FcCD0526F018Cf0C) | [0x9724878c038f6f584dac4a1f75af91fae792c0851c65e87cea34ac8c62e9a141](https://explorer.mainnet.thebifrost.io/tx/0x9724878c038f6f584dac4a1f75af91fae792c0851c65e87cea34ac8c62e9a141) |
 | `EtherspotWalletFactory` | `bifrost` | [0x527bAb8bDC50A809d7c35D0129173BBed55C5EAE](https://explorer.mainnet.thebifrost.io/address/0x527bAb8bDC50A809d7c35D0129173BBed55C5EAE) | [0xca5c58c396af9e8ec201d2e473f704960bc123d6f6c1b706185f4177ab22ff9c](https://explorer.mainnet.thebifrost.io/tx/0xca5c58c396af9e8ec201d2e473f704960bc123d6f6c1b706185f4177ab22ff9c) |
 | `EtherspotWallet` | `bifrost` | [0x18D9405BfdD22eA84C0B481e0AAA4638e4F71Af4](https://explorer.mainnet.thebifrost.io/address/0x18D9405BfdD22eA84C0B481e0AAA4638e4F71Af4) | [0x8ccb3330e68368397be1a8e3a859e8535cd9d5c8cb7b9100cd794cc5833baee7](https://explorer.mainnet.thebifrost.io/tx/0x8ccb3330e68368397be1a8e3a859e8535cd9d5c8cb7b9100cd794cc5833baee7) |
-
+| `EtherspotPaymaster` | `flare` | [0x8A41594e5c6Fe492e437414c24eA6f401186b8d2](https://flare-explorer.flare.network/address/0x8A41594e5c6Fe492e437414c24eA6f401186b8d2) | [0x8a4f15c65e3bb0b61a268e9ab4421a9056603c8202f928aaeac9c6459cdc85c4](https://flare-explorer.flare.network/tx/0x8a4f15c65e3bb0b61a268e9ab4421a9056603c8202f928aaeac9c6459cdc85c4) |
+| `EtherspotWalletFactory` | `flare` | [0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E](https://flare-explorer.flare.network/address/0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E) | [0xa13c25f1a72d8e53d0a814bcf19008a959952c30a61eb62e0f4ef62b8997fb91](https://flare-explorer.flare.network/tx/0xa13c25f1a72d8e53d0a814bcf19008a959952c30a61eb62e0f4ef62b8997fb91) |
+| `EtherspotWallet` | `flare` | [0xfB32cef50CfB0A0F9f6d37A05828b2F56EfdfE20](https://flare-explorer.flare.network/address/0xfB32cef50CfB0A0F9f6d37A05828b2F56EfdfE20) | [0x3c10f83f334be19085d5e25952e21c43d367789c2294c4440fd93610fc6e3806](https://flare-explorer.flare.network/tx/0x3c10f83f334be19085d5e25952e21c43d367789c2294c4440fd93610fc6e3806) |
 
 
 ## Testnets

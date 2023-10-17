@@ -208,6 +208,11 @@ const config: HardhatUserConfig = {
       url: 'https://coston2-api.flare.network/ext/C/rpc',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    flare: {
+      chainId: 14,
+      url: `https://flare-api-tracer.flare.network/ext/C/rpc?auth=${process.env.FLARE_RPC_KEY}`,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   deterministicDeployment: {
@@ -242,6 +247,7 @@ const config: HardhatUserConfig = {
       bsc: process.env.BSC_EXPLORER_API_KEY!,
       base: process.env.BASESCAN_API_KEY!,
       linea: process.env.LINEASCAN_API_KEY!,
+      flare: process.env.FLARESCAN_API_KEY!,
       ////////////////////////////////////
       goerli: process.env.ETHERSCAN_API_KEY!,
       sepolia: process.env.ETHERSCAN_API_KEY!,
@@ -388,6 +394,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://coston2-explorer.flare.network/api',
           browserURL: 'https://coston2-explorer.flare.network/',
+        }
+      },
+      {
+        network: 'flare',
+        chainId: 14,
+        urls: {
+          apiURL: 'https://flare-explorer.flare.network/api',
+          browserURL: 'https://flare-explorer.flare.network/'
         },
       },
     ],
