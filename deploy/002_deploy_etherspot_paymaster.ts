@@ -15,10 +15,10 @@ const deployEtherspotPaymaster: DeployFunction = async function (
   const ret = await deploy('EtherspotPaymaster', {
     from,
     args: [entrypoint],
-    // gasLimit: 6e6,
+    gasLimit: 6e6,
     // gasLimit: 1000000000, // arbitrum
     // gasLimit: 10000000, // baseGoerli
-    gasLimit: 20000000, // kromaSepolia
+    // gasLimit: 20000000, // kromaSepolia
     log: true,
   });
   console.log('EtherspotPaymaster deployed at:', ret.address);
@@ -31,7 +31,7 @@ const deployEtherspotPaymaster: DeployFunction = async function (
       from,
       value: await ethers.utils.parseEther('0.01'),
       log: true,
-      gasLimit: 20000000,
+      gasLimit: 6e6,
     },
     'addStake',
     1
