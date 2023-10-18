@@ -27,9 +27,9 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200,
-          },
-        },
+            runs: 200
+          }
+        }
       },
     ],
   },
@@ -213,6 +213,11 @@ const config: HardhatUserConfig = {
       url: `https://flare-api-tracer.flare.network/ext/C/rpc?auth=${process.env.FLARE_RPC_KEY}`,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    scroll: {
+      chainId: 534352,
+      url: 'https://rpc.scroll.io',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   deterministicDeployment: {
@@ -248,6 +253,7 @@ const config: HardhatUserConfig = {
       base: process.env.BASESCAN_API_KEY!,
       linea: process.env.LINEASCAN_API_KEY!,
       flare: process.env.FLARESCAN_API_KEY!,
+      scroll: process.env.SCROLLSCAN_API_KEY!,
       ////////////////////////////////////
       goerli: process.env.ETHERSCAN_API_KEY!,
       sepolia: process.env.ETHERSCAN_API_KEY!,
@@ -404,6 +410,14 @@ const config: HardhatUserConfig = {
           browserURL: 'https://flare-explorer.flare.network/'
         },
       },
+      {
+        network: 'scroll',
+        chainId: 534352,
+        urls: {
+          apiURL: 'https://api.scrollscan.com/api',
+          browserURL: 'https://scrollscan.com/',
+        }
+      }
     ],
   },
   gasReporter: {
