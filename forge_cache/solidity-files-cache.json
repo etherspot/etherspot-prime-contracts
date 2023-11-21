@@ -13,8 +13,8 @@
   },
   "files": {
     "account-abstraction/contracts/core/BaseAccount.sol": {
-      "lastModificationDate": 1700133535814,
-      "contentHash": "a53a173b72742916b9c1cfef610f64b1",
+      "lastModificationDate": 1700560402634,
+      "contentHash": "7052d2d00c7767fbf746745cd59334c7",
       "sourceName": "account-abstraction/contracts/core/BaseAccount.sol",
       "solcConfig": {
         "settings": {
@@ -47,6 +47,7 @@
       },
       "imports": [
         "account-abstraction/contracts/core/Helpers.sol",
+        "account-abstraction/contracts/core/UserOperationLib.sol",
         "account-abstraction/contracts/interfaces/IAccount.sol",
         "account-abstraction/contracts/interfaces/IAggregator.sol",
         "account-abstraction/contracts/interfaces/IEntryPoint.sol",
@@ -62,8 +63,8 @@
       }
     },
     "account-abstraction/contracts/core/Helpers.sol": {
-      "lastModificationDate": 1700133535815,
-      "contentHash": "3cbc58efa815f026e5e180817b65c653",
+      "lastModificationDate": 1700560402636,
+      "contentHash": "73210056ac71abcc25b739bac285b7ee",
       "sourceName": "account-abstraction/contracts/core/Helpers.sol",
       "solcConfig": {
         "settings": {
@@ -102,9 +103,53 @@
         }
       }
     },
+    "account-abstraction/contracts/core/UserOperationLib.sol": {
+      "lastModificationDate": 1700560402637,
+      "contentHash": "fa50b3d02a7c67057e6070573f8c65fe",
+      "sourceName": "account-abstraction/contracts/core/UserOperationLib.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "account-abstraction/contracts/core/Helpers.sol",
+        "account-abstraction/contracts/interfaces/UserOperation.sol"
+      ],
+      "versionRequirement": "^0.8.12",
+      "artifacts": {
+        "UserOperationLib": {
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "UserOperationLib.sol/UserOperationLib.json"
+        }
+      }
+    },
     "account-abstraction/contracts/interfaces/IAccount.sol": {
-      "lastModificationDate": 1700133535816,
-      "contentHash": "6d787a742dcf67af8bebad8a8db7b78e",
+      "lastModificationDate": 1700560402638,
+      "contentHash": "0a985be1198efd323171539f2d63bc1e",
       "sourceName": "account-abstraction/contracts/interfaces/IAccount.sol",
       "solcConfig": {
         "settings": {
@@ -136,7 +181,6 @@
         }
       },
       "imports": [
-        "account-abstraction/contracts/core/Helpers.sol",
         "account-abstraction/contracts/interfaces/UserOperation.sol"
       ],
       "versionRequirement": "^0.8.12",
@@ -147,8 +191,8 @@
       }
     },
     "account-abstraction/contracts/interfaces/IAggregator.sol": {
-      "lastModificationDate": 1700133535816,
-      "contentHash": "70c22a1f7e8ee0bd97fcabb493c4fca6",
+      "lastModificationDate": 1700560402638,
+      "contentHash": "e64f40982c97712f0a57399401af3f0a",
       "sourceName": "account-abstraction/contracts/interfaces/IAggregator.sol",
       "solcConfig": {
         "settings": {
@@ -180,7 +224,6 @@
         }
       },
       "imports": [
-        "account-abstraction/contracts/core/Helpers.sol",
         "account-abstraction/contracts/interfaces/UserOperation.sol"
       ],
       "versionRequirement": "^0.8.12",
@@ -191,8 +234,8 @@
       }
     },
     "account-abstraction/contracts/interfaces/IEntryPoint.sol": {
-      "lastModificationDate": 1700133535817,
-      "contentHash": "f88a97ac988a378551551be9ea4ee65e",
+      "lastModificationDate": 1700560402638,
+      "contentHash": "48904444602d6e4ed9e60060832a707b",
       "sourceName": "account-abstraction/contracts/interfaces/IEntryPoint.sol",
       "solcConfig": {
         "settings": {
@@ -224,7 +267,6 @@
         }
       },
       "imports": [
-        "account-abstraction/contracts/core/Helpers.sol",
         "account-abstraction/contracts/interfaces/IAggregator.sol",
         "account-abstraction/contracts/interfaces/INonceManager.sol",
         "account-abstraction/contracts/interfaces/IStakeManager.sol",
@@ -279,8 +321,8 @@
       }
     },
     "account-abstraction/contracts/interfaces/IPaymaster.sol": {
-      "lastModificationDate": 1700133535817,
-      "contentHash": "4737c1fae42666f1b91fdac6a612076b",
+      "lastModificationDate": 1700560402639,
+      "contentHash": "608e6b4d2c1d67242f557bb461d6b066",
       "sourceName": "account-abstraction/contracts/interfaces/IPaymaster.sol",
       "solcConfig": {
         "settings": {
@@ -312,7 +354,6 @@
         }
       },
       "imports": [
-        "account-abstraction/contracts/core/Helpers.sol",
         "account-abstraction/contracts/interfaces/UserOperation.sol"
       ],
       "versionRequirement": "^0.8.12",
@@ -323,8 +364,8 @@
       }
     },
     "account-abstraction/contracts/interfaces/IStakeManager.sol": {
-      "lastModificationDate": 1700133535817,
-      "contentHash": "e5c534a14fbf384a02ed5f007d54b1f0",
+      "lastModificationDate": 1700560402639,
+      "contentHash": "44912a91f3b5776e439fe4fdb5af2b30",
       "sourceName": "account-abstraction/contracts/interfaces/IStakeManager.sol",
       "solcConfig": {
         "settings": {
@@ -364,8 +405,8 @@
       }
     },
     "account-abstraction/contracts/interfaces/UserOperation.sol": {
-      "lastModificationDate": 1700133535817,
-      "contentHash": "e605ec59ee4889ea6ef8b5332e7da0d8",
+      "lastModificationDate": 1700560402639,
+      "contentHash": "c8f2b198da60dfba638ca7f5131b33c0",
       "sourceName": "account-abstraction/contracts/interfaces/UserOperation.sol",
       "solcConfig": {
         "settings": {
@@ -396,13 +437,11 @@
           "libraries": {}
         }
       },
-      "imports": [
-        "account-abstraction/contracts/core/Helpers.sol"
-      ],
+      "imports": [],
       "versionRequirement": "^0.8.12",
       "artifacts": {
-        "UserOperationLib": {
-          "0.8.22+commit.4fc1097e.Darwin.appleclang": "UserOperation.sol/UserOperationLib.json"
+        "UserOperation": {
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "UserOperation.sol/UserOperation.json"
         }
       }
     },
@@ -4927,9 +4966,50 @@
         }
       }
     },
+    "src/ERC6900/helpers/ArrayHelper.sol": {
+      "lastModificationDate": 1700479928998,
+      "contentHash": "183ccb404f1bd58df7a5eb4b9620cb69",
+      "sourceName": "src/ERC6900/helpers/ArrayHelper.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.19",
+      "artifacts": {
+        "ArrayHelper": {
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "ArrayHelper.sol/ArrayHelper.json"
+        }
+      }
+    },
     "src/ERC6900/libraries/ErrorsLib.sol": {
-      "lastModificationDate": 1700472788018,
-      "contentHash": "307bc67fd66d724264e635e3573b847a",
+      "lastModificationDate": 1700479673348,
+      "contentHash": "518cde0116ab908b1fd60f9bbbe079e1",
       "sourceName": "src/ERC6900/libraries/ErrorsLib.sol",
       "solcConfig": {
         "settings": {
@@ -5474,7 +5554,6 @@
         }
       },
       "imports": [
-        "account-abstraction/contracts/core/Helpers.sol",
         "account-abstraction/contracts/interfaces/UserOperation.sol",
         "src/interfaces/IWhitelist.sol"
       ],
@@ -5519,7 +5598,6 @@
         }
       },
       "imports": [
-        "account-abstraction/contracts/core/Helpers.sol",
         "account-abstraction/contracts/interfaces/IAggregator.sol",
         "account-abstraction/contracts/interfaces/IEntryPoint.sol",
         "account-abstraction/contracts/interfaces/INonceManager.sol",
@@ -5669,8 +5747,8 @@
       }
     },
     "src/paymaster/EtherspotPaymaster.sol": {
-      "lastModificationDate": 1700132422430,
-      "contentHash": "e574be99932c2ad350f74189b2fac6a5",
+      "lastModificationDate": 1700561158611,
+      "contentHash": "f26020f29a59dcf1af3a963ed5aae479",
       "sourceName": "src/paymaster/EtherspotPaymaster.sol",
       "solcConfig": {
         "settings": {
@@ -5703,6 +5781,7 @@
       },
       "imports": [
         "account-abstraction/contracts/core/Helpers.sol",
+        "account-abstraction/contracts/core/UserOperationLib.sol",
         "account-abstraction/contracts/interfaces/IAggregator.sol",
         "account-abstraction/contracts/interfaces/IEntryPoint.sol",
         "account-abstraction/contracts/interfaces/INonceManager.sol",
@@ -5806,6 +5885,7 @@
       "imports": [
         "account-abstraction/contracts/core/BaseAccount.sol",
         "account-abstraction/contracts/core/Helpers.sol",
+        "account-abstraction/contracts/core/UserOperationLib.sol",
         "account-abstraction/contracts/interfaces/IAccount.sol",
         "account-abstraction/contracts/interfaces/IAggregator.sol",
         "account-abstraction/contracts/interfaces/IEntryPoint.sol",
@@ -5878,6 +5958,7 @@
       "imports": [
         "account-abstraction/contracts/core/BaseAccount.sol",
         "account-abstraction/contracts/core/Helpers.sol",
+        "account-abstraction/contracts/core/UserOperationLib.sol",
         "account-abstraction/contracts/interfaces/IAccount.sol",
         "account-abstraction/contracts/interfaces/IAggregator.sol",
         "account-abstraction/contracts/interfaces/IEntryPoint.sol",
@@ -5954,6 +6035,129 @@
       "artifacts": {
         "Proxy": {
           "0.8.22+commit.4fc1097e.Darwin.appleclang": "Proxy.sol/Proxy.json"
+        }
+      }
+    },
+    "test/foundry/EtherspotWalletV2.t.sol": {
+      "lastModificationDate": 1700472229523,
+      "contentHash": "1d5d4f3014fe9c397397511554e0db3a",
+      "sourceName": "test/foundry/EtherspotWalletV2.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/BaseAccount.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/EntryPoint.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/NonceManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/SenderCreator.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/StakeManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAccount.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IPaymaster.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/utils/Exec.sol",
+        "erc6900-ref-impl/src/account/AccountExecutor.sol",
+        "erc6900-ref-impl/src/account/AccountStorageInitializable.sol",
+        "erc6900-ref-impl/src/account/BaseModularAccount.sol",
+        "erc6900-ref-impl/src/account/BaseModularAccountLoupe.sol",
+        "erc6900-ref-impl/src/helpers/ValidationDataHelpers.sol",
+        "erc6900-ref-impl/src/interfaces/IPlugin.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginExecutor.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginLoupe.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginManager.sol",
+        "erc6900-ref-impl/src/interfaces/IStandardExecutor.sol",
+        "erc6900-ref-impl/src/libraries/AccountStorage.sol",
+        "erc6900-ref-impl/src/libraries/ERC6900TypeUtils.sol",
+        "erc6900-ref-impl/src/libraries/FunctionReferenceLib.sol",
+        "erc6900-ref-impl/src/plugins/BasePlugin.sol",
+        "erc6900-ref-impl/src/plugins/owner/ISingleOwnerPlugin.sol",
+        "erc6900-ref-impl/test/mocks/Counter.sol",
+        "erc6900-ref-impl/test/mocks/MockPlugin.sol",
+        "erc6900-ref-impl/test/mocks/plugins/ComprehensivePlugin.sol",
+        "lib/forge-std/lib/ds-test/src/test.sol",
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/StdAssertions.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdError.sol",
+        "lib/forge-std/src/StdInvariant.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdStyle.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Test.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "lib/forge-std/src/interfaces/IMulticall3.sol",
+        "lib/forge-std/src/safeconsole.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1155Receiver.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1271.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1967.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC777Recipient.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
+        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol",
+        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol",
+        "node_modules/@openzeppelin/contracts/proxy/Proxy.sol",
+        "node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol",
+        "node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
+        "node_modules/@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol",
+        "node_modules/@openzeppelin/contracts/utils/Address.sol",
+        "node_modules/@openzeppelin/contracts/utils/Create2.sol",
+        "node_modules/@openzeppelin/contracts/utils/StorageSlot.sol",
+        "node_modules/@openzeppelin/contracts/utils/Strings.sol",
+        "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
+        "node_modules/@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165Checker.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "src/ERC6900/libraries/ErrorsLib.sol",
+        "src/ERC6900/plugins/SingleOwnerPlugin.sol",
+        "src/ERC6900/plugins/TokenReceiverPlugin.sol",
+        "src/ERC6900/wallet/EtherspotWalletV2.sol",
+        "src/ERC6900/wallet/MSCAFactoryFixture.sol"
+      ],
+      "versionRequirement": "^0.8.19",
+      "artifacts": {
+        "EtherspotWalletV2Test": {
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "EtherspotWalletV2.t.sol/EtherspotWalletV2Test.json"
         }
       }
     },
@@ -6199,129 +6403,6 @@
       "artifacts": {
         "TokenReceiverPluginTest": {
           "0.8.22+commit.4fc1097e.Darwin.appleclang": "TokenReceiverPlugin.t.sol/TokenReceiverPluginTest.json"
-        }
-      }
-    },
-    "test/foundry/UpgradeableModularAccount.t.sol": {
-      "lastModificationDate": 1700472229523,
-      "contentHash": "1d5d4f3014fe9c397397511554e0db3a",
-      "sourceName": "test/foundry/UpgradeableModularAccount.t.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": false,
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ]
-            }
-          },
-          "evmVersion": "paris",
-          "libraries": {}
-        }
-      },
-      "imports": [
-        "erc6900-ref-impl/lib/account-abstraction/contracts/core/BaseAccount.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/core/EntryPoint.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/core/NonceManager.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/core/SenderCreator.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/core/StakeManager.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAccount.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IPaymaster.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
-        "erc6900-ref-impl/lib/account-abstraction/contracts/utils/Exec.sol",
-        "erc6900-ref-impl/src/account/AccountExecutor.sol",
-        "erc6900-ref-impl/src/account/AccountStorageInitializable.sol",
-        "erc6900-ref-impl/src/account/BaseModularAccount.sol",
-        "erc6900-ref-impl/src/account/BaseModularAccountLoupe.sol",
-        "erc6900-ref-impl/src/helpers/ValidationDataHelpers.sol",
-        "erc6900-ref-impl/src/interfaces/IPlugin.sol",
-        "erc6900-ref-impl/src/interfaces/IPluginExecutor.sol",
-        "erc6900-ref-impl/src/interfaces/IPluginLoupe.sol",
-        "erc6900-ref-impl/src/interfaces/IPluginManager.sol",
-        "erc6900-ref-impl/src/interfaces/IStandardExecutor.sol",
-        "erc6900-ref-impl/src/libraries/AccountStorage.sol",
-        "erc6900-ref-impl/src/libraries/ERC6900TypeUtils.sol",
-        "erc6900-ref-impl/src/libraries/FunctionReferenceLib.sol",
-        "erc6900-ref-impl/src/plugins/BasePlugin.sol",
-        "erc6900-ref-impl/src/plugins/owner/ISingleOwnerPlugin.sol",
-        "erc6900-ref-impl/test/mocks/Counter.sol",
-        "erc6900-ref-impl/test/mocks/MockPlugin.sol",
-        "erc6900-ref-impl/test/mocks/plugins/ComprehensivePlugin.sol",
-        "lib/forge-std/lib/ds-test/src/test.sol",
-        "lib/forge-std/src/Base.sol",
-        "lib/forge-std/src/StdAssertions.sol",
-        "lib/forge-std/src/StdChains.sol",
-        "lib/forge-std/src/StdCheats.sol",
-        "lib/forge-std/src/StdError.sol",
-        "lib/forge-std/src/StdInvariant.sol",
-        "lib/forge-std/src/StdJson.sol",
-        "lib/forge-std/src/StdMath.sol",
-        "lib/forge-std/src/StdStorage.sol",
-        "lib/forge-std/src/StdStyle.sol",
-        "lib/forge-std/src/StdUtils.sol",
-        "lib/forge-std/src/Test.sol",
-        "lib/forge-std/src/Vm.sol",
-        "lib/forge-std/src/console.sol",
-        "lib/forge-std/src/console2.sol",
-        "lib/forge-std/src/interfaces/IMulticall3.sol",
-        "lib/forge-std/src/safeconsole.sol",
-        "node_modules/@openzeppelin/contracts/interfaces/IERC1155Receiver.sol",
-        "node_modules/@openzeppelin/contracts/interfaces/IERC1271.sol",
-        "node_modules/@openzeppelin/contracts/interfaces/IERC1967.sol",
-        "node_modules/@openzeppelin/contracts/interfaces/IERC777Recipient.sol",
-        "node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
-        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol",
-        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol",
-        "node_modules/@openzeppelin/contracts/proxy/Proxy.sol",
-        "node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol",
-        "node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol",
-        "node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
-        "node_modules/@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol",
-        "node_modules/@openzeppelin/contracts/utils/Address.sol",
-        "node_modules/@openzeppelin/contracts/utils/Create2.sol",
-        "node_modules/@openzeppelin/contracts/utils/StorageSlot.sol",
-        "node_modules/@openzeppelin/contracts/utils/Strings.sol",
-        "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
-        "node_modules/@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol",
-        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
-        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165Checker.sol",
-        "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
-        "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
-        "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
-        "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
-        "src/ERC6900/libraries/ErrorsLib.sol",
-        "src/ERC6900/plugins/SingleOwnerPlugin.sol",
-        "src/ERC6900/plugins/TokenReceiverPlugin.sol",
-        "src/ERC6900/wallet/EtherspotWalletV2.sol",
-        "src/ERC6900/wallet/MSCAFactoryFixture.sol"
-      ],
-      "versionRequirement": "^0.8.19",
-      "artifacts": {
-        "EtherspotWalletV2Test": {
-          "0.8.22+commit.4fc1097e.Darwin.appleclang": "UpgradeableModularAccount.t.sol/EtherspotWalletV2Test.json"
         }
       }
     }
