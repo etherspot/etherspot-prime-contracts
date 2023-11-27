@@ -5,6 +5,7 @@ pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../../account-abstraction/contracts/core/UserOperationLib.sol";
 import "./BasePaymaster.sol";
 import "./Whitelist.sol";
 

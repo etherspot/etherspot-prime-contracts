@@ -1,0 +1,8 @@
+ds-test/=lib/forge-std/lib/ds-test/src/
+forge-std/=lib/forge-std/src/
+
+@openzeppelin/=node_modules/@openzeppelin/
+@ERC6900/=erc6900-ref-impl/
+@ERC4337=erc6900-ref-impl/lib/account-abstraction/contracts
+
+@eth-infinitism/account-abstraction/=erc6900-ref-impl/lib/account-abstraction/contracts
