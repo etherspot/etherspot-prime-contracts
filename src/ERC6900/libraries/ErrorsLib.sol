@@ -1,8 +1,8 @@
-// SPDX-License-Identifier: GPL-3.0
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
 library ErrorsLib {
-    // EtherspotWalletV2 Errors
+    /// EtherspotWalletV2 Errors
     error AlwaysDenyRule();
     error AuthorizeUpgradeReverted(bytes revertReason);
     error ExecFromPluginNotPermitted(address plugin, bytes4 selector);
@@ -41,4 +41,9 @@ library ErrorsLib {
     );
     error UnrecognizedFunction(bytes4 selector);
     error UserOpValidationFunctionMissing(bytes4 selector);
+
+    /// MultipleOwnerPlugin Errors
+    error NotAuthorized();
+    error AlreadyAnOwner();
+    error NotAnOwner();
 }
