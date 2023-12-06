@@ -1,6 +1,6 @@
 {
   "name": "@etherspot/prime-contracts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Etherspot account abstraction contracts (eip-4337 compliant)",
   "main": "index.js",
   "directories": {
