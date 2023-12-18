@@ -4,7 +4,6 @@
 pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
-import "forge-std/console.sol";
 
 import {EntryPoint} from "@ERC4337/core/EntryPoint.sol";
 import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
@@ -13,6 +12,8 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlugin.sol";
 
 import {IMultipleOwnerPlugin} from "../../../src/ERC6900/interfaces/IMultipleOwnerPlugin.sol";
+import {ErrorsLib} from "../../../src/ERC6900/libraries/ErrorsLib.sol";
+
 import {ContractOwner} from "@ERC6900/test/mocks/ContractOwner.sol";
 
 contract MultipleOwnerPluginTest is Test {
@@ -42,6 +43,7 @@ contract MultipleOwnerPluginTest is Test {
     // Error declarations (needed for vm.expectRevert)
     error AlreadyAnOwner();
     error NotAnOwner();
+    error NotAuthorized();
 
     function setUp() public {
         plugin = new MultipleOwnerPlugin();
@@ -145,7 +147,7 @@ contract MultipleOwnerPluginTest is Test {
             ""
         );
         vm.startPrank(b);
-        vm.expectRevert(IMultipleOwnerPlugin.NotAuthorized.selector);
+        vm.expectRevert(ErrorsLib.NotAuthorized.selector);
         plugin.runtimeValidationFunction(
             uint8(
                 IMultipleOwnerPlugin.FunctionId.RUNTIME_VALIDATION_OWNER_OR_SELF
@@ -225,7 +227,7 @@ contract MultipleOwnerPluginTest is Test {
         // sign digest
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privateKey, digest);
         // add new owner
-        plugin.addOwner(signer);
+        plugin.addOwner(a, signer);
         assertEq(signer, plugin.owners()[1]);
         // sig check should pass using second owner
         assertEq(
@@ -250,7 +252,7 @@ contract MultipleOwnerPluginTest is Test {
         assertEq(0, plugin.owners().length);
         plugin.transferOwnership(owner1);
         assertEq(owner1, plugin.owners()[0]);
-        plugin.addOwner(owner2);
+        plugin.addOwner(a, owner2);
         assertEq(owner2, plugin.owners()[1]);
         assertEq(2, plugin.owners().length);
         assertTrue(plugin.isOwner(owner2));
@@ -267,7 +269,7 @@ contract MultipleOwnerPluginTest is Test {
         assertFalse(plugin.isOwner(owner2));
         vm.expectEmit(true, true, true, true);
         emit OwnerAdded(a, owner2);
-        plugin.addOwner(owner2);
+        plugin.addOwner(a, owner2);
         assertEq(owner2, plugin.owners()[1]);
         assertEq(2, plugin.owners().length);
         assertTrue(plugin.isOwner(owner1));
@@ -279,9 +281,9 @@ contract MultipleOwnerPluginTest is Test {
         assertEq(0, plugin.owners().length);
         plugin.transferOwnership(owner1);
         assertEq(owner1, plugin.owners()[0]);
-        plugin.addOwner(owner2);
+        plugin.addOwner(a, owner2);
         vm.expectRevert(AlreadyAnOwner.selector);
-        plugin.addOwner(owner2);
+        plugin.addOwner(a, owner2);
     }
 
     function test_removeOwner() public {
@@ -289,13 +291,13 @@ contract MultipleOwnerPluginTest is Test {
         assertEq(0, plugin.owners().length);
         plugin.transferOwnership(owner1);
         assertEq(owner1, plugin.owners()[0]);
-        plugin.addOwner(owner2);
+        plugin.addOwner(a, owner2);
         assertEq(owner1, plugin.owners()[0]);
         assertEq(owner2, plugin.owners()[1]);
         assertEq(2, plugin.owners().length);
         assertTrue(plugin.isOwner(owner2));
         assertTrue(plugin.isOwner(owner1));
-        plugin.removeOwner(owner2);
+        plugin.removeOwner(a, owner2);
         assertEq(owner1, plugin.owners()[0]);
         assertEq(1, plugin.owners().length);
         assertTrue(plugin.isOwner(owner1));
@@ -306,7 +308,7 @@ contract MultipleOwnerPluginTest is Test {
         vm.startPrank(a);
         assertEq(0, plugin.owners().length);
         plugin.transferOwnership(owner1);
-        plugin.addOwner(owner2);
+        plugin.addOwner(a, owner2);
         assertEq(owner1, plugin.owners()[0]);
         assertEq(owner2, plugin.owners()[1]);
         assertEq(2, plugin.owners().length);
@@ -314,7 +316,7 @@ contract MultipleOwnerPluginTest is Test {
         assertTrue(plugin.isOwner(owner2));
         vm.expectEmit(true, true, true, true);
         emit OwnerRemoved(a, owner2);
-        plugin.removeOwner(owner2);
+        plugin.removeOwner(a, owner2);
         assertEq(1, plugin.owners().length);
         assertTrue(plugin.isOwner(owner1));
         assertFalse(plugin.isOwner(owner2));
@@ -326,7 +328,7 @@ contract MultipleOwnerPluginTest is Test {
         plugin.transferOwnership(owner1);
         assertEq(owner1, plugin.owners()[0]);
         vm.expectRevert(NotAnOwner.selector);
-        plugin.removeOwner(owner2);
+        plugin.removeOwner(a, owner2);
     }
 
     function test_allAccountOwners() public {
@@ -334,8 +336,8 @@ contract MultipleOwnerPluginTest is Test {
 
         assertEq(0, plugin.ownersOf(a).length);
         plugin.transferOwnership(owner1);
-        plugin.addOwner(owner2);
-        plugin.addOwner(owner3);
+        plugin.addOwner(a, owner2);
+        plugin.addOwner(a, owner3);
 
         assertEq(3, plugin.ownersOf(a).length);
         bytes memory expected = abi.encodePacked([owner1, owner2, owner3]);

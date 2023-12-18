@@ -1213,8 +1213,8 @@
       }
     },
     "erc6900-ref-impl/src/account/BaseModularAccount.sol": {
-      "lastModificationDate": 1700134185327,
-      "contentHash": "2b4966fc7d301905e2716b71fd9a79bd",
+      "lastModificationDate": 1702373486834,
+      "contentHash": "48023070185d32f6968cbd34abee9184",
       "sourceName": "erc6900-ref-impl/src/account/BaseModularAccount.sol",
       "solcConfig": {
         "settings": {
@@ -4966,9 +4966,53 @@
         }
       }
     },
+    "src/ERC6900/interfaces/IGuardianPlugin.sol": {
+      "lastModificationDate": 1702895722941,
+      "contentHash": "9e36371190f922bba85b101c0563f2a6",
+      "sourceName": "src/ERC6900/interfaces/IGuardianPlugin.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol"
+      ],
+      "versionRequirement": "^0.8.19",
+      "artifacts": {
+        "IGuardianPlugin": {
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "IGuardianPlugin.sol/IGuardianPlugin.json"
+        }
+      }
+    },
     "src/ERC6900/interfaces/IMultipleOwnerPlugin.sol": {
-      "lastModificationDate": 1701081609134,
-      "contentHash": "0ba62ce4d4be2479973d3c40a996d298",
+      "lastModificationDate": 1702895735083,
+      "contentHash": "b405dedd2f82d397f7ff1f52ffe04279",
       "sourceName": "src/ERC6900/interfaces/IMultipleOwnerPlugin.sol",
       "solcConfig": {
         "settings": {
@@ -5007,6 +5051,50 @@
       "artifacts": {
         "IMultipleOwnerPlugin": {
           "0.8.22+commit.4fc1097e.Darwin.appleclang": "IMultipleOwnerPlugin.sol/IMultipleOwnerPlugin.json"
+        }
+      }
+    },
+    "src/ERC6900/interfaces/ISingleOwnerPlugin.sol": {
+      "lastModificationDate": 1702286559493,
+      "contentHash": "57c6e5f274b6e249f2a128d51b449b20",
+      "sourceName": "src/ERC6900/interfaces/ISingleOwnerPlugin.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol"
+      ],
+      "versionRequirement": "^0.8.19",
+      "artifacts": {
+        "ISingleOwnerPlugin": {
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "ISingleOwnerPlugin.sol/ISingleOwnerPlugin.json"
         }
       }
     },
@@ -5052,8 +5140,8 @@
       }
     },
     "src/ERC6900/libraries/ErrorsLib.sol": {
-      "lastModificationDate": 1701251232982,
-      "contentHash": "0c6969565d959cbea3f20c07417d20de",
+      "lastModificationDate": 1702287946095,
+      "contentHash": "8092cbb6dfc53a9d7a4be046c0428c73",
       "sourceName": "src/ERC6900/libraries/ErrorsLib.sol",
       "solcConfig": {
         "settings": {
@@ -5093,8 +5181,8 @@
       }
     },
     "src/ERC6900/plugins/GuardianPlugin.sol": {
-      "lastModificationDate": 1701251248201,
-      "contentHash": "bf30bd05fa7e1007d52367e5f2a90a3a",
+      "lastModificationDate": 1702896909034,
+      "contentHash": "98cc162c174e4147dee71f9a373506df",
       "sourceName": "src/ERC6900/plugins/GuardianPlugin.sol",
       "solcConfig": {
         "settings": {
@@ -5125,8 +5213,53 @@
           "libraries": {}
         }
       },
-      "imports": [],
-      "versionRequirement": null,
+      "imports": [
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/BaseAccount.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAccount.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
+        "erc6900-ref-impl/src/account/AccountExecutor.sol",
+        "erc6900-ref-impl/src/account/AccountStorageInitializable.sol",
+        "erc6900-ref-impl/src/account/BaseModularAccount.sol",
+        "erc6900-ref-impl/src/account/BaseModularAccountLoupe.sol",
+        "erc6900-ref-impl/src/helpers/ValidationDataHelpers.sol",
+        "erc6900-ref-impl/src/interfaces/IPlugin.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginExecutor.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginLoupe.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginManager.sol",
+        "erc6900-ref-impl/src/interfaces/IStandardExecutor.sol",
+        "erc6900-ref-impl/src/libraries/AccountStorage.sol",
+        "erc6900-ref-impl/src/libraries/ERC6900TypeUtils.sol",
+        "erc6900-ref-impl/src/libraries/FunctionReferenceLib.sol",
+        "erc6900-ref-impl/src/plugins/BasePlugin.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1271.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1967.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
+        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol",
+        "node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol",
+        "node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts/utils/Address.sol",
+        "node_modules/@openzeppelin/contracts/utils/StorageSlot.sol",
+        "node_modules/@openzeppelin/contracts/utils/Strings.sol",
+        "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
+        "node_modules/@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165Checker.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "src/ERC6900/interfaces/IGuardianPlugin.sol",
+        "src/ERC6900/interfaces/IMultipleOwnerPlugin.sol",
+        "src/ERC6900/libraries/ArrayLib.sol",
+        "src/ERC6900/libraries/ErrorsLib.sol",
+        "src/ERC6900/wallet/EtherspotWalletV2.sol"
+      ],
+      "versionRequirement": "^0.8.19",
       "artifacts": {
         "GuardianPlugin": {
           "0.8.22+commit.4fc1097e.Darwin.appleclang": "GuardianPlugin.sol/GuardianPlugin.json"
@@ -5134,8 +5267,8 @@
       }
     },
     "src/ERC6900/plugins/MultipleOwnerPlugin.sol": {
-      "lastModificationDate": 1701251203891,
-      "contentHash": "07e94ca2cac6c2c723bd918187fa8623",
+      "lastModificationDate": 1702893037824,
+      "contentHash": "07236be63798ab186eceacb939ec5299",
       "sourceName": "src/ERC6900/plugins/MultipleOwnerPlugin.sol",
       "solcConfig": {
         "settings": {
@@ -5412,6 +5545,7 @@
         "erc6900-ref-impl/src/libraries/AccountStorage.sol",
         "erc6900-ref-impl/src/libraries/ERC6900TypeUtils.sol",
         "erc6900-ref-impl/src/libraries/FunctionReferenceLib.sol",
+        "lib/forge-std/src/console2.sol",
         "node_modules/@openzeppelin/contracts/interfaces/IERC1967.sol",
         "node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
         "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol",
@@ -5432,8 +5566,8 @@
       }
     },
     "src/ERC6900/wallet/MSCAFactoryFixture.sol": {
-      "lastModificationDate": 1700819204842,
-      "contentHash": "ea12dcea1b914bf11c94c814833a9400",
+      "lastModificationDate": 1701708420530,
+      "contentHash": "48f3c6884e4c5750a6d000c7f53fd2dc",
       "sourceName": "src/ERC6900/wallet/MSCAFactoryFixture.sol",
       "solcConfig": {
         "settings": {
@@ -5507,16 +5641,18 @@
         "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
         "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
         "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "src/ERC6900/interfaces/IGuardianPlugin.sol",
         "src/ERC6900/interfaces/IMultipleOwnerPlugin.sol",
         "src/ERC6900/libraries/ArrayLib.sol",
         "src/ERC6900/libraries/ErrorsLib.sol",
+        "src/ERC6900/plugins/GuardianPlugin.sol",
         "src/ERC6900/plugins/MultipleOwnerPlugin.sol",
         "src/ERC6900/wallet/EtherspotWalletV2.sol"
       ],
       "versionRequirement": "^0.8.19",
       "artifacts": {
         "MSCAFactoryFixture": {
-          "0.8.22+commit.4fc1097e.Darwin.appleclang": "MSCAFactoryFixture.sol/MSCAFactoryFixture.json"
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "wallet/MSCAFactoryFixture.sol/MSCAFactoryFixture.json"
         }
       }
     },
@@ -6209,9 +6345,217 @@
         }
       }
     },
+    "test/foundry/mocks/MSCAFactoryFixture.sol": {
+      "lastModificationDate": 1702309118739,
+      "contentHash": "ca32491e704ca477c960667dd371f643",
+      "sourceName": "test/foundry/mocks/MSCAFactoryFixture.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/BaseAccount.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAccount.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
+        "erc6900-ref-impl/src/account/AccountExecutor.sol",
+        "erc6900-ref-impl/src/account/AccountStorageInitializable.sol",
+        "erc6900-ref-impl/src/account/BaseModularAccount.sol",
+        "erc6900-ref-impl/src/account/BaseModularAccountLoupe.sol",
+        "erc6900-ref-impl/src/helpers/ValidationDataHelpers.sol",
+        "erc6900-ref-impl/src/interfaces/IPlugin.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginExecutor.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginLoupe.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginManager.sol",
+        "erc6900-ref-impl/src/interfaces/IStandardExecutor.sol",
+        "erc6900-ref-impl/src/libraries/AccountStorage.sol",
+        "erc6900-ref-impl/src/libraries/ERC6900TypeUtils.sol",
+        "erc6900-ref-impl/src/libraries/FunctionReferenceLib.sol",
+        "erc6900-ref-impl/src/plugins/BasePlugin.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1271.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1967.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
+        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol",
+        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol",
+        "node_modules/@openzeppelin/contracts/proxy/Proxy.sol",
+        "node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol",
+        "node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts/utils/Address.sol",
+        "node_modules/@openzeppelin/contracts/utils/Create2.sol",
+        "node_modules/@openzeppelin/contracts/utils/StorageSlot.sol",
+        "node_modules/@openzeppelin/contracts/utils/Strings.sol",
+        "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
+        "node_modules/@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165Checker.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "src/ERC6900/interfaces/IGuardianPlugin.sol",
+        "src/ERC6900/interfaces/IMultipleOwnerPlugin.sol",
+        "src/ERC6900/libraries/ArrayLib.sol",
+        "src/ERC6900/libraries/ErrorsLib.sol",
+        "src/ERC6900/plugins/GuardianPlugin.sol",
+        "src/ERC6900/plugins/MultipleOwnerPlugin.sol",
+        "src/ERC6900/wallet/EtherspotWalletV2.sol"
+      ],
+      "versionRequirement": "^0.8.19",
+      "artifacts": {
+        "MSCAFactoryFixture": {
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "mocks/MSCAFactoryFixture.sol/MSCAFactoryFixture.json"
+        }
+      }
+    },
+    "test/foundry/plugins/GuardianPlugin.t.sol": {
+      "lastModificationDate": 1702895677308,
+      "contentHash": "a1eaceb4a7303533e291ecbd48c7650e",
+      "sourceName": "test/foundry/plugins/GuardianPlugin.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/BaseAccount.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/EntryPoint.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/NonceManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/SenderCreator.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/core/StakeManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAccount.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IPaymaster.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
+        "erc6900-ref-impl/lib/account-abstraction/contracts/utils/Exec.sol",
+        "erc6900-ref-impl/src/account/AccountExecutor.sol",
+        "erc6900-ref-impl/src/account/AccountStorageInitializable.sol",
+        "erc6900-ref-impl/src/account/BaseModularAccount.sol",
+        "erc6900-ref-impl/src/account/BaseModularAccountLoupe.sol",
+        "erc6900-ref-impl/src/helpers/ValidationDataHelpers.sol",
+        "erc6900-ref-impl/src/interfaces/IPlugin.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginExecutor.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginLoupe.sol",
+        "erc6900-ref-impl/src/interfaces/IPluginManager.sol",
+        "erc6900-ref-impl/src/interfaces/IStandardExecutor.sol",
+        "erc6900-ref-impl/src/libraries/AccountStorage.sol",
+        "erc6900-ref-impl/src/libraries/ERC6900TypeUtils.sol",
+        "erc6900-ref-impl/src/libraries/FunctionReferenceLib.sol",
+        "erc6900-ref-impl/src/plugins/BasePlugin.sol",
+        "lib/forge-std/lib/ds-test/src/test.sol",
+        "lib/forge-std/src/Base.sol",
+        "lib/forge-std/src/StdAssertions.sol",
+        "lib/forge-std/src/StdChains.sol",
+        "lib/forge-std/src/StdCheats.sol",
+        "lib/forge-std/src/StdError.sol",
+        "lib/forge-std/src/StdInvariant.sol",
+        "lib/forge-std/src/StdJson.sol",
+        "lib/forge-std/src/StdMath.sol",
+        "lib/forge-std/src/StdStorage.sol",
+        "lib/forge-std/src/StdStyle.sol",
+        "lib/forge-std/src/StdUtils.sol",
+        "lib/forge-std/src/Test.sol",
+        "lib/forge-std/src/Vm.sol",
+        "lib/forge-std/src/console.sol",
+        "lib/forge-std/src/console2.sol",
+        "lib/forge-std/src/interfaces/IMulticall3.sol",
+        "lib/forge-std/src/safeconsole.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1271.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/IERC1967.sol",
+        "node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
+        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol",
+        "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Upgrade.sol",
+        "node_modules/@openzeppelin/contracts/proxy/Proxy.sol",
+        "node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol",
+        "node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol",
+        "node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol",
+        "node_modules/@openzeppelin/contracts/utils/Address.sol",
+        "node_modules/@openzeppelin/contracts/utils/Create2.sol",
+        "node_modules/@openzeppelin/contracts/utils/StorageSlot.sol",
+        "node_modules/@openzeppelin/contracts/utils/Strings.sol",
+        "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
+        "node_modules/@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/ERC165Checker.sol",
+        "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
+        "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
+        "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "src/ERC6900/interfaces/IGuardianPlugin.sol",
+        "src/ERC6900/interfaces/IMultipleOwnerPlugin.sol",
+        "src/ERC6900/libraries/ArrayLib.sol",
+        "src/ERC6900/libraries/ErrorsLib.sol",
+        "src/ERC6900/plugins/GuardianPlugin.sol",
+        "src/ERC6900/plugins/MultipleOwnerPlugin.sol",
+        "src/ERC6900/wallet/EtherspotWalletV2.sol",
+        "test/foundry/mocks/MSCAFactoryFixture.sol"
+      ],
+      "versionRequirement": "^0.8.19",
+      "artifacts": {
+        "GuardianPluginTest": {
+          "0.8.22+commit.4fc1097e.Darwin.appleclang": "GuardianPlugin.t.sol/GuardianPluginTest.json"
+        }
+      }
+    },
     "test/foundry/plugins/MultipleOwnerPlugin.t.sol": {
-      "lastModificationDate": 1701166042642,
-      "contentHash": "737cec0296b99ebd3f4bb481d12045bf",
+      "lastModificationDate": 1702896615282,
+      "contentHash": "1f9e59bc08c1f7c6e85a2f35aed5ab76",
       "sourceName": "test/foundry/plugins/MultipleOwnerPlugin.t.sol",
       "solcConfig": {
         "settings": {
@@ -6433,8 +6777,8 @@
       }
     },
     "test/foundry/plugins/TokenReceiverPlugin.t.sol": {
-      "lastModificationDate": 1700819290159,
-      "contentHash": "fd98ca508dc57e7b1141601e001945d6",
+      "lastModificationDate": 1702308611902,
+      "contentHash": "94c1965f102b38c210d402f3e93c5602",
       "sourceName": "test/foundry/plugins/TokenReceiverPlugin.t.sol",
       "solcConfig": {
         "settings": {
@@ -6552,13 +6896,15 @@
         "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
         "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
         "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "src/ERC6900/interfaces/IGuardianPlugin.sol",
         "src/ERC6900/interfaces/IMultipleOwnerPlugin.sol",
         "src/ERC6900/libraries/ArrayLib.sol",
         "src/ERC6900/libraries/ErrorsLib.sol",
+        "src/ERC6900/plugins/GuardianPlugin.sol",
         "src/ERC6900/plugins/MultipleOwnerPlugin.sol",
         "src/ERC6900/plugins/TokenReceiverPlugin.sol",
         "src/ERC6900/wallet/EtherspotWalletV2.sol",
-        "src/ERC6900/wallet/MSCAFactoryFixture.sol"
+        "test/foundry/mocks/MSCAFactoryFixture.sol"
       ],
       "versionRequirement": "^0.8.19",
       "artifacts": {
@@ -6568,8 +6914,8 @@
       }
     },
     "test/foundry/wallet/EtherspotWalletV2.t.sol": {
-      "lastModificationDate": 1700819227182,
-      "contentHash": "a43144ad686360d99c973f2110855351",
+      "lastModificationDate": 1702308570356,
+      "contentHash": "a6e84dac9c25939592c3cee32d4e524c",
       "sourceName": "test/foundry/wallet/EtherspotWalletV2.t.sol",
       "solcConfig": {
         "settings": {
@@ -6677,14 +7023,16 @@
         "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
         "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
         "node_modules/@openzeppelin/contracts/utils/structs/EnumerableSet.sol",
+        "src/ERC6900/interfaces/IGuardianPlugin.sol",
         "src/ERC6900/interfaces/IMultipleOwnerPlugin.sol",
         "src/ERC6900/libraries/ArrayLib.sol",
         "src/ERC6900/libraries/ErrorsLib.sol",
+        "src/ERC6900/plugins/GuardianPlugin.sol",
         "src/ERC6900/plugins/MultipleOwnerPlugin.sol",
         "src/ERC6900/plugins/SingleOwnerPlugin.sol",
         "src/ERC6900/plugins/TokenReceiverPlugin.sol",
         "src/ERC6900/wallet/EtherspotWalletV2.sol",
-        "src/ERC6900/wallet/MSCAFactoryFixture.sol"
+        "test/foundry/mocks/MSCAFactoryFixture.sol"
       ],
       "versionRequirement": "^0.8.19",
       "artifacts": {

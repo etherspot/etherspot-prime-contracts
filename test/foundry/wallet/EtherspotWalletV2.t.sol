@@ -12,8 +12,9 @@ import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
 import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
 import {SingleOwnerPlugin} from "../../../src/ERC6900/plugins/SingleOwnerPlugin.sol";
 import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlugin.sol";
+import {GuardianPlugin} from "../../../src/ERC6900/plugins/GuardianPlugin.sol";
 import {TokenReceiverPlugin} from "../../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
-import {MSCAFactoryFixture} from "../../../src/ERC6900/wallet/MSCAFactoryFixture.sol";
+import {MSCAFactoryFixture} from "../mocks/MSCAFactoryFixture.sol";
 
 import {BaseModularAccount} from "@ERC6900/src/account/BaseModularAccount.sol";
 import {PluginManifest} from "@ERC6900/src/interfaces/IPlugin.sol";
@@ -34,6 +35,7 @@ contract EtherspotWalletV2Test is Test {
     EntryPoint public entryPoint;
     address payable public beneficiary;
     MultipleOwnerPlugin public multipleOwnerPlugin;
+    GuardianPlugin public guardianPlugin;
     TokenReceiverPlugin public tokenReceiverPlugin;
     MSCAFactoryFixture public factory;
 
@@ -73,6 +75,7 @@ contract EtherspotWalletV2Test is Test {
         vm.deal(beneficiary, 1 wei);
 
         multipleOwnerPlugin = new MultipleOwnerPlugin();
+        guardianPlugin = new GuardianPlugin();
         tokenReceiverPlugin = new TokenReceiverPlugin();
         factory = new MSCAFactoryFixture(entryPoint, multipleOwnerPlugin);
 
