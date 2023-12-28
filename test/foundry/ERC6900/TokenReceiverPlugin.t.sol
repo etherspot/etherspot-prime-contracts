@@ -11,11 +11,11 @@ import {ERC721PresetMinterPauserAutoId} from "@openzeppelin/contracts/token/ERC7
 import {IERC777Recipient} from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import {IERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 
-import {SingleOwnerPlugin} from "../../src/ERC6900/plugins/SingleOwnerPlugin.sol";
-import {TokenReceiverPlugin} from "../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
-import {EtherspotWalletV2} from "../../src/ERC6900/wallet/EtherspotWalletV2.sol";
-import {MSCAFactoryFixture} from "../../src/ERC6900/wallet/MSCAFactoryFixture.sol";
-import {ErrorsLib} from "../../src/ERC6900/libraries/ErrorsLib.sol";
+import {SingleOwnerPlugin} from "../../../src/ERC6900/plugins/SingleOwnerPlugin.sol";
+import {TokenReceiverPlugin} from "../../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
+import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
+import {MSCAFactoryFixture} from "../../../src/ERC6900/wallet/MSCAFactoryFixture.sol";
+import {ErrorsLib} from "../../../src/ERC6900/libraries/ErrorsLib.sol";
 
 import {FunctionReference} from "@ERC6900/src/libraries/FunctionReferenceLib.sol";
 import {IPluginManager} from "@ERC6900/src/interfaces/IPluginManager.sol";

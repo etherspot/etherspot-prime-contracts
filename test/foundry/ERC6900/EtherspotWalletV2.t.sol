@@ -9,10 +9,10 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EntryPoint} from "@ERC4337/core/EntryPoint.sol";
 import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
 
-import {EtherspotWalletV2} from "../../src/ERC6900/wallet/EtherspotWalletV2.sol";
-import {SingleOwnerPlugin} from "../../src/ERC6900/plugins/SingleOwnerPlugin.sol";
-import {TokenReceiverPlugin} from "../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
-import {MSCAFactoryFixture} from "../../src/ERC6900/wallet/MSCAFactoryFixture.sol";
+import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
+import {SingleOwnerPlugin} from "../../../src/ERC6900/plugins/SingleOwnerPlugin.sol";
+import {TokenReceiverPlugin} from "../../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
+import {MSCAFactoryFixture} from "../../../src/ERC6900/wallet/MSCAFactoryFixture.sol";
 
 import {BaseModularAccount} from "@ERC6900/src/account/BaseModularAccount.sol";
 import {PluginManifest} from "@ERC6900/src/interfaces/IPlugin.sol";
