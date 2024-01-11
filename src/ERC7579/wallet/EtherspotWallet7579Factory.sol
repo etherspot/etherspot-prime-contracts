@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import {IEtherspotWallet7579} from "../interfaces/IEtherspotWallet7579.sol";
 import {LibClone} from "@ERC7579/lib/solady/src/utils/LibClone.sol";
+import {IEtherspotWallet7579} from "../interfaces/IEtherspotWallet7579.sol";
 
 contract EtherspotWallet7579Factory {
     address public immutable implementation;
 
-    constructor(address _msaImplementation) {
-        implementation = _msaImplementation;
+    constructor(address _ewImplementation) {
+        implementation = _ewImplementation;
     }
 
     function createAccount(

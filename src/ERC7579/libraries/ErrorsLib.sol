@@ -20,7 +20,7 @@ library ErrorsLib {
     error AlreadySignedProposal();
 
     error ProposalTimelocked();
-    error InvalidProposalId();
+    error InvalidProposal();
 
     // EtherspotWallet7579 Errors
 }

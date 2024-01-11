@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
+import {IAccessController} from "../interfaces/IAccessController.sol";
 import {ErrorsLib} from "../libraries/ErrorsLib.sol";
 
-contract AccessController {
+contract AccessController is IAccessController {
     /// State Variables
     string public constant NAME = "Access Controller";
     string public constant VERSION = "1.0.0";
@@ -21,43 +22,11 @@ contract AccessController {
     mapping(address => bool) private _guardians;
     mapping(uint256 => NewOwnerProposal) private _proposals;
 
-    /// Structs
-    struct NewOwnerProposal {
-        address newOwnerProposed;
-        bool resolved;
-        address[] guardiansApproved;
-        uint256 approvalCount;
-        uint256 proposedAt;
-    }
-
-    /// Events
-    event OwnerAdded(address account, address newOwner);
-    event OwnerRemoved(address account, address removedOwner);
-    event GuardianAdded(address account, address newGuardian);
-    event GuardianRemoved(address account, address removedGuardian);
-    event ProposalSubmitted(
-        address account,
-        uint256 proposalId,
-        address newOwnerProposed,
-        address proposer
-    );
-    event QuorumNotReached(
-        address account,
-        uint256 proposalId,
-        address newOwnerProposed,
-        uint256 approvalCount
-    );
-    event ProposalDiscarded(
-        address account,
-        uint256 proposalId,
-        address discardedBy
-    );
-    event ProposalTimelockChanged(address account, uint256 newTimelock);
-
     /// Modifiers
     modifier onlyOwnerOrSelf() {
-        if (!isOwner(msg.sender) || msg.sender != address(this))
+        if (!(isOwner(msg.sender) || msg.sender == address(this))) {
             revert ErrorsLib.OnlyOwnerOrSelf();
+        }
         _;
     }
 
@@ -68,32 +37,49 @@ contract AccessController {
 
     modifier onlyOwnerOrGuardianOrSelf() {
         if (
-            !isOwner(msg.sender) ||
-            !isGuardian(msg.sender) ||
-            msg.sender != address(this)
-        ) revert ErrorsLib.OnlyOwnerOrGuardianOrSelf();
+            !(isOwner(msg.sender) ||
+                isGuardian(msg.sender) ||
+                msg.sender == address(this))
+        ) {
+            revert ErrorsLib.OnlyOwnerOrGuardianOrSelf();
+        }
         _;
     }
 
     /// External
-    function addOwner(address _newOwner) external onlyGuardian {
+    /**
+     * @notice Add owner to the wallet.
+     * @dev Only owner or wallet.
+     * @param _newOwner address of new owner to add.
+     */
+    function addOwner(address _newOwner) external onlyOwnerOrSelf {
         if (
             _newOwner == address(0) ||
             isGuardian(_newOwner) ||
             isOwner(_newOwner)
         ) revert ErrorsLib.AddingInvalidOwner();
         _addOwner(_newOwner);
-        emit OwnerAdded(msg.sender, _newOwner);
+        emit OwnerAdded(address(this), _newOwner);
     }
 
-    function removeOwner(address _owner) external onlyGuardian {
+    /**
+     * @notice Remove owner from wallet.
+     * @dev Only owner or wallet.
+     * @param _owner address of wallet owner to remove .
+     */
+    function removeOwner(address _owner) external onlyOwnerOrSelf {
         if (_owner == address(0) || !isOwner(_owner))
             revert ErrorsLib.RemovingInvalidOwner();
         if (ownerCount <= 1) revert ErrorsLib.WalletNeedsOwner();
         _removeOwner(_owner);
-        emit OwnerRemoved(msg.sender, _owner);
+        emit OwnerRemoved(address(this), _owner);
     }
 
+    /**
+     * @notice Add guardian for the wallet.
+     * @dev Only owner or wallet.
+     * @param _newGuardian address of new guardian to add to wallet.
+     */
     function addGuardian(address _newGuardian) external onlyOwnerOrSelf {
         if (
             _newGuardian == address(0) ||
@@ -101,23 +87,38 @@ contract AccessController {
             isOwner(_newGuardian)
         ) revert ErrorsLib.AddingInvalidGuardian();
         _addGuardian(_newGuardian);
-        emit GuardianAdded(msg.sender, _newGuardian);
+        emit GuardianAdded(address(this), _newGuardian);
     }
 
+    /**
+     * @notice Remove guardian from the wallet.
+     * @dev Only owner or wallet.
+     * @param _guardian address of existing guardian to remove.
+     */
     function removeGuardian(address _guardian) external onlyOwnerOrSelf {
         if (_guardian == address(0) || !isGuardian(_guardian))
             revert ErrorsLib.RemovingInvalidGuardian();
         _removeGuardian(_guardian);
-        emit GuardianRemoved(msg.sender, _guardian);
+        emit GuardianRemoved(address(this), _guardian);
     }
 
+    /**
+     * @notice Change the timelock on proposals.
+     * The minimum time (secs) that a proposal is allowed to be discarded.
+     * @dev Only owner or wallet.
+     * @param   _newTimelock new timelock in seconds.
+     */
     function changeProposalTimelock(
         uint256 _newTimelock
     ) external onlyOwnerOrSelf {
         proposalTimelock = _newTimelock;
-        emit ProposalTimelockChanged(msg.sender, _newTimelock);
+        emit ProposalTimelockChanged(address(this), _newTimelock);
     }
 
+    /**
+     * @notice Discards the current proposal.
+     * @dev Only owner or guardian or wallet. Must be after the proposal timelock is met.
+     */
     function discardCurrentProposal() external onlyOwnerOrGuardianOrSelf {
         if (_proposals[proposalId].resolved)
             revert ErrorsLib.ProposalResolved();
@@ -134,10 +135,20 @@ contract AccessController {
             ) revert ErrorsLib.ProposalTimelocked();
         }
         _proposals[proposalId].resolved = true;
-        emit ProposalDiscarded(msg.sender, proposalId, msg.sender);
+        emit ProposalDiscarded(address(this), proposalId, msg.sender);
     }
 
+    /**
+     * @notice Creates a new owner proposal (adds new owner to wallet).
+     * @dev Only guardian.
+     * @param _newOwner the proposed new owner for the wallet.
+     */
     function guardianPropose(address _newOwner) external onlyGuardian {
+        if (
+            _newOwner == address(0) ||
+            isGuardian(_newOwner) ||
+            isOwner(_newOwner)
+        ) revert ErrorsLib.AddingInvalidOwner();
         if (guardianCount < 3) revert ErrorsLib.NotEnoughGuardians();
         if (
             _proposals[proposalId].guardiansApproved.length != 0 &&
@@ -150,11 +161,20 @@ contract AccessController {
         _proposals[proposalId].approvalCount += 1;
         _proposals[proposalId].resolved = false;
         _proposals[proposalId].proposedAt = block.timestamp;
-        emit ProposalSubmitted(msg.sender, proposalId, _newOwner, msg.sender);
+        emit ProposalSubmitted(
+            address(this),
+            proposalId,
+            _newOwner,
+            msg.sender
+        );
     }
 
+    /**
+     * @notice Cosigns a new owner proposal.
+     * @dev Only guardian. Must meet minimum threshold of 60% of total guardians to add new owner.
+     */
     function guardianCosign() external onlyGuardian {
-        if (proposalId == 0) revert ErrorsLib.InvalidProposalId();
+        if (proposalId == 0) revert ErrorsLib.InvalidProposal();
         if (_checkIfSigned(proposalId))
             revert ErrorsLib.AlreadySignedProposal();
         if (_proposals[proposalId].resolved)
@@ -167,7 +187,7 @@ contract AccessController {
             _addOwner(newOwner);
         } else {
             emit QuorumNotReached(
-                msg.sender,
+                address(this),
                 proposalId,
                 newOwner,
                 _proposals[proposalId].approvalCount
@@ -176,14 +196,33 @@ contract AccessController {
     }
 
     /// Views
+    /**
+     * @notice Checks if _address is owner of wallet.
+     * @param _address address to check if owner of wallet.
+     * @return  bool.
+     */
     function isOwner(address _address) public view returns (bool) {
         return _owners[_address];
     }
 
+    /**
+     * @notice Checks if _address is guardian of wallet.
+     * @param _address address to check if guardian of wallet.
+     * @return  bool.
+     */
     function isGuardian(address _address) public view returns (bool) {
         return _guardians[_address];
     }
 
+    /**
+     * @notice Returns new owner proposal data.
+     * @param _proposalId proposal id to return data for.
+     * @return ownerProposed_ the new owner proposed.
+     * @return approvalCount_ number of guardians that have approved the proposal.
+     * @return guardiansApproved_ array of guardian addresses that have approved proposal.
+     * @return resolved_ bool is the proposal resolved.
+     * @return proposedAt_ timestamp of when proposal was initiated.
+     */
     function getProposal(
         uint256 _proposalId
     )
@@ -197,8 +236,8 @@ contract AccessController {
             uint256 proposedAt_
         )
     {
-        if (_proposalId == 0 && _proposalId > proposalId)
-            revert ErrorsLib.InvalidProposalId();
+        if (_proposalId == 0 || _proposalId > proposalId)
+            revert ErrorsLib.InvalidProposal();
         NewOwnerProposal memory proposal = _proposals[_proposalId];
         return (
             proposal.newOwnerProposed,
