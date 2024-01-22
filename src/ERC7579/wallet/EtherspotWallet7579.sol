@@ -48,7 +48,7 @@ contract EtherspotWallet7579 is AccessController, EtherspotWallet7579Base {
         }
 
         // check if validator is enabled
-        if (!isValidatorInstalled(validator)) revert InvalidModule(validator);
+        if (!isValidatorInstalled(validator)) return 0;
         validSignature = IValidator(validator).validateUserOp(
             userOp,
             userOpHash

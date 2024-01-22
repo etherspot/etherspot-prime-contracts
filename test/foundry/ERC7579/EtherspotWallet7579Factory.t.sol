@@ -70,7 +70,7 @@ contract EtherspotWallet7579FactoryTest is BootstrapUtil, Test {
         vm.startPrank(_eoa);
         // create account
         account = EtherspotWallet7579(
-            factory.createAccount({salt: SALT, initCode: initCode})
+            payable(factory.createAccount({salt: SALT, initCode: initCode}))
         );
         address expectedAddress = factory.getAddress({
             salt: SALT,
@@ -112,11 +112,11 @@ contract EtherspotWallet7579FactoryTest is BootstrapUtil, Test {
         vm.startPrank(owner1);
         // create account
         account = EtherspotWallet7579(
-            factory.createAccount({salt: SALT, initCode: initCode})
+            payable(factory.createAccount({salt: SALT, initCode: initCode}))
         );
         // re run to return created address
         EtherspotWallet7579 accountDuplicate = EtherspotWallet7579(
-            factory.createAccount({salt: SALT, initCode: initCode})
+            payable(factory.createAccount({salt: SALT, initCode: initCode}))
         );
 
         assertEq(address(account), address(accountDuplicate));

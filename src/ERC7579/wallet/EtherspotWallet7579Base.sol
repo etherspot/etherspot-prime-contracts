@@ -162,7 +162,7 @@ abstract contract EtherspotWallet7579Base is
     function initializeAccount(bytes calldata data) public virtual override {
         // only allow initialization once
         if (isAlreadyInitialized()) revert();
-
+        _initModuleManager();
         // this is just implemented for demonstration purposes. You can use any other initialization logic here.
         (, address bootstrap, bytes memory bootstrapCall) = abi.decode(
             data,
@@ -170,8 +170,6 @@ abstract contract EtherspotWallet7579Base is
         );
         (bool success, ) = bootstrap.delegatecall(bootstrapCall);
         if (!success) revert();
-        // revert if bootstrap didnt initialize the linked list of ModuleManager
-        if (!isAlreadyInitialized()) revert();
     }
 
     function supportsInterface(

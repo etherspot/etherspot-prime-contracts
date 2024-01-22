@@ -20,7 +20,7 @@ contract MultipleOwnerECDSAValidator is IValidator {
         address signer = hash.recover(userOp.signature);
         if (
             signer == address(0) ||
-            !EtherspotWallet7579(msg.sender).isOwner(signer)
+            !EtherspotWallet7579(payable(msg.sender)).isOwner(signer)
         ) {
             return VALIDATION_FAILED;
         }
@@ -32,4 +32,8 @@ contract MultipleOwnerECDSAValidator is IValidator {
         bytes32 hash,
         bytes calldata data
     ) external view override returns (bytes4) {}
+
+    function isModuleType(uint256 typeID) external view returns (bool) {
+        return typeID == 1;
+    }
 }

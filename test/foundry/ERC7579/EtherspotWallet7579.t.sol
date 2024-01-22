@@ -14,6 +14,8 @@ import {EtherspotWallet7579Factory} from "../../../src/ERC7579/wallet/EtherspotW
 import {ECDSA, MultipleOwnerECDSAValidator} from "../../../src/ERC7579/modules/MultipleOwnerECDSAValidator.sol";
 
 contract EtherspotWallet7579Test is BootstrapUtil, Test {
+    bytes32 immutable SALT = bytes32("TestSALT");
+
     // singletons
     EtherspotWallet7579 implementation;
     EtherspotWallet7579Factory factory;
@@ -88,8 +90,11 @@ contract EtherspotWallet7579Test is BootstrapUtil, Test {
         // setup module singletons
         defaultExecutor = new MockExecutor();
         defaultValidator = new MockValidator();
+        console2.log("default executor:", address(defaultExecutor));
+
         target = new MockTarget();
         ecdsaValidator = new MultipleOwnerECDSAValidator();
+        console2.log("ecdsa validator:", address(ecdsaValidator));
 
         (owner1, owner1Key) = makeAddrAndKey("owner1");
         (owner2, owner2Key) = makeAddrAndKey("owner2");
@@ -126,8 +131,9 @@ contract EtherspotWallet7579Test is BootstrapUtil, Test {
         vm.startPrank(owner1);
         // create account
         account = EtherspotWallet7579(
-            factory.createAccount({salt: "1", initCode: initCode})
+            payable(factory.createAccount({salt: SALT, initCode: initCode}))
         );
+        console2.log("account address:", address(account));
         vm.deal(address(account), 1 ether);
         vm.stopPrank();
     }
@@ -177,9 +183,7 @@ contract EtherspotWallet7579Test is BootstrapUtil, Test {
             )
         );
 
-        bytes32 salt = keccak256("1");
-
-        address newAccount = factory.getAddress(salt, initCode);
+        address newAccount = factory.getAddress(SALT, initCode);
         vm.deal(newAccount, 1 ether);
 
         uint192 key = uint192(bytes24(bytes20(address(ecdsaValidator))));
@@ -192,7 +196,7 @@ contract EtherspotWallet7579Test is BootstrapUtil, Test {
                 address(factory),
                 abi.encodeWithSelector(
                     factory.createAccount.selector,
-                    salt,
+                    SALT,
                     initCode
                 )
             ),

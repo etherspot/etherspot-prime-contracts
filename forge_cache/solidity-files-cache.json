@@ -2082,263 +2082,6 @@
         }
       }
     },
-    "erc7579-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol": {
-      "lastModificationDate": 1703239018131,
-      "contentHash": "3cbc58efa815f026e5e180817b65c653",
-      "sourceName": "erc7579-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": false,
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ]
-            }
-          },
-          "evmVersion": "paris",
-          "libraries": {}
-        }
-      },
-      "imports": [],
-      "versionRequirement": "^0.8.12",
-      "artifacts": {
-        "Helpers": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "Helpers.sol/Helpers.json"
-        }
-      }
-    },
-    "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol": {
-      "lastModificationDate": 1703239018132,
-      "contentHash": "70c22a1f7e8ee0bd97fcabb493c4fca6",
-      "sourceName": "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": false,
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ]
-            }
-          },
-          "evmVersion": "paris",
-          "libraries": {}
-        }
-      },
-      "imports": [
-        "erc7579-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol"
-      ],
-      "versionRequirement": "^0.8.12",
-      "artifacts": {
-        "IAggregator": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "contracts/interfaces/IAggregator.sol/IAggregator.json"
-        }
-      }
-    },
-    "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol": {
-      "lastModificationDate": 1703239018133,
-      "contentHash": "f88a97ac988a378551551be9ea4ee65e",
-      "sourceName": "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": false,
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ]
-            }
-          },
-          "evmVersion": "paris",
-          "libraries": {}
-        }
-      },
-      "imports": [
-        "erc7579-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol"
-      ],
-      "versionRequirement": "^0.8.12",
-      "artifacts": {
-        "IEntryPoint": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "contracts/interfaces/IEntryPoint.sol/IEntryPoint.json"
-        }
-      }
-    },
-    "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol": {
-      "lastModificationDate": 1703239018133,
-      "contentHash": "58293337a68c401ac395a955ab972702",
-      "sourceName": "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": false,
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ]
-            }
-          },
-          "evmVersion": "paris",
-          "libraries": {}
-        }
-      },
-      "imports": [],
-      "versionRequirement": "^0.8.12",
-      "artifacts": {
-        "INonceManager": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "contracts/interfaces/INonceManager.sol/INonceManager.json"
-        }
-      }
-    },
-    "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol": {
-      "lastModificationDate": 1703239018133,
-      "contentHash": "e5c534a14fbf384a02ed5f007d54b1f0",
-      "sourceName": "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": false,
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ]
-            }
-          },
-          "evmVersion": "paris",
-          "libraries": {}
-        }
-      },
-      "imports": [],
-      "versionRequirement": "^0.8.12",
-      "artifacts": {
-        "IStakeManager": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "contracts/interfaces/IStakeManager.sol/IStakeManager.json"
-        }
-      }
-    },
-    "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol": {
-      "lastModificationDate": 1703239018133,
-      "contentHash": "e605ec59ee4889ea6ef8b5332e7da0d8",
-      "sourceName": "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "metadata": {
-            "useLiteralContent": false,
-            "bytecodeHash": "ipfs",
-            "appendCBOR": true
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers",
-                "metadata"
-              ]
-            }
-          },
-          "evmVersion": "paris",
-          "libraries": {}
-        }
-      },
-      "imports": [
-        "erc7579-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol"
-      ],
-      "versionRequirement": "^0.8.12",
-      "artifacts": {
-        "UserOperationLib": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "contracts/interfaces/UserOperation.sol/UserOperationLib.json"
-        }
-      }
-    },
     "erc7579-ref-impl/lib/sentinellist/src/SentinelList.sol": {
       "lastModificationDate": 1703239019123,
       "contentHash": "220558f2dbc879a808fb70f92b587f00",
@@ -2547,8 +2290,8 @@
       }
     },
     "erc7579-ref-impl/src/core/Fallback.sol": {
-      "lastModificationDate": 1703762716194,
-      "contentHash": "d86f2214cdd90d01ea63bcdb41a6d3bc",
+      "lastModificationDate": 1705940379664,
+      "contentHash": "2cb5501cc482ced579711da269dc5528",
       "sourceName": "erc7579-ref-impl/src/core/Fallback.sol",
       "solcConfig": {
         "settings": {
@@ -2593,8 +2336,8 @@
       }
     },
     "erc7579-ref-impl/src/core/HookManager.sol": {
-      "lastModificationDate": 1703762716195,
-      "contentHash": "d02d9fdbb9e8505c497d4f4c163503ca",
+      "lastModificationDate": 1705940379665,
+      "contentHash": "8c3dd996e2483e01856c31e063135aa9",
       "sourceName": "erc7579-ref-impl/src/core/HookManager.sol",
       "solcConfig": {
         "settings": {
@@ -2642,8 +2385,8 @@
       }
     },
     "erc7579-ref-impl/src/core/ModuleManager.sol": {
-      "lastModificationDate": 1703762716195,
-      "contentHash": "7c0477d4573dba833b9d58600fb5d098",
+      "lastModificationDate": 1705940379666,
+      "contentHash": "74da965655dc1c79b6f7a70c35cfd8d4",
       "sourceName": "erc7579-ref-impl/src/core/ModuleManager.sol",
       "solcConfig": {
         "settings": {
@@ -2784,8 +2527,8 @@
       }
     },
     "erc7579-ref-impl/src/interfaces/IModule.sol": {
-      "lastModificationDate": 1703238770438,
-      "contentHash": "9cae49f4d74b41726ec5f882aa857004",
+      "lastModificationDate": 1705940379666,
+      "contentHash": "f7effcf92f03e24e48ad7d910896f6e1",
       "sourceName": "erc7579-ref-impl/src/interfaces/IModule.sol",
       "solcConfig": {
         "settings": {
@@ -2839,8 +2582,8 @@
       }
     },
     "erc7579-ref-impl/src/utils/Bootstrap.sol": {
-      "lastModificationDate": 1703238770439,
-      "contentHash": "94ec8f4633bea57fa17434520ce35edf",
+      "lastModificationDate": 1705940379670,
+      "contentHash": "fdea8443fdf9f717e5d73cf5d313da3e",
       "sourceName": "erc7579-ref-impl/src/utils/Bootstrap.sol",
       "solcConfig": {
         "settings": {
@@ -2890,8 +2633,8 @@
       }
     },
     "erc7579-ref-impl/test/Bootstrap.t.sol": {
-      "lastModificationDate": 1703763113445,
-      "contentHash": "ac1137328ae6babf2fe98f98f45271f0",
+      "lastModificationDate": 1705940423864,
+      "contentHash": "d1e57e0975d75836a3e3c27735cd1b45",
       "sourceName": "erc7579-ref-impl/test/Bootstrap.t.sol",
       "solcConfig": {
         "settings": {
@@ -2942,8 +2685,8 @@
       }
     },
     "erc7579-ref-impl/test/dependencies/EntryPoint.sol": {
-      "lastModificationDate": 1703762851025,
-      "contentHash": "ee16d532031d99158e1395746c73b904",
+      "lastModificationDate": 1705940477091,
+      "contentHash": "8e8f02df036ae7562e516841c152a8c8",
       "sourceName": "erc7579-ref-impl/test/dependencies/EntryPoint.sol",
       "solcConfig": {
         "settings": {
@@ -2975,24 +2718,23 @@
         }
       },
       "imports": [
-        "erc7579-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
+        "account-abstraction/contracts/interfaces/IAggregator.sol",
+        "account-abstraction/contracts/interfaces/IEntryPoint.sol",
+        "account-abstraction/contracts/interfaces/INonceManager.sol",
+        "account-abstraction/contracts/interfaces/IStakeManager.sol",
+        "account-abstraction/contracts/interfaces/UserOperation.sol",
         "lib/forge-std/src/Vm.sol"
       ],
       "versionRequirement": "^0.8.21",
       "artifacts": {
         "EntryPoint": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "dependencies/EntryPoint.sol/EntryPoint.json"
+          "0.8.23+commit.f704f362.Darwin.appleclang": "EntryPoint.sol/EntryPoint.json"
         }
       }
     },
     "erc7579-ref-impl/test/mocks/MockExecutor.sol": {
-      "lastModificationDate": 1703763130651,
-      "contentHash": "3e38c9c0bdff75dcea82cb8e6379894e",
+      "lastModificationDate": 1705940450354,
+      "contentHash": "089da355d14979dce716bfaf35832508",
       "sourceName": "erc7579-ref-impl/test/mocks/MockExecutor.sol",
       "solcConfig": {
         "settings": {
@@ -3077,8 +2819,8 @@
       }
     },
     "erc7579-ref-impl/test/mocks/MockValidator.sol": {
-      "lastModificationDate": 1703763138346,
-      "contentHash": "42ee780b7ab06885fd8fa9167130189e",
+      "lastModificationDate": 1705940436605,
+      "contentHash": "d993621c4688837a7520e407848459da",
       "sourceName": "erc7579-ref-impl/test/mocks/MockValidator.sol",
       "solcConfig": {
         "settings": {
@@ -6101,7 +5843,7 @@
       }
     },
     "script/EtherspotWallet7579.s.sol": {
-      "lastModificationDate": 1704813834437,
+      "lastModificationDate": 1705934306834,
       "contentHash": "4bc29f5610c6f576534735610b901fbd",
       "sourceName": "script/EtherspotWallet7579.s.sol",
       "solcConfig": {
@@ -6780,8 +6522,8 @@
       }
     },
     "src/ERC7579/modules/MultipleOwnerECDSAValidator.sol": {
-      "lastModificationDate": 1704792308834,
-      "contentHash": "7e30c4faa632560bbefa0313626e1019",
+      "lastModificationDate": 1705940588301,
+      "contentHash": "b1413d549e8a69e3fc323ac55c5efe44",
       "sourceName": "src/ERC7579/modules/MultipleOwnerECDSAValidator.sol",
       "solcConfig": {
         "settings": {
@@ -6838,8 +6580,8 @@
       }
     },
     "src/ERC7579/wallet/EtherspotWallet7579.sol": {
-      "lastModificationDate": 1704361089179,
-      "contentHash": "1af48c97f3fc4624d4da56a9b0484ae7",
+      "lastModificationDate": 1705942506890,
+      "contentHash": "774cf7124681c7db5e2bbbcd8296454b",
       "sourceName": "src/ERC7579/wallet/EtherspotWallet7579.sol",
       "solcConfig": {
         "settings": {
@@ -6879,7 +6621,6 @@
         "erc7579-ref-impl/src/interfaces/IERC4337.sol",
         "erc7579-ref-impl/src/interfaces/IMSA.sol",
         "erc7579-ref-impl/src/interfaces/IModule.sol",
-        "lib/forge-std/src/console2.sol",
         "lib/forge-std/src/interfaces/IERC165.sol",
         "src/ERC7579/access/AccessController.sol",
         "src/ERC7579/interfaces/IAccessController.sol",
@@ -6895,8 +6636,8 @@
       }
     },
     "src/ERC7579/wallet/EtherspotWallet7579Base.sol": {
-      "lastModificationDate": 1703854329297,
-      "contentHash": "2c2c8849e4640a4a2cb2fddcd4a55182",
+      "lastModificationDate": 1705943756520,
+      "contentHash": "fe65d0522f4ba935ce163c31c487941f",
       "sourceName": "src/ERC7579/wallet/EtherspotWallet7579Base.sol",
       "solcConfig": {
         "settings": {
@@ -8047,8 +7788,8 @@
       }
     },
     "test/foundry/ERC7579/EtherspotWallet7579.t.sol": {
-      "lastModificationDate": 1704892060128,
-      "contentHash": "d8db81dab3123b83ce861b9c7f50ccbd",
+      "lastModificationDate": 1705941895341,
+      "contentHash": "b67c08ddad7c8ab19ba41163ccc24be4",
       "sourceName": "test/foundry/ERC7579/EtherspotWallet7579.t.sol",
       "solcConfig": {
         "settings": {
@@ -8080,12 +7821,11 @@
         }
       },
       "imports": [
-        "erc7579-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
+        "account-abstraction/contracts/interfaces/IAggregator.sol",
+        "account-abstraction/contracts/interfaces/IEntryPoint.sol",
+        "account-abstraction/contracts/interfaces/INonceManager.sol",
+        "account-abstraction/contracts/interfaces/IStakeManager.sol",
+        "account-abstraction/contracts/interfaces/UserOperation.sol",
         "erc7579-ref-impl/lib/sentinellist/src/SentinelList.sol",
         "erc7579-ref-impl/lib/solady/src/utils/ECDSA.sol",
         "erc7579-ref-impl/lib/solady/src/utils/LibClone.sol",
@@ -8140,8 +7880,8 @@
       }
     },
     "test/foundry/ERC7579/EtherspotWallet7579Factory.t.sol": {
-      "lastModificationDate": 1704894312956,
-      "contentHash": "36c27a21956ac279a0657943bf21b5dc",
+      "lastModificationDate": 1705941134423,
+      "contentHash": "adceb066bb4f1206b2ce540e290d73cb",
       "sourceName": "test/foundry/ERC7579/EtherspotWallet7579Factory.t.sol",
       "solcConfig": {
         "settings": {
@@ -8173,12 +7913,11 @@
         }
       },
       "imports": [
-        "erc7579-ref-impl/lib/account-abstraction/contracts/core/Helpers.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IAggregator.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IEntryPoint.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/INonceManager.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/IStakeManager.sol",
-        "erc7579-ref-impl/lib/account-abstraction/contracts/interfaces/UserOperation.sol",
+        "account-abstraction/contracts/interfaces/IAggregator.sol",
+        "account-abstraction/contracts/interfaces/IEntryPoint.sol",
+        "account-abstraction/contracts/interfaces/INonceManager.sol",
+        "account-abstraction/contracts/interfaces/IStakeManager.sol",
+        "account-abstraction/contracts/interfaces/UserOperation.sol",
         "erc7579-ref-impl/lib/sentinellist/src/SentinelList.sol",
         "erc7579-ref-impl/lib/solady/src/utils/LibClone.sol",
         "erc7579-ref-impl/src/core/AccountBase.sol",
