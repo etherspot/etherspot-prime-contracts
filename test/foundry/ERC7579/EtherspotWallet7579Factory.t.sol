@@ -122,4 +122,66 @@ contract EtherspotWallet7579FactoryTest is BootstrapUtil, Test {
         assertEq(address(account), address(accountDuplicate));
         vm.stopPrank();
     }
+
+    function test_ensureTwoAddressesNotSame() public {
+        EtherspotWallet7579 account2;
+
+        address owner2;
+        uint256 owner2Key;
+        (owner2, owner2Key) = makeAddrAndKey("owner2");
+
+        BootstrapConfig[] memory validators = makeBootstrapConfig(
+            address(defaultValidator),
+            ""
+        );
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig memory fallbackHandler = _makeBootstrapConfig(
+            address(0),
+            ""
+        );
+
+        bytes memory initCode = abi.encode(
+            owner1,
+            address(bootstrapSingleton),
+            abi.encodeCall(
+                Bootstrap.initMSA,
+                (validators, executors, hook, fallbackHandler)
+            )
+        );
+
+        vm.startPrank(owner1);
+        // create account
+        account = EtherspotWallet7579(
+            payable(factory.createAccount({salt: SALT, initCode: initCode}))
+        );
+        vm.stopPrank();
+        vm.startPrank(owner2);
+
+        initCode = abi.encode(
+            owner2,
+            address(bootstrapSingleton),
+            abi.encodeCall(
+                Bootstrap.initMSA,
+                (validators, executors, hook, fallbackHandler)
+            )
+        );
+
+        // create 2nd account
+        account2 = EtherspotWallet7579(
+            payable(
+                factory.createAccount({
+                    salt: bytes32("TestSALT1"),
+                    initCode: initCode
+                })
+            )
+        );
+        vm.stopPrank();
+        console2.log("address(account):", address(account));
+        console2.log("address(account2):", address(account2));
+        assertFalse(address(account) == address(account2));
+    }
 }

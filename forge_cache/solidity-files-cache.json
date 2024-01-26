@@ -1068,7 +1068,7 @@
       "versionRequirement": "^0.8.12",
       "artifacts": {
         "UserOperationLib": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "interfaces/UserOperation.sol/UserOperationLib.json"
+          "0.8.23+commit.f704f362.Darwin.appleclang": "UserOperation.sol/UserOperationLib.json"
         }
       }
     },
@@ -1760,8 +1760,8 @@
       }
     },
     "erc6900-ref-impl/src/plugins/owner/ISingleOwnerPlugin.sol": {
-      "lastModificationDate": 1700134185330,
-      "contentHash": "814d85ee7e034f22da692897cfa4a48c",
+      "lastModificationDate": 1706177774057,
+      "contentHash": "3cb763a647567bfe4684530ab30dcb74",
       "sourceName": "erc6900-ref-impl/src/plugins/owner/ISingleOwnerPlugin.sol",
       "solcConfig": {
         "settings": {
@@ -2474,7 +2474,7 @@
       }
     },
     "erc7579-ref-impl/src/interfaces/IMSA.sol": {
-      "lastModificationDate": 1703762716196,
+      "lastModificationDate": 1705940372246,
       "contentHash": "cf2c74de6fd1baba39ca6d8ca9e446ff",
       "sourceName": "erc7579-ref-impl/src/interfaces/IMSA.sol",
       "solcConfig": {
@@ -2728,7 +2728,7 @@
       "versionRequirement": "^0.8.21",
       "artifacts": {
         "EntryPoint": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "EntryPoint.sol/EntryPoint.json"
+          "0.8.23+commit.f704f362.Darwin.appleclang": "dependencies/EntryPoint.sol/EntryPoint.json"
         }
       }
     },
@@ -5843,8 +5843,8 @@
       }
     },
     "script/EtherspotWallet7579.s.sol": {
-      "lastModificationDate": 1705934306834,
-      "contentHash": "4bc29f5610c6f576534735610b901fbd",
+      "lastModificationDate": 1706181617217,
+      "contentHash": "b2cd26e49d21ca1cd654e444bee428e8",
       "sourceName": "script/EtherspotWallet7579.s.sol",
       "solcConfig": {
         "settings": {
@@ -5882,10 +5882,12 @@
         "erc7579-ref-impl/src/core/AccountBase.sol",
         "erc7579-ref-impl/src/core/Execution.sol",
         "erc7579-ref-impl/src/core/Fallback.sol",
+        "erc7579-ref-impl/src/core/HookManager.sol",
         "erc7579-ref-impl/src/core/ModuleManager.sol",
         "erc7579-ref-impl/src/interfaces/IERC4337.sol",
         "erc7579-ref-impl/src/interfaces/IMSA.sol",
         "erc7579-ref-impl/src/interfaces/IModule.sol",
+        "erc7579-ref-impl/src/utils/Bootstrap.sol",
         "lib/forge-std/src/Base.sol",
         "lib/forge-std/src/Script.sol",
         "lib/forge-std/src/StdChains.sol",
@@ -5919,7 +5921,7 @@
       }
     },
     "src/ERC6900/helpers/ArrayHelper.sol": {
-      "lastModificationDate": 1703238503848,
+      "lastModificationDate": 1706088520751,
       "contentHash": "cbbcac0188f6eb2d185c1b36277de411",
       "sourceName": "src/ERC6900/helpers/ArrayHelper.sol",
       "solcConfig": {
@@ -5960,7 +5962,7 @@
       }
     },
     "src/ERC6900/libraries/ErrorsLib.sol": {
-      "lastModificationDate": 1703238503849,
+      "lastModificationDate": 1706088520752,
       "contentHash": "696807ca7ae8677411b94437263ef57b",
       "sourceName": "src/ERC6900/libraries/ErrorsLib.sol",
       "solcConfig": {
@@ -6214,7 +6216,7 @@
       }
     },
     "src/ERC6900/wallet/MSCAFactoryFixture.sol": {
-      "lastModificationDate": 1703238503850,
+      "lastModificationDate": 1706088520752,
       "contentHash": "2af576a10cf490f758ba151752040af4",
       "sourceName": "src/ERC6900/wallet/MSCAFactoryFixture.sol",
       "solcConfig": {
@@ -6302,7 +6304,7 @@
       }
     },
     "src/ERC7579/access/AccessController.sol": {
-      "lastModificationDate": 1704811962839,
+      "lastModificationDate": 1706088520753,
       "contentHash": "122633cf16d119c607be2247b8fa20c4",
       "sourceName": "src/ERC7579/access/AccessController.sol",
       "solcConfig": {
@@ -6346,7 +6348,7 @@
       }
     },
     "src/ERC7579/interfaces/IAccessController.sol": {
-      "lastModificationDate": 1703860863194,
+      "lastModificationDate": 1706088520754,
       "contentHash": "2504a2571c3b84f28b1088fea795bd6f",
       "sourceName": "src/ERC7579/interfaces/IAccessController.sol",
       "solcConfig": {
@@ -6387,7 +6389,7 @@
       }
     },
     "src/ERC7579/interfaces/IEtherspotWallet7579.sol": {
-      "lastModificationDate": 1704384807721,
+      "lastModificationDate": 1706088520755,
       "contentHash": "a4ca5c0f270ff5b20f78ce3ea7614dc7",
       "sourceName": "src/ERC7579/interfaces/IEtherspotWallet7579.sol",
       "solcConfig": {
@@ -6440,7 +6442,7 @@
       }
     },
     "src/ERC7579/libraries/ArrayLib.sol": {
-      "lastModificationDate": 1703760335203,
+      "lastModificationDate": 1706088520756,
       "contentHash": "9f9ec10e243bef8c80731371242996d9",
       "sourceName": "src/ERC7579/libraries/ArrayLib.sol",
       "solcConfig": {
@@ -6481,7 +6483,7 @@
       }
     },
     "src/ERC7579/libraries/ErrorsLib.sol": {
-      "lastModificationDate": 1703847348571,
+      "lastModificationDate": 1706088520756,
       "contentHash": "06758b15082f6b25c6ea66e8acbedeea",
       "sourceName": "src/ERC7579/libraries/ErrorsLib.sol",
       "solcConfig": {
@@ -6522,7 +6524,7 @@
       }
     },
     "src/ERC7579/modules/MultipleOwnerECDSAValidator.sol": {
-      "lastModificationDate": 1705940588301,
+      "lastModificationDate": 1706088520757,
       "contentHash": "b1413d549e8a69e3fc323ac55c5efe44",
       "sourceName": "src/ERC7579/modules/MultipleOwnerECDSAValidator.sol",
       "solcConfig": {
@@ -6580,7 +6582,7 @@
       }
     },
     "src/ERC7579/wallet/EtherspotWallet7579.sol": {
-      "lastModificationDate": 1705942506890,
+      "lastModificationDate": 1706088520758,
       "contentHash": "774cf7124681c7db5e2bbbcd8296454b",
       "sourceName": "src/ERC7579/wallet/EtherspotWallet7579.sol",
       "solcConfig": {
@@ -6636,7 +6638,7 @@
       }
     },
     "src/ERC7579/wallet/EtherspotWallet7579Base.sol": {
-      "lastModificationDate": 1705943756520,
+      "lastModificationDate": 1706088520759,
       "contentHash": "fe65d0522f4ba935ce163c31c487941f",
       "sourceName": "src/ERC7579/wallet/EtherspotWallet7579Base.sol",
       "solcConfig": {
@@ -6687,7 +6689,7 @@
       }
     },
     "src/ERC7579/wallet/EtherspotWallet7579Factory.sol": {
-      "lastModificationDate": 1704884032324,
+      "lastModificationDate": 1706088520760,
       "contentHash": "7f5d26dcdf569a4677b2f009fe62c2da",
       "sourceName": "src/ERC7579/wallet/EtherspotWallet7579Factory.sol",
       "solcConfig": {
@@ -7420,7 +7422,7 @@
       }
     },
     "test/foundry/ERC6900/EtherspotWalletV2.t.sol": {
-      "lastModificationDate": 1703755542865,
+      "lastModificationDate": 1706088520761,
       "contentHash": "a90708a5952c30feff50ea6b7aa544f4",
       "sourceName": "test/foundry/ERC6900/EtherspotWalletV2.t.sol",
       "solcConfig": {
@@ -7543,7 +7545,7 @@
       }
     },
     "test/foundry/ERC6900/SingleOwnerPlugin.t.sol": {
-      "lastModificationDate": 1703755549464,
+      "lastModificationDate": 1706088520762,
       "contentHash": "d5d6b77347215b75e5d6b1fec3b90f87",
       "sourceName": "test/foundry/ERC6900/SingleOwnerPlugin.t.sol",
       "solcConfig": {
@@ -7654,7 +7656,7 @@
       }
     },
     "test/foundry/ERC6900/TokenReceiverPlugin.t.sol": {
-      "lastModificationDate": 1703755559580,
+      "lastModificationDate": 1706088520762,
       "contentHash": "1a59c627930a8dfd5b071afab0ca5d5c",
       "sourceName": "test/foundry/ERC6900/TokenReceiverPlugin.t.sol",
       "solcConfig": {
@@ -7788,7 +7790,7 @@
       }
     },
     "test/foundry/ERC7579/EtherspotWallet7579.t.sol": {
-      "lastModificationDate": 1705941895341,
+      "lastModificationDate": 1706088520763,
       "contentHash": "b67c08ddad7c8ab19ba41163ccc24be4",
       "sourceName": "test/foundry/ERC7579/EtherspotWallet7579.t.sol",
       "solcConfig": {
@@ -7880,8 +7882,8 @@
       }
     },
     "test/foundry/ERC7579/EtherspotWallet7579Factory.t.sol": {
-      "lastModificationDate": 1705941134423,
-      "contentHash": "adceb066bb4f1206b2ce540e290d73cb",
+      "lastModificationDate": 1706263608047,
+      "contentHash": "f29d91d729de09124edc9d9627add580",
       "sourceName": "test/foundry/ERC7579/EtherspotWallet7579Factory.t.sol",
       "solcConfig": {
         "settings": {

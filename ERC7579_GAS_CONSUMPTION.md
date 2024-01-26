@@ -1,5 +1,13 @@
 # ERC7579 IMPLEMENTATION GAS CONSUMPTION
 
+### aa-benchmark results
+
+|                   | Creation | Native transfer | ERC20 transfer | Total  |
+| ----------------- | -------- | --------------- | -------------- | ------ |
+| ERC7579 reference | 289438   | 103811          | 93213          | 486462 |
+| Etherspot ERC7579 | 319604   | 105012          | 94402          | 519018 |
+
+### complete gas usage by function
 
 | src/ERC7579/modules/MultipleOwnerECDSAValidator.sol:MultipleOwnerECDSAValidator contract |                 |      |        |      |         |
 |------------------------------------------------------------------------------------------|-----------------|------|--------|------|---------|
