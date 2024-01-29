@@ -6,16 +6,16 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {IEntryPoint} from "@ERC4337/interfaces/IEntryPoint.sol";
 
 import {EtherspotWalletV2} from "./EtherspotWalletV2.sol";
-import {SingleOwnerPlugin} from "../plugins/SingleOwnerPlugin.sol";
+import {MultipleOwnerPlugin} from "../plugins/MultipleOwnerPlugin.sol";
 
 /**
  * @title MSCAFactoryFixture
- * @dev a factory that initializes EtherspotWalletV2s with a single plugin, SingleOwnerPlugin
+ * @dev a factory that initializes EtherspotWalletV2s with a single plugin, MultipleOwnerPlugin
  * intended for unit tests and local development, not for production.
  */
 contract MSCAFactoryFixture {
     EtherspotWalletV2 public accountImplementation;
-    SingleOwnerPlugin public singleOwnerPlugin;
+    MultipleOwnerPlugin public multipleOwnerPlugin;
     bytes32 private immutable _PROXY_BYTECODE_HASH;
 
     uint32 public constant UNSTAKE_DELAY = 1 weeks;
@@ -24,9 +24,12 @@ contract MSCAFactoryFixture {
 
     address public self;
 
-    bytes32 public singleOwnerPluginManifestHash;
+    bytes32 public multipleOwnerPluginManifestHash;
 
-    constructor(IEntryPoint _entryPoint, SingleOwnerPlugin _singleOwnerPlugin) {
+    constructor(
+        IEntryPoint _entryPoint,
+        MultipleOwnerPlugin _multipleOwnerPlugin
+    ) {
         entryPoint = _entryPoint;
         accountImplementation = new EtherspotWalletV2(_entryPoint);
         _PROXY_BYTECODE_HASH = keccak256(
@@ -35,12 +38,12 @@ contract MSCAFactoryFixture {
                 abi.encode(address(accountImplementation), "")
             )
         );
-        singleOwnerPlugin = _singleOwnerPlugin;
+        multipleOwnerPlugin = _multipleOwnerPlugin;
         self = address(this);
         // The manifest hash is set this way in this factory just for testing purposes.
         // For production factories the manifest hashes should be passed as a constructor argument.
-        singleOwnerPluginManifestHash = keccak256(
-            abi.encode(singleOwnerPlugin.pluginManifest())
+        multipleOwnerPluginManifestHash = keccak256(
+            abi.encode(multipleOwnerPlugin.pluginManifest())
         );
     }
 
@@ -63,10 +66,10 @@ contract MSCAFactoryFixture {
         // short circuit if exists
         if (addr.code.length == 0) {
             address[] memory plugins = new address[](1);
-            plugins[0] = address(singleOwnerPlugin);
+            plugins[0] = address(multipleOwnerPlugin);
             bytes32[] memory pluginManifestHashes = new bytes32[](1);
             pluginManifestHashes[0] = keccak256(
-                abi.encode(singleOwnerPlugin.pluginManifest())
+                abi.encode(multipleOwnerPlugin.pluginManifest())
             );
             bytes[] memory pluginInitData = new bytes[](1);
             pluginInitData[0] = abi.encode(owner);
