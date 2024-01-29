@@ -12,9 +12,10 @@ import {IERC777Recipient} from "@openzeppelin/contracts/token/ERC777/IERC777Reci
 import {IERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 
 import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlugin.sol";
+import {GuardianPlugin} from "../../../src/ERC6900/plugins/GuardianPlugin.sol";
 import {TokenReceiverPlugin} from "../../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
 import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
-import {MSCAFactoryFixture} from "../../../src/ERC6900/wallet/MSCAFactoryFixture.sol";
+import {MSCAFactoryFixture} from "../mocks/MSCAFactoryFixture.sol";
 import {ErrorsLib} from "../../../src/ERC6900/libraries/ErrorsLib.sol";
 
 import {FunctionReference} from "@ERC6900/src/libraries/FunctionReferenceLib.sol";
@@ -26,6 +27,7 @@ import {MockERC1155} from "@ERC6900/test/mocks/MockERC1155.sol";
 contract TokenReceiverPluginTest is Test, IERC1155Receiver {
     EtherspotWalletV2 public acct;
     TokenReceiverPlugin public plugin;
+    MultipleOwnerPlugin public moPlugin;
 
     ERC721PresetMinterPauserAutoId public t0;
     MockERC777 public t1;
@@ -42,6 +44,7 @@ contract TokenReceiverPluginTest is Test, IERC1155Receiver {
     uint256 internal constant _BATCH_TOKEN_IDS = 5;
 
     function setUp() public {
+        moPlugin = new MultipleOwnerPlugin();
         MSCAFactoryFixture factory = new MSCAFactoryFixture(
             IEntryPoint(address(0)),
             new MultipleOwnerPlugin()

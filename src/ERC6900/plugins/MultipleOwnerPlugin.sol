@@ -34,17 +34,18 @@ contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
     // ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
     /// @inheritdoc IMultipleOwnerPlugin
-    function addOwner(address _newOwner) external {
-        if (isOwner(_newOwner)) revert ErrorsLib.AlreadyAnOwner();
-        _addOwner(_newOwner);
-        emit OwnerAdded(msg.sender, _newOwner);
+    function addOwner(address _account, address _newOwner) external {
+        if (isOwnerOfAccount(_account, _newOwner))
+            revert ErrorsLib.AlreadyAnOwner();
+        _addOwner(_account, _newOwner);
+        emit OwnerAdded(_account, _newOwner);
     }
 
     /// @inheritdoc IMultipleOwnerPlugin
-    function removeOwner(address _owner) external {
-        if (!isOwner(_owner)) revert ErrorsLib.NotAnOwner();
-        _removeOwner(_owner);
-        emit OwnerRemoved(msg.sender, _owner);
+    function removeOwner(address _account, address _owner) external {
+        if (!isOwnerOfAccount(_account, _owner)) revert ErrorsLib.NotAnOwner();
+        _removeOwner(_account, _owner);
+        emit OwnerRemoved(_account, _owner);
     }
 
     /// @inheritdoc IMultipleOwnerPlugin
@@ -126,10 +127,7 @@ contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
     ) external view override {
         if (functionId == uint8(FunctionId.RUNTIME_VALIDATION_OWNER_OR_SELF)) {
             // Validate that the sender is an owner of the account or self.
-            if (
-                !ArrayLib._contains(_multipleOwners[msg.sender], sender) &&
-                sender != msg.sender
-            ) {
+            if (!isOwnerOfAccount(msg.sender, sender) && sender != msg.sender) {
                 revert ErrorsLib.NotAuthorized();
             }
             return;
@@ -148,10 +146,7 @@ contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
             // Validate the user op signature against the owners.
             (address signer, ) = (userOpHash.toEthSignedMessageHash())
                 .tryRecover(userOp.signature);
-            if (
-                signer == address(0) ||
-                !ArrayLib._contains(_multipleOwners[msg.sender], signer)
-            ) {
+            if (signer == address(0) || !isOwnerOfAccount(msg.sender, signer)) {
                 return _SIG_VALIDATION_FAILED;
             }
             return _SIG_VALIDATION_PASSED;
@@ -172,13 +167,10 @@ contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
         manifest.version = VERSION;
         manifest.author = AUTHOR;
 
-        string[] memory ownerPermissions = new string[](1);
-        ownerPermissions[0] = "Modify Ownership";
-
-        manifest.executionFunctions = new ManifestExecutionFunction[](5);
+        manifest.executionFunctions = new ManifestExecutionFunction[](8);
         manifest.executionFunctions[0] = ManifestExecutionFunction(
             this.transferOwnership.selector,
-            ownerPermissions
+            new string[](0)
         );
         manifest.executionFunctions[1] = ManifestExecutionFunction(
             this.isValidSig.selector,
@@ -194,6 +186,18 @@ contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
         );
         manifest.executionFunctions[4] = ManifestExecutionFunction(
             this.isOwnerOfAccount.selector,
+            new string[](0)
+        );
+        manifest.executionFunctions[5] = ManifestExecutionFunction(
+            this.ownersOf.selector,
+            new string[](0)
+        );
+        manifest.executionFunctions[6] = ManifestExecutionFunction(
+            this.addOwner.selector,
+            new string[](0)
+        );
+        manifest.executionFunctions[7] = ManifestExecutionFunction(
+            this.removeOwner.selector,
             new string[](0)
         );
 
@@ -248,7 +252,7 @@ contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
             dependencyIndex: 0 // Unused.
         });
         manifest.runtimeValidationFunctions = new ManifestAssociatedFunction[](
-            13
+            14
         );
         manifest.runtimeValidationFunctions[0] = ManifestAssociatedFunction({
             executionSelector: this.transferOwnership.selector,
@@ -300,6 +304,15 @@ contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
         });
         manifest.runtimeValidationFunctions[12] = ManifestAssociatedFunction({
             executionSelector: this.isOwnerOfAccount.selector,
+            associatedFunction: ManifestFunction({
+                functionType: ManifestAssociatedFunctionType
+                    .RUNTIME_VALIDATION_ALWAYS_ALLOW,
+                functionId: 0,
+                dependencyIndex: 0
+            })
+        });
+        manifest.runtimeValidationFunctions[13] = ManifestAssociatedFunction({
+            executionSelector: this.ownersOf.selector,
             associatedFunction: alwaysAllowFunction
         });
 
@@ -340,11 +353,11 @@ contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
         emit OwnershipTransferred(msg.sender, previousOwner, _newOwner);
     }
 
-    function _addOwner(address _newOwner) internal {
-        _multipleOwners[msg.sender].push(_newOwner);
+    function _addOwner(address _account, address _newOwner) internal {
+        _multipleOwners[_account].push(_newOwner);
     }
 
-    function _removeOwner(address _owner) internal {
-        ArrayLib._removeElement(_multipleOwners[msg.sender], _owner);
+    function _removeOwner(address _account, address _owner) internal {
+        ArrayLib._removeElement(_multipleOwners[_account], _owner);
     }
 }

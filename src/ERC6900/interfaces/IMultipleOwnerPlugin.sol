@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {UserOperation} from "@eth-infinitism/account-abstraction/interfaces/UserOperation.sol";
+import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
 
 interface IMultipleOwnerPlugin {
     enum FunctionId {
@@ -28,10 +28,6 @@ interface IMultipleOwnerPlugin {
     /// @param account The account whose ownership changed.
     /// @param removed The address of the removed owner.
     event OwnerRemoved(address account, address removed);
-
-    error NotAuthorized();
-    error AlreadyAnOwner();
-    error NotAnOwner();
 
     /// @notice Transfer ownership of the account from `_currentOwner` to `_newOwner`.
     /// @dev This function is installed on the account as part of plugin installation, and should
@@ -71,12 +67,14 @@ interface IMultipleOwnerPlugin {
     /// @notice Adds a new owner to the account.
     /// @dev This function is installed on the account as part of plugin installation, and should
     /// only be called from an account.
+    /// @param _account The address of the account.
     /// @param _newOwner The address to add as a new owner of the account.
-    function addOwner(address _newOwner) external;
+    function addOwner(address _account, address _newOwner) external;
 
     /// @notice Removes an owner from the account.
     /// @dev This function is installed on the account as part of plugin installation, and should
     /// only be called from an account.
+    /// @param _account The address of the account.
     /// @param _owner The address to remove as an owner of the account.
-    function removeOwner(address _owner) external;
+    function removeOwner(address _account, address _owner) external;
 }

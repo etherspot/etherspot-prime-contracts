@@ -46,4 +46,18 @@ library ErrorsLib {
     error NotAuthorized();
     error AlreadyAnOwner();
     error NotAnOwner();
+
+    /// GuardianPlugin Errors
+    error MultipleOwnerPluginRequired();
+    error InvalidTotalGuardians();
+    error InvalidGuardianProposalId();
+    error UnresolvedGuardianProposal();
+    error GuardianProposalResolved();
+    error ProposalTimelockBound();
+    error NoValidProposal();
+    error GuardianAlreadySignedProposal();
+    error InvalidGuardian();
+    error AlreadyAGuardian();
+    error NotAGuardian();
+    error GuardianCannotBeOwner();
 }
