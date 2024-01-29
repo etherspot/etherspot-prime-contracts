@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 library ErrorsLib {
-    // EtherspotWalletV2 Errors
+    /// EtherspotWalletV2 Errors
     error AlwaysDenyRule();
     error AuthorizeUpgradeReverted(bytes revertReason);
     error ExecFromPluginNotPermitted(address plugin, bytes4 selector);
@@ -41,4 +41,23 @@ library ErrorsLib {
     );
     error UnrecognizedFunction(bytes4 selector);
     error UserOpValidationFunctionMissing(bytes4 selector);
+
+    /// MultipleOwnerPlugin Errors
+    error NotAuthorized();
+    error AlreadyAnOwner();
+    error NotAnOwner();
+
+    /// GuardianPlugin Errors
+    error MultipleOwnerPluginRequired();
+    error InvalidTotalGuardians();
+    error InvalidGuardianProposalId();
+    error UnresolvedGuardianProposal();
+    error GuardianProposalResolved();
+    error ProposalTimelockBound();
+    error NoValidProposal();
+    error GuardianAlreadySignedProposal();
+    error InvalidGuardian();
+    error AlreadyAGuardian();
+    error NotAGuardian();
+    error GuardianCannotBeOwner();
 }

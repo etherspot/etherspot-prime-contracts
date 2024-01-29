@@ -5,9 +5,9 @@ import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IEntryPoint} from "@ERC4337/interfaces/IEntryPoint.sol";
 
-import {EtherspotWalletV2} from "./EtherspotWalletV2.sol";
-import {MultipleOwnerPlugin} from "../plugins/MultipleOwnerPlugin.sol";
-import {GuardianPlugin} from "../plugins/GuardianPlugin.sol";
+import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
+import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlugin.sol";
+import {GuardianPlugin} from "../../../src/ERC6900/plugins/GuardianPlugin.sol";
 
 /**
  * @title MSCAFactoryFixture
@@ -17,7 +17,6 @@ import {GuardianPlugin} from "../plugins/GuardianPlugin.sol";
 contract MSCAFactoryFixture {
     EtherspotWalletV2 public accountImplementation;
     MultipleOwnerPlugin public multipleOwnerPlugin;
-    GuardianPlugin public guardianPlugin;
     bytes32 private immutable _PROXY_BYTECODE_HASH;
 
     uint32 public constant UNSTAKE_DELAY = 1 weeks;
@@ -27,12 +26,10 @@ contract MSCAFactoryFixture {
     address public self;
 
     bytes32 public multipleOwnerPluginManifestHash;
-    bytes32 public guardianPluginManifestHash;
 
     constructor(
         IEntryPoint _entryPoint,
-        MultipleOwnerPlugin _multipleOwnerPlugin,
-        GuardianPlugin _guardianPlugin
+        MultipleOwnerPlugin _multipleOwnerPlugin
     ) {
         entryPoint = _entryPoint;
         accountImplementation = new EtherspotWalletV2(_entryPoint);
@@ -43,15 +40,11 @@ contract MSCAFactoryFixture {
             )
         );
         multipleOwnerPlugin = _multipleOwnerPlugin;
-        guardianPlugin = _guardianPlugin;
         self = address(this);
         // The manifest hash is set this way in this factory just for testing purposes.
         // For production factories the manifest hashes should be passed as a constructor argument.
         multipleOwnerPluginManifestHash = keccak256(
             abi.encode(multipleOwnerPlugin.pluginManifest())
-        );
-        guardianPluginManifestHash = keccak256(
-            abi.encode(guardianPlugin.pluginManifest())
         );
     }
 
@@ -73,19 +66,14 @@ contract MSCAFactoryFixture {
 
         // short circuit if exists
         if (addr.code.length == 0) {
-            address[] memory plugins = new address[](2);
+            address[] memory plugins = new address[](1);
             plugins[0] = address(multipleOwnerPlugin);
-            plugins[1] = address(guardianPlugin);
-            bytes32[] memory pluginManifestHashes = new bytes32[](2);
+            bytes32[] memory pluginManifestHashes = new bytes32[](1);
             pluginManifestHashes[0] = keccak256(
                 abi.encode(multipleOwnerPlugin.pluginManifest())
             );
-            pluginManifestHashes[1] = keccak256(
-                abi.encode(guardianPlugin.pluginManifest())
-            );
-            bytes[] memory pluginInitData = new bytes[](2);
+            bytes[] memory pluginInitData = new bytes[](1);
             pluginInitData[0] = abi.encode(owner);
-            pluginInitData[1] = abi.encode(owner);
             // not necessary to check return addr since next call will fail if so
             new ERC1967Proxy{salt: getSalt(owner, salt)}(
                 address(accountImplementation),

@@ -4,6 +4,7 @@
 pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
+import "forge-std/console.sol";
 
 import {EntryPoint} from "@ERC4337/core/EntryPoint.sol";
 import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";

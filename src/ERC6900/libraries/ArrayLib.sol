@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-contract ArrayHelper {
+library ArrayLib {
     function _contains(
         address[] memory A,
         address a

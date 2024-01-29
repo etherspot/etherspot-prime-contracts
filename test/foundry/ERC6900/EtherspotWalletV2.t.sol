@@ -11,8 +11,10 @@ import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
 
 import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
 import {SingleOwnerPlugin} from "../../../src/ERC6900/plugins/SingleOwnerPlugin.sol";
+import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlugin.sol";
+import {GuardianPlugin} from "../../../src/ERC6900/plugins/GuardianPlugin.sol";
 import {TokenReceiverPlugin} from "../../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
-import {MSCAFactoryFixture} from "../../../src/ERC6900/wallet/MSCAFactoryFixture.sol";
+import {MSCAFactoryFixture} from "./MSCAFactoryFixture.sol";
 
 import {BaseModularAccount} from "@ERC6900/src/account/BaseModularAccount.sol";
 import {PluginManifest} from "@ERC6900/src/interfaces/IPlugin.sol";
@@ -32,7 +34,8 @@ contract EtherspotWalletV2Test is Test {
 
     EntryPoint public entryPoint;
     address payable public beneficiary;
-    SingleOwnerPlugin public singleOwnerPlugin;
+    MultipleOwnerPlugin public multipleOwnerPlugin;
+    GuardianPlugin public guardianPlugin;
     TokenReceiverPlugin public tokenReceiverPlugin;
     MSCAFactoryFixture public factory;
 
@@ -71,9 +74,10 @@ contract EtherspotWalletV2Test is Test {
         beneficiary = payable(makeAddr("beneficiary"));
         vm.deal(beneficiary, 1 wei);
 
-        singleOwnerPlugin = new SingleOwnerPlugin();
+        multipleOwnerPlugin = new MultipleOwnerPlugin();
+        guardianPlugin = new GuardianPlugin();
         tokenReceiverPlugin = new TokenReceiverPlugin();
-        factory = new MSCAFactoryFixture(entryPoint, singleOwnerPlugin);
+        factory = new MSCAFactoryFixture(entryPoint, multipleOwnerPlugin);
 
         // Compute counterfactual address
         account1 = EtherspotWalletV2(payable(factory.getAddress(owner1, 0)));
@@ -106,7 +110,7 @@ contract EtherspotWalletV2Test is Test {
                 abi.encodeCall(factory.createAccount, (owner1, 0))
             ),
             callData: abi.encodeCall(
-                SingleOwnerPlugin.transferOwnership,
+                MultipleOwnerPlugin.transferOwnership,
                 (owner2)
             ),
             callGasLimit: CALL_GAS_LIMIT,
@@ -344,7 +348,7 @@ contract EtherspotWalletV2Test is Test {
 
         address[] memory plugins = IPluginLoupe(account2).getInstalledPlugins();
         assertEq(plugins.length, 2);
-        assertEq(plugins[0], address(singleOwnerPlugin));
+        assertEq(plugins[0], address(multipleOwnerPlugin));
         assertEq(plugins[1], address(tokenReceiverPlugin));
     }
 
@@ -468,7 +472,7 @@ contract EtherspotWalletV2Test is Test {
         });
         address[] memory plugins = IPluginLoupe(account2).getInstalledPlugins();
         assertEq(plugins.length, 1);
-        assertEq(plugins[0], address(singleOwnerPlugin));
+        assertEq(plugins[0], address(multipleOwnerPlugin));
     }
 
     function test_uninstallPlugin_manifestParameter() public {
@@ -495,7 +499,7 @@ contract EtherspotWalletV2Test is Test {
         });
         address[] memory plugins = IPluginLoupe(account2).getInstalledPlugins();
         assertEq(plugins.length, 1);
-        assertEq(plugins[0], address(singleOwnerPlugin));
+        assertEq(plugins[0], address(multipleOwnerPlugin));
     }
 
     function test_uninstallPlugin_invalidManifestFails() public {
@@ -528,7 +532,7 @@ contract EtherspotWalletV2Test is Test {
         });
         address[] memory plugins = IPluginLoupe(account2).getInstalledPlugins();
         assertEq(plugins.length, 2);
-        assertEq(plugins[0], address(singleOwnerPlugin));
+        assertEq(plugins[0], address(multipleOwnerPlugin));
         assertEq(plugins[1], address(plugin));
     }
 
