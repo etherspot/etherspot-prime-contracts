@@ -14,7 +14,7 @@ import {SingleOwnerPlugin} from "../../../src/ERC6900/plugins/SingleOwnerPlugin.
 import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlugin.sol";
 import {GuardianPlugin} from "../../../src/ERC6900/plugins/GuardianPlugin.sol";
 import {TokenReceiverPlugin} from "../../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
-import {MSCAFactoryFixture} from "../mocks/MSCAFactoryFixture.sol";
+import {MSCAFactoryFixture} from "./MSCAFactoryFixture.sol";
 
 import {BaseModularAccount} from "@ERC6900/src/account/BaseModularAccount.sol";
 import {PluginManifest} from "@ERC6900/src/interfaces/IPlugin.sol";

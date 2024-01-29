@@ -27,9 +27,18 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 200
-          }
-        }
+            runs: 200,
+          },
+        },
+      },
+      {
+        version: '0.8.21',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+        },
       },
     ],
   },
@@ -400,14 +409,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://coston2-explorer.flare.network/api',
           browserURL: 'https://coston2-explorer.flare.network/',
-        }
+        },
       },
       {
         network: 'flare',
         chainId: 14,
         urls: {
           apiURL: 'https://flare-explorer.flare.network/api',
-          browserURL: 'https://flare-explorer.flare.network/'
+          browserURL: 'https://flare-explorer.flare.network/',
         },
       },
       {
@@ -416,8 +425,8 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api.scrollscan.com/api',
           browserURL: 'https://scrollscan.com/',
-        }
-      }
+        },
+      },
     ],
   },
   gasReporter: {

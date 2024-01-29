@@ -13,7 +13,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlugin.sol";
 import {GuardianPlugin} from "../../../src/ERC6900/plugins/GuardianPlugin.sol";
 import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
-import {MSCAFactoryFixture} from "../mocks/MSCAFactoryFixture.sol";
+import {MSCAFactoryFixture} from "./MSCAFactoryFixture.sol";
 import {IMultipleOwnerPlugin} from "../../../src/ERC6900/interfaces/IMultipleOwnerPlugin.sol";
 import {IGuardianPlugin} from "../../../src/ERC6900/interfaces/IGuardianPlugin.sol";
 import {ErrorsLib} from "../../../src/ERC6900/libraries/ErrorsLib.sol";

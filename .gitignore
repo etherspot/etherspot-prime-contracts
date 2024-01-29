@@ -36,7 +36,6 @@ node_modules
 !.vscode/launch.json
 !.vscode/extensions.json
 
-
 # Coverage
 coverage
 
@@ -45,3 +44,7 @@ artifacts/
 
 # Testing
 contracts-exposed/
+
+# Foundry
+broadcast
+forge_cache/*

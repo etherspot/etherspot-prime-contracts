@@ -15,7 +15,7 @@ import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlu
 import {GuardianPlugin} from "../../../src/ERC6900/plugins/GuardianPlugin.sol";
 import {TokenReceiverPlugin} from "../../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
 import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
-import {MSCAFactoryFixture} from "../mocks/MSCAFactoryFixture.sol";
+import {MSCAFactoryFixture} from "./MSCAFactoryFixture.sol";
 import {ErrorsLib} from "../../../src/ERC6900/libraries/ErrorsLib.sol";
 
 import {FunctionReference} from "@ERC6900/src/libraries/FunctionReferenceLib.sol";
