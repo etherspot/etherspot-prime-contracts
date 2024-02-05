@@ -55,6 +55,7 @@
   "devDependencies": {
     "@account-abstraction/contracts": "^0.6.0",
     "@ethereumjs/tx": "4.1.2",
+    "@nomicfoundation/hardhat-foundry": "^1.0.2",
     "@nomicfoundation/hardhat-toolbox": "2.0.2",
     "@openzeppelin/contracts": "4.9.2",
     "@openzeppelin/hardhat-upgrades": "1.22.1",
@@ -64,7 +65,7 @@
     "hardhat": "2.12.7",
     "hardhat-deploy": "0.11.23",
     "hardhat-deploy-ethers": "0.3.0-beta.13",
-    "hardhat-exposed": "0.3.2"
+    "hardhat-exposed": "^0.3.7"
   },
   "resolutions": {
     "hardhat/**/@ethereumjs/tx": "3.5.0"

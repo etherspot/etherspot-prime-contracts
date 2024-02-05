@@ -28,6 +28,8 @@ contract EtherspotWallet is
     IEntryPoint private immutable _entryPoint;
     IEtherspotWalletFactory private immutable _walletFactory;
     bytes4 private constant ERC1271_SUCCESS = 0x1626ba7e;
+    string constant NAME = "EtherspotWallet";
+    string constant VERSION = "0.1.1";
 
     /// EXTERNAL METHODS
     constructor(
@@ -73,7 +75,6 @@ contract EtherspotWallet is
     }
 
     /**
-     * Implementation of ISignatureValidator
      * @dev doesn't allow the owner to be a smart contract, SCW should use {isValidSig}
      * @param hash 32 bytes hash of the data signed on the behalf of address(msg.sender)
      * @param signature Signature byte array associated with _dataHash
@@ -83,7 +84,12 @@ contract EtherspotWallet is
         bytes32 hash,
         bytes calldata signature
     ) external view returns (bytes4) {
-        address owner = ECDSA.recover(hash, signature);
+        bytes32 domainSeparator = _domainSeparator();
+        bytes32 signedMessageHash = keccak256(
+            abi.encodePacked("\x19\x01", domainSeparator, hash)
+        );
+        bytes32 ethHash = ECDSA.toEthSignedMessageHash(signedMessageHash);
+        address owner = ECDSA.recover(ethHash, signature);
         if (isOwner(owner)) {
             return ERC1271_SUCCESS;
         }
@@ -151,6 +157,28 @@ contract EtherspotWallet is
                 revert(add(result, 32), mload(result))
             }
         }
+    }
+
+    /// @dev EIP-712 compliant domain separator
+    function _domainSeparator() internal view returns (bytes32) {
+        bytes32 nameHash = keccak256(bytes(NAME));
+        bytes32 versionHash = keccak256(bytes(VERSION));
+        // Use proxy address for the EIP-712 domain separator.
+        address proxyAddress = address(this);
+        // Construct domain separator with name, version, chainId, and proxy address.
+        bytes32 typeHash = keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        );
+        return
+            keccak256(
+                abi.encode(
+                    typeHash,
+                    nameHash,
+                    versionHash,
+                    block.chainid,
+                    proxyAddress
+                )
+            );
     }
 
     function _validateSignature(

@@ -12,11 +12,14 @@ import {
   createAccountOwner,
   createAddress,
   deployEntryPoint,
-  rethrow,
-  simulationResultCatch,
+  decodeRevertReason,
 } from '../../account-abstraction/test/testutils';
 import { createEtherspotWallet, errorParse } from '../TestUtils';
-import { fillAndSign } from '../../account-abstraction/test/UserOp';
+import {
+  fillAndSign,
+  fillSignAndPack,
+  simulateValidation,
+} from '../../account-abstraction/test/UserOp';
 import {
   arrayify,
   defaultAbiCoder,
@@ -121,12 +124,12 @@ describe('EntryPoint with EtherspotPaymaster', function () {
   });
 
   describe('#validatePaymasterUserOp', () => {
-    it('should reject on no signature', async () => {
-      const userOp = await fillAndSign(
+    it.only('should reject on no signature', async () => {
+      const userOp = await fillSignAndPack(
         {
           sender: account.address,
-          paymasterAndData: hexConcat([
-            paymaster.address,
+          paymaster: paymaster.address,
+          paymasterData: hexConcat([
             defaultAbiCoder.encode(
               ['uint48', 'uint48'],
               [MOCK_VALID_UNTIL, MOCK_VALID_AFTER]
@@ -138,12 +141,11 @@ describe('EntryPoint with EtherspotPaymaster', function () {
         accountOwner,
         entryPoint
       );
-      const revert = await entryPoint.callStatic
-        .simulateValidation(userOp)
-        .catch((e) => {
-          return e.errorArgs.reason;
-        });
-      expect(revert).to.contain(
+      expect(
+        await simulateValidation(userOp, entryPoint.address).catch((e) =>
+          decodeRevertReason(e)
+        )
+      ).to.include(
         'EtherspotPaymaster:: invalid signature length in paymasterAndData'
       );
     });

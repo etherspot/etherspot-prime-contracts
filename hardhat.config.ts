@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv';
 import { HardhatUserConfig } from 'hardhat/config';
 import '@nomicfoundation/hardhat-toolbox';
+import '@nomicfoundation/hardhat-foundry';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
 import 'hardhat-exposed';
@@ -20,6 +21,7 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 200,
           },
+          evmVersion: 'london',
         },
       },
       {
@@ -29,6 +31,7 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 200,
           },
+          evmVersion: 'london',
         },
       },
       {
@@ -38,13 +41,24 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 200,
           },
+          evmVersion: 'london',
+        },
+      },
+      {
+        version: '0.8.23',
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200,
+          },
+          evmVersion: 'london',
         },
       },
     ],
   },
   networks: {
     hardhat: {
-      // allowUnlimitedContractSize: true,
+      allowUnlimitedContractSize: true,
     },
     mainnet: {
       chainId: 1,
