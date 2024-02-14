@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
+import {UserOperation} from "@eth-infinitism/account-abstraction/interfaces/UserOperation.sol";
 
 interface IMultipleOwnerPlugin {
     enum FunctionId {

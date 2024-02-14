@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
-import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {ECDSA} from "../../../erc6900-ref-impl/lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
-import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
+import {SignatureChecker} from "../../../erc6900-ref-impl/lib/openzeppelin-contracts/contracts/utils/cryptography/SignatureChecker.sol";
+import {UserOperation} from "@eth-infinitism/account-abstraction/interfaces/UserOperation.sol";
 
 import {EtherspotWalletV2, UUPSUpgradeable} from "../wallet/EtherspotWalletV2.sol";
 

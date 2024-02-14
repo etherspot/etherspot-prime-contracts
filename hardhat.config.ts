@@ -4,7 +4,7 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-foundry';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
-import 'hardhat-exposed';
+import 'hardhat-tracer';
 
 dotenv.config({ path: __dirname + '/.env' });
 
@@ -58,7 +58,7 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      allowUnlimitedContractSize: true,
+      // allowUnlimitedContractSize: true,
     },
     mainnet: {
       chainId: 1,

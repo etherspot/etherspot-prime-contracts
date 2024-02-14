@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
+import {UserOperation} from "@eth-infinitism/account-abstraction/interfaces/UserOperation.sol";
 
 import {EtherspotWalletV2, UUPSUpgradeable} from "../wallet/EtherspotWalletV2.sol";
 import {ArrayLib} from "../libraries/ArrayLib.sol";

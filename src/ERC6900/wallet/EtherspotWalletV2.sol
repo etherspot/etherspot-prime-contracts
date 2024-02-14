@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.19;
 
-import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {UUPSUpgradeable} from "@ERC6900/lib/openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import {IEntryPoint} from "@ERC4337/interfaces/IEntryPoint.sol";
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
-import {BaseAccount} from "@ERC4337/core/BaseAccount.sol";
+import {IEntryPoint} from "@eth-infinitism/account-abstraction/interfaces/IEntryPoint.sol";
+import {UserOperation} from "@eth-infinitism/account-abstraction/interfaces/UserOperation.sol";
+import {BaseAccount} from "@eth-infinitism/account-abstraction/core/BaseAccount.sol";
 
 import {BaseModularAccount} from "@ERC6900/src/account/BaseModularAccount.sol";
 import {BaseModularAccountLoupe} from "@ERC6900/src/account/BaseModularAccountLoupe.sol";

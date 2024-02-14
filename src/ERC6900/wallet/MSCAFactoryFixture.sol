@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {IEntryPoint} from "@ERC4337/interfaces/IEntryPoint.sol";
+import {IEntryPoint} from "@eth-infinitism/account-abstraction/interfaces/IEntryPoint.sol";
 
 import {EtherspotWalletV2} from "./EtherspotWalletV2.sol";
 import {MultipleOwnerPlugin} from "../plugins/MultipleOwnerPlugin.sol";
