@@ -89,9 +89,129 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TokenCallbackHandler__factory>;
     getContractFactory(
+      name: "SentinelListLib",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.SentinelListLib__factory>;
+    getContractFactory(
+      name: "ECDSA",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ECDSA__factory>;
+    getContractFactory(
+      name: "LibClone",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.LibClone__factory>;
+    getContractFactory(
+      name: "AccountBase",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AccountBase__factory>;
+    getContractFactory(
+      name: "Fallback",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Fallback__factory>;
+    getContractFactory(
+      name: "ModuleManager",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ModuleManager__factory>;
+    getContractFactory(
+      name: "IERC4337",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC4337__factory>;
+    getContractFactory(
+      name: "IExecutor",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IExecutor__factory>;
+    getContractFactory(
+      name: "IFallback",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IFallback__factory>;
+    getContractFactory(
+      name: "IHook",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IHook__factory>;
+    getContractFactory(
+      name: "IModule",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IModule__factory>;
+    getContractFactory(
+      name: "IValidator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IValidator__factory>;
+    getContractFactory(
+      name: "IAccountConfig_Hook",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccountConfig_Hook__factory>;
+    getContractFactory(
+      name: "IAccountConfig",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccountConfig__factory>;
+    getContractFactory(
+      name: "IExecution",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IExecution__factory>;
+    getContractFactory(
+      name: "IExecutionUnsafe",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IExecutionUnsafe__factory>;
+    getContractFactory(
+      name: "IMSA",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IMSA__factory>;
+    getContractFactory(
+      name: "IERC165",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC165__factory>;
+    getContractFactory(
       name: "AccessController",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AccessController__factory>;
+    getContractFactory(
+      name: "AccessController",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AccessController__factory>;
+    getContractFactory(
+      name: "IAccessController",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccessController__factory>;
+    getContractFactory(
+      name: "IAccountConfig_Hook",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccountConfig_Hook__factory>;
+    getContractFactory(
+      name: "IAccountConfig",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAccountConfig__factory>;
+    getContractFactory(
+      name: "IEtherspotWallet7579",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IEtherspotWallet7579__factory>;
+    getContractFactory(
+      name: "IExecution",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IExecution__factory>;
+    getContractFactory(
+      name: "IExecutionUnsafe",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IExecutionUnsafe__factory>;
+    getContractFactory(
+      name: "ErrorsLib",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ErrorsLib__factory>;
+    getContractFactory(
+      name: "MultipleOwnerECDSAValidator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MultipleOwnerECDSAValidator__factory>;
+    getContractFactory(
+      name: "EtherspotWallet7579",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.EtherspotWallet7579__factory>;
+    getContractFactory(
+      name: "EtherspotWallet7579Base",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.EtherspotWallet7579Base__factory>;
+    getContractFactory(
+      name: "EtherspotWallet7579Factory",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.EtherspotWallet7579Factory__factory>;
     getContractFactory(
       name: "UniversalSigValidator",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -245,10 +365,160 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.TokenCallbackHandler>;
     getContractAt(
+      name: "SentinelListLib",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.SentinelListLib>;
+    getContractAt(
+      name: "ECDSA",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ECDSA>;
+    getContractAt(
+      name: "LibClone",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.LibClone>;
+    getContractAt(
+      name: "AccountBase",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AccountBase>;
+    getContractAt(
+      name: "Fallback",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Fallback>;
+    getContractAt(
+      name: "ModuleManager",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ModuleManager>;
+    getContractAt(
+      name: "IERC4337",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC4337>;
+    getContractAt(
+      name: "IExecutor",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IExecutor>;
+    getContractAt(
+      name: "IFallback",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IFallback>;
+    getContractAt(
+      name: "IHook",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IHook>;
+    getContractAt(
+      name: "IModule",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IModule>;
+    getContractAt(
+      name: "IValidator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IValidator>;
+    getContractAt(
+      name: "IAccountConfig_Hook",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccountConfig_Hook>;
+    getContractAt(
+      name: "IAccountConfig",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccountConfig>;
+    getContractAt(
+      name: "IExecution",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IExecution>;
+    getContractAt(
+      name: "IExecutionUnsafe",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IExecutionUnsafe>;
+    getContractAt(
+      name: "IMSA",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IMSA>;
+    getContractAt(
+      name: "IERC165",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC165>;
+    getContractAt(
       name: "AccessController",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.AccessController>;
+    getContractAt(
+      name: "AccessController",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AccessController>;
+    getContractAt(
+      name: "IAccessController",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccessController>;
+    getContractAt(
+      name: "IAccountConfig_Hook",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccountConfig_Hook>;
+    getContractAt(
+      name: "IAccountConfig",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAccountConfig>;
+    getContractAt(
+      name: "IEtherspotWallet7579",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IEtherspotWallet7579>;
+    getContractAt(
+      name: "IExecution",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IExecution>;
+    getContractAt(
+      name: "IExecutionUnsafe",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IExecutionUnsafe>;
+    getContractAt(
+      name: "ErrorsLib",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ErrorsLib>;
+    getContractAt(
+      name: "MultipleOwnerECDSAValidator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MultipleOwnerECDSAValidator>;
+    getContractAt(
+      name: "EtherspotWallet7579",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.EtherspotWallet7579>;
+    getContractAt(
+      name: "EtherspotWallet7579Base",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.EtherspotWallet7579Base>;
+    getContractAt(
+      name: "EtherspotWallet7579Factory",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.EtherspotWallet7579Factory>;
     getContractAt(
       name: "UniversalSigValidator",
       address: string,
