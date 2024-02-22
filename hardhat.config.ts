@@ -227,6 +227,16 @@ const config: HardhatUserConfig = {
       url: 'https://rpc.scroll.io',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    optimismSepolia: {
+      chainId: 11155420,
+      url: 'https://sepolia.optimism.io/',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
+    arbitrumSepolia: {
+      chainId: 421614,
+      url: 'https://sepolia-rollup.arbitrum.io/rpc/',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   deterministicDeployment: {
@@ -281,6 +291,8 @@ const config: HardhatUserConfig = {
       scrollSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
       mantleTestnet: process.env.BASESCAN_API_KEY!, // works with same key
       coston2: process.env.FLARE_API_KEY!,
+      optimismSepolia: process.env.OPTIMISM_EXPLORER_API_KEY!,
+      arbitrumSepolia: process.env.ARBISCAN_API_KEY!,
     },
     customChains: [
       {
@@ -425,6 +437,22 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api.scrollscan.com/api',
           browserURL: 'https://scrollscan.com/',
+        },
+      },
+      {
+        network: 'optimismSepolia',
+        chainId: 11155420,
+        urls: {
+          apiURL: 'https://api-sepolia-optimistic.etherscan.io/api',
+          browserURL: 'https://sepolia-optimistic.etherscan.io/',
+        },
+      },
+      {
+        network: 'arbitrumSepolia',
+        chainId: 421614,
+        urls: {
+          apiURL: 'https://api-sepolia.arbiscan.io/api',
+          browserURL: 'https://sepolia.arbiscan.io/',
         },
       },
     ],
