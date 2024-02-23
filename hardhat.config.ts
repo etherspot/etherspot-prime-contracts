@@ -237,6 +237,11 @@ const config: HardhatUserConfig = {
       url: 'https://sepolia-rollup.arbitrum.io/rpc/',
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     },
+    baseSepolia: {
+      chainId: 84532,
+      url: 'https://sepolia.base.org',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+    },
     dev: { url: 'http://localhost:8545' },
   },
   deterministicDeployment: {
@@ -293,6 +298,7 @@ const config: HardhatUserConfig = {
       coston2: process.env.FLARE_API_KEY!,
       optimismSepolia: process.env.OPTIMISM_EXPLORER_API_KEY!,
       arbitrumSepolia: process.env.ARBISCAN_API_KEY!,
+      baseSepolia: process.env.BASESCAN_API_KEY!,
     },
     customChains: [
       {
@@ -453,6 +459,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api-sepolia.arbiscan.io/api',
           browserURL: 'https://sepolia.arbiscan.io/',
+        },
+      },
+      {
+        network: 'baseSepolia',
+        chainId: 84523,
+        urls: {
+          apiURL: 'https://base-sepolia.blockscout.com/api',
+          browserURL: 'https://base-sepolia.blockscout.com/',
         },
       },
     ],
