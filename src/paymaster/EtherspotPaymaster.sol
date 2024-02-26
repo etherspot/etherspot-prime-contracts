@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.12;
+pragma solidity 0.8.23;
 
 /* solhint-disable reason-string */
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import "../../account-abstraction/contracts/core/UserOperationLib.sol";
+import "../../account-abstraction/contracts/core/Helpers.sol";
 import "./BasePaymaster.sol";
 import "./Whitelist.sol";
 
@@ -19,11 +21,10 @@ import "./Whitelist.sol";
  * - the wallet signs to prove identity and account ownership.
  */
 contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
-    using ECDSA for bytes32;
-    using UserOperationLib for UserOperation;
+    using UserOperationLib for PackedUserOperation;
 
-    uint256 private constant VALID_TIMESTAMP_OFFSET = 20;
-    uint256 private constant SIGNATURE_OFFSET = 84;
+    uint256 private constant VALID_TIMESTAMP_OFFSET = PAYMASTER_DATA_OFFSET;
+    uint256 private constant SIGNATURE_OFFSET = VALID_TIMESTAMP_OFFSET + 64;
     // calculated cost of the postOp
     uint256 private constant COST_OF_POST = 40000;
 
@@ -59,25 +60,6 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
         _sponsorBalances[_sponsor] += _amount;
     }
 
-    function _pack(
-        UserOperation calldata userOp
-    ) internal pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    userOp.getSender(),
-                    userOp.nonce,
-                    keccak256(userOp.initCode),
-                    keccak256(userOp.callData),
-                    userOp.callGasLimit,
-                    userOp.verificationGasLimit,
-                    userOp.preVerificationGas,
-                    userOp.maxFeePerGas,
-                    userOp.maxPriorityFeePerGas
-                )
-            );
-    }
-
     /**
      * return the hash we're going to sign off-chain (and validate on-chain)
      * this method is called by the off-chain service, to sign the request.
@@ -86,16 +68,28 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
      * which will carry the signature itself.
      */
     function getHash(
-        UserOperation calldata userOp,
+        PackedUserOperation calldata userOp,
         uint48 validUntil,
         uint48 validAfter
     ) public view returns (bytes32) {
         //can't use userOp.hash(), since it contains also the paymasterAndData itself.
-
+        address sender = userOp.getSender();
         return
             keccak256(
                 abi.encode(
-                    _pack(userOp),
+                    sender,
+                    userOp.nonce,
+                    keccak256(userOp.initCode),
+                    keccak256(userOp.callData),
+                    userOp.accountGasLimits,
+                    uint256(
+                        bytes32(
+                            userOp
+                                .paymasterAndData[PAYMASTER_VALIDATION_GAS_OFFSET:PAYMASTER_DATA_OFFSET]
+                        )
+                    ),
+                    userOp.preVerificationGas,
+                    userOp.gasFees,
                     block.chainid,
                     address(this),
                     validUntil,
@@ -112,7 +106,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
      * paymasterAndData[84:] : signature
      */
     function _validatePaymasterUserOp(
-        UserOperation calldata userOp,
+        PackedUserOperation calldata userOp,
         bytes32 /*userOpHash*/,
         uint256 requiredPreFund
     ) internal override returns (bytes memory context, uint256 validationData) {
@@ -129,7 +123,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
             signature.length == 64 || signature.length == 65,
             "EtherspotPaymaster:: invalid signature length in paymasterAndData"
         );
-        bytes32 hash = ECDSA.toEthSignedMessageHash(
+        bytes32 hash = MessageHashUtils.toEthSignedMessageHash(
             getHash(userOp, validUntil, validAfter)
         );
         address sig = userOp.getSender();
@@ -142,7 +136,11 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
             return ("", _packValidationData(true, validUntil, validAfter));
         }
 
-        uint256 costOfPost = userOp.maxFeePerGas * COST_OF_POST;
+        (, uint256 maxFeePerGas) = (
+            uint128(bytes16(userOp.gasFees)),
+            uint128(uint256(userOp.gasFees))
+        );
+        uint256 costOfPost = maxFeePerGas * COST_OF_POST;
         uint256 totalPreFund = requiredPreFund + costOfPost;
 
         // check sponsor has enough funds deposited to pay for gas
@@ -170,7 +168,7 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
         returns (uint48 validUntil, uint48 validAfter, bytes calldata signature)
     {
         (validUntil, validAfter) = abi.decode(
-            paymasterAndData[VALID_TIMESTAMP_OFFSET:SIGNATURE_OFFSET],
+            paymasterAndData[VALID_TIMESTAMP_OFFSET:],
             (uint48, uint48)
         );
         signature = paymasterAndData[SIGNATURE_OFFSET:];
@@ -179,7 +177,8 @@ contract EtherspotPaymaster is BasePaymaster, Whitelist, ReentrancyGuard {
     function _postOp(
         PostOpMode,
         bytes calldata context,
-        uint256 actualGasCost
+        uint256 actualGasCost,
+        uint256 actualUserOpFeePerGas
     ) internal override {
         (
             address paymaster,

@@ -3,21 +3,26 @@ pragma solidity ^0.8.21;
 
 import {SentinelListLib, SENTINEL} from "../libs/SentinelList.sol";
 import {AccountBase} from "./AccountBase.sol";
-import {IAccountConfig} from "../interfaces/IMSA.sol";
-import {IValidator, IExecutor} from "../interfaces/IModule.sol";
+import "../interfaces/IERC7579Module.sol";
 import "forge-std/interfaces/IERC165.sol";
+import "./Receiver.sol";
 
 /**
  * @title ModuleManager
  * @author zeroknots.eth | rhinestone.wtf
- * @dev This contract manages Validator and Executor modules for the MSA
+ * @dev This contract manages Validator, Executor and Fallback modules for the MSA
  * @dev it uses SentinelList to manage the linked list of modules
+ * NOTE: the linked list is just an example. accounts may implement this differently
  */
-abstract contract ModuleManager is AccountBase, IAccountConfig, IERC165 {
+abstract contract ModuleManager is AccountBase, Receiver {
     using SentinelListLib for SentinelListLib.SentinelList;
 
     error InvalidModule(address module);
     error CannotRemoveLastValidator();
+
+    // keccak256("modulemanager.storage.msa");
+    bytes32 constant MODULEMANAGER_STORAGE_LOCATION =
+        0xf88ce1fdb7fb1cbd3282e49729100fa3f2d6ee9f797961fe4fb1871cea89ea02;
 
     /// @custom:storage-location erc7201:modulemanager.storage.msa
     struct ModuleManagerStorage {
@@ -25,11 +30,10 @@ abstract contract ModuleManager is AccountBase, IAccountConfig, IERC165 {
         SentinelListLib.SentinelList _validators;
         // linked list of executors. List is initialized by initializeAccount()
         SentinelListLib.SentinelList _executors;
+        // single fallback handler for all fallbacks
+        // account vendors may implement this differently. This is just a reference implementation
+        address fallbackHandler;
     }
-
-    // keccak256("modulemanager.storage.msa");
-    bytes32 constant MODULEMANAGER_STORAGE_LOCATION =
-        0xf88ce1fdb7fb1cbd3282e49729100fa3f2d6ee9f797961fe4fb1871cea89ea02;
 
     function _getModuleManagerStorage()
         internal
@@ -63,53 +67,42 @@ abstract contract ModuleManager is AccountBase, IAccountConfig, IERC165 {
         ims._validators.init();
     }
 
-    /**
-     * @inheritdoc IAccountConfig
-     */
-    function installValidator(
-        address validator,
-        bytes calldata data
-    ) public virtual override onlyEntryPointOrSelf {
-        _installValidator(validator, data);
+    function isAlreadyInitialized() internal view virtual returns (bool) {
+        ModuleManagerStorage storage ims = _getModuleManagerStorage();
+        return ims._validators.alreadyInitialized();
     }
 
+    /////////////////////////////////////////////////////
+    //  Manage Validators
+    ////////////////////////////////////////////////////
     function _installValidator(
         address validator,
         bytes calldata data
     ) internal virtual {
         SentinelListLib.SentinelList
             storage _validators = _getModuleManagerStorage()._validators;
-        IValidator(validator).onInstall(data);
         _validators.push(validator);
-        emit EnableValidator(validator);
+        IValidator(validator).onInstall(data);
     }
 
-    /**
-     * @inheritdoc IAccountConfig
-     */
-    function uninstallValidator(
+    function _uninstallValidator(
         address validator,
         bytes calldata data
-    ) external override onlyEntryPointOrSelf {
+    ) internal {
+        // TODO: check if its the last validator. this might brick the account
         SentinelListLib.SentinelList
             storage _validators = _getModuleManagerStorage()._validators;
-        // decode prev validator cause this is a linked list (optional)
-        (address prevValidator, bytes memory disableModuleData) = abi.decode(
+        (address prev, bytes memory disableModuleData) = abi.decode(
             data,
             (address, bytes)
         );
+        _validators.pop(prev, validator);
         IValidator(validator).onUninstall(disableModuleData);
-        // TODO: check if this is the last validator
-        _validators.pop(prevValidator, validator);
-        emit DisableValidator(validator);
     }
 
-    /**
-     * @inheritdoc IAccountConfig
-     */
-    function isValidatorInstalled(
+    function _isValidatorInstalled(
         address validator
-    ) public view virtual returns (bool) {
+    ) internal view virtual returns (bool) {
         SentinelListLib.SentinelList
             storage _validators = _getModuleManagerStorage()._validators;
         return _validators.contains(validator);
@@ -128,50 +121,34 @@ abstract contract ModuleManager is AccountBase, IAccountConfig, IERC165 {
         return _validators.getEntriesPaginated(cursor, size);
     }
 
-    /**
-     * @inheritdoc IAccountConfig
-     */
-    function installExecutor(
-        address executor,
-        bytes calldata data
-    ) public virtual override onlyEntryPointOrSelf {
-        _installExecutor(executor, data);
-    }
+    /////////////////////////////////////////////////////
+    //  Manage Executors
+    ////////////////////////////////////////////////////
 
     function _installExecutor(address executor, bytes calldata data) internal {
         SentinelListLib.SentinelList
             storage _executors = _getModuleManagerStorage()._executors;
-        IExecutor(executor).onInstall(data);
         _executors.push(executor);
-
-        emit EnableExecutor(executor);
+        IExecutor(executor).onInstall(data);
     }
 
-    /**
-     * @inheritdoc IAccountConfig
-     */
-    function uninstallExecutor(
+    function _uninstallExecutor(
         address executor,
         bytes calldata data
-    ) external override onlyEntryPointOrSelf {
-        (address prevExecutor, bytes memory disableModuleData) = abi.decode(
+    ) internal {
+        SentinelListLib.SentinelList
+            storage _executors = _getModuleManagerStorage()._executors;
+        (address prev, bytes memory disableModuleData) = abi.decode(
             data,
             (address, bytes)
         );
+        _executors.pop(prev, executor);
         IExecutor(executor).onUninstall(disableModuleData);
-        SentinelListLib.SentinelList
-            storage _executors = _getModuleManagerStorage()._executors;
-        _executors.pop(prevExecutor, executor);
-
-        emit DisableValidator(executor);
     }
 
-    /**
-     * @inheritdoc IAccountConfig
-     */
-    function isExecutorInstalled(
+    function _isExecutorInstalled(
         address executor
-    ) public view virtual returns (bool) {
+    ) internal view virtual returns (bool) {
         SentinelListLib.SentinelList
             storage _executors = _getModuleManagerStorage()._executors;
         return _executors.contains(executor);
@@ -190,27 +167,98 @@ abstract contract ModuleManager is AccountBase, IAccountConfig, IERC165 {
         return _executors.getEntriesPaginated(cursor, size);
     }
 
-    function isAlreadyInitialized() internal view virtual returns (bool) {
-        ModuleManagerStorage storage ims = _getModuleManagerStorage();
-        return ims._validators.alreadyInitialized();
+    /////////////////////////////////////////////////////
+    //  Manage Fallback
+    ////////////////////////////////////////////////////
+
+    function _installFallbackHandler(
+        address handler,
+        bytes calldata initData
+    ) internal virtual {
+        if (_isFallbackHandlerInstalled()) revert();
+        _getModuleManagerStorage().fallbackHandler = handler;
+        IFallback(handler).onInstall(initData);
     }
 
-    function supportsInterface(
-        bytes4 interfaceID
-    ) public pure virtual override returns (bool) {
-        if (interfaceID == type(IAccountConfig).interfaceId) return true;
-        if (interfaceID == type(IERC165).interfaceId) return true;
-        if (interfaceID == IAccountConfig.installExecutor.selector) return true;
-        if (interfaceID == IAccountConfig.uninstallExecutor.selector)
-            return true;
-        if (interfaceID == IAccountConfig.isExecutorInstalled.selector)
-            return true;
-        if (interfaceID == IAccountConfig.installValidator.selector)
-            return true;
-        if (interfaceID == IAccountConfig.uninstallValidator.selector)
-            return true;
-        if (interfaceID == IAccountConfig.isValidatorInstalled.selector)
-            return true;
-        return false;
+    function _uninstallFallbackHandler(
+        address fallbackHandler,
+        bytes calldata initData
+    ) internal virtual {
+        address currentFallback = _getModuleManagerStorage().fallbackHandler;
+        if (currentFallback != fallbackHandler)
+            revert InvalidModule(fallbackHandler);
+        _getModuleManagerStorage().fallbackHandler = address(0);
+        IFallback(currentFallback).onUninstall(initData);
+    }
+
+    function _isFallbackHandlerInstalled()
+        internal
+        view
+        virtual
+        returns (bool)
+    {
+        return _getModuleManagerStorage().fallbackHandler != address(0);
+    }
+
+    function _isFallbackHandlerInstalled(
+        address _handler
+    ) internal view virtual returns (bool) {
+        return _getModuleManagerStorage().fallbackHandler == _handler;
+    }
+
+    function getActiveFallbackHandler()
+        external
+        view
+        virtual
+        returns (address)
+    {
+        return _getModuleManagerStorage().fallbackHandler;
+    }
+
+    // FALLBACK
+    fallback() external payable override(Receiver) receiverFallback {
+        address handler = _getModuleManagerStorage().fallbackHandler;
+        if (handler == address(0)) revert();
+        /* solhint-disable no-inline-assembly */
+        /// @solidity memory-safe-assembly
+        assembly {
+            // When compiled with the optimizer, the compiler relies on a certain assumptions on how
+            // the
+            // memory is used, therefore we need to guarantee memory safety (keeping the free memory
+            // point 0x40 slot intact,
+            // not going beyond the scratch space, etc)
+            // Solidity docs: https://docs.soliditylang.org/en/latest/assembly.html#memory-safety
+            function allocate(length) -> pos {
+                pos := mload(0x40)
+                mstore(0x40, add(pos, length))
+            }
+
+            let calldataPtr := allocate(calldatasize())
+            calldatacopy(calldataPtr, 0, calldatasize())
+
+            // The msg.sender address is shifted to the left by 12 bytes to remove the padding
+            // Then the address without padding is stored right after the calldata
+            let senderPtr := allocate(20)
+            mstore(senderPtr, shl(96, caller()))
+
+            // Add 20 bytes for the address appended add the end
+            let success := call(
+                gas(),
+                handler,
+                0,
+                calldataPtr,
+                add(calldatasize(), 20),
+                0,
+                0
+            )
+
+            let returnDataPtr := allocate(returndatasize())
+            returndatacopy(returnDataPtr, 0, returndatasize())
+            if iszero(success) {
+                revert(returnDataPtr, returndatasize())
+            }
+            return(returnDataPtr, returndatasize())
+        }
+        /* solhint-enable no-inline-assembly */
     }
 }

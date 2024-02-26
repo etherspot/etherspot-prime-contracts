@@ -34,8 +34,8 @@ contract ModularEtherspotWalletScript is Script {
             "Wallet implementation deployed at address",
             address(implementation)
         );
-        bytes memory implCode = address(implementation).code;
-        console2.logBytes(implCode);
+        // bytes memory implCode = address(implementation).code;
+        // console2.logBytes(implCode);
 
         // Wallet Factory
         console2.log("Deploying ModularEtherspotWalletFactory...");
@@ -43,14 +43,14 @@ contract ModularEtherspotWalletScript is Script {
                 salt: SALT
             }(address(implementation));
         console2.log("Wallet factory deployed at address", address(factory));
-        bytes memory factCode = address(factory).code;
-        console2.logBytes(factCode);
+        // bytes memory factCode = address(factory).code;
+        // console2.logBytes(factCode);
 
         // Deploy Bootstrap
         Bootstrap bootstrap = new Bootstrap{salt: SALT}();
         console2.log("Bootstrap deployed at address", address(bootstrap));
-        bytes memory bootCode = address(bootstrap).code;
-        console2.logBytes(bootCode);
+        // bytes memory bootCode = address(bootstrap).code;
+        // console2.logBytes(bootCode);
 
         // Multiple Owner ECDSA Validator
         console2.log("Deploying MultipleOwnerECDSAValidator...");
@@ -61,8 +61,8 @@ contract ModularEtherspotWalletScript is Script {
             "MultipleOwnerECDSAValidator deployed at address",
             address(validator)
         );
-        bytes memory valCode = address(validator).code;
-        console2.logBytes(valCode);
+        // bytes memory valCode = address(validator).code;
+        // console2.logBytes(valCode);
 
         console2.log("Finished deployment sequence!");
 

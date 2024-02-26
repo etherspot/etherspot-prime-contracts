@@ -6,9 +6,6 @@ import {ErrorsLib} from "../libraries/ErrorsLib.sol";
 
 contract AccessController is IAccessController {
     /// State Variables
-    string public constant NAME = "Access Controller";
-    string public constant VERSION = "1.0.0";
-    string public constant AUTHOR = "Etherspot";
     uint128 immutable MULTIPLY_FACTOR = 1000;
     uint16 immutable SIXTY_PERCENT = 600;
     uint24 immutable INITIAL_PROPOSAL_TIMELOCK = 24 hours;

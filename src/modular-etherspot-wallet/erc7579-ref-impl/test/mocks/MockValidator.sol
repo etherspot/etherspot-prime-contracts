@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import {IValidator, IERC4337, VALIDATION_SUCCESS} from "../../interfaces/IModule.sol";
+import {IValidator, PackedUserOperation, VALIDATION_SUCCESS, EncodedModuleTypes} from "../../interfaces/IERC7579Module.sol";
 
 contract MockValidator is IValidator {
     function onInstall(bytes calldata data) external override {}
@@ -9,7 +9,7 @@ contract MockValidator is IValidator {
     function onUninstall(bytes calldata data) external override {}
 
     function validateUserOp(
-        IERC4337.UserOperation calldata userOp,
+        PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
         bytes4 execSelector = bytes4(userOp.callData[:4]);
@@ -25,5 +25,11 @@ contract MockValidator is IValidator {
 
     function isModuleType(uint256 typeID) external view returns (bool) {
         return typeID == 1;
+    }
+
+    function getModuleTypes() external view returns (EncodedModuleTypes) {}
+
+    function isInitialized(address smartAccount) external view returns (bool) {
+        return false;
     }
 }

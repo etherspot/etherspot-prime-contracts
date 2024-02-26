@@ -188,6 +188,21 @@ const networks: HardhatUserConfig['networks'] = {
     url: 'https://rpc.scroll.io',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
+  optimismSepolia: {
+    chainId: 11155420,
+    url: 'https://sepolia.optimism.io/',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
+  arbitrumSepolia: {
+    chainId: 421614,
+    url: 'https://sepolia-rollup.arbitrum.io/rpc/',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
+  baseSepolia: {
+    chainId: 84532,
+    url: 'https://sepolia.base.org',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
   dev: { url: 'http://localhost:8545' },
 };
 export default networks;

@@ -36,6 +36,9 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     scrollSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!,
     mantleTestnet: process.env.BASESCAN_API_KEY!, // works with same key
     coston2: process.env.FLARE_API_KEY!,
+    optimismSepolia: process.env.OPTIMISM_EXPLORER_API_KEY!,
+    arbitrumSepolia: process.env.ARBISCAN_API_KEY!,
+    baseSepolia: process.env.BASESCAN_API_KEY!,
   },
   customChains: [
     {
@@ -180,6 +183,30 @@ const etherscan: HardhatUserConfig['etherscan'] = {
       urls: {
         apiURL: 'https://api.scrollscan.com/api',
         browserURL: 'https://scrollscan.com/',
+      },
+    },
+    {
+      network: 'optimismSepolia',
+      chainId: 11155420,
+      urls: {
+        apiURL: 'https://api-sepolia-optimistic.etherscan.io/api',
+        browserURL: 'https://sepolia-optimistic.etherscan.io/',
+      },
+    },
+    {
+      network: 'arbitrumSepolia',
+      chainId: 421614,
+      urls: {
+        apiURL: 'https://api-sepolia.arbiscan.io/api',
+        browserURL: 'https://sepolia.arbiscan.io/',
+      },
+    },
+    {
+      network: 'baseSepolia',
+      chainId: 84523,
+      urls: {
+        apiURL: 'https://base-sepolia.blockscout.com/api',
+        browserURL: 'https://base-sepolia.blockscout.com/',
       },
     },
   ],

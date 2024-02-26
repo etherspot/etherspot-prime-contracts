@@ -1,55 +1,54 @@
 # ERC7579 IMPLEMENTATION GAS CONSUMPTION
 
-### aa-benchmark results
+<!-- ### aa-benchmark results - OLD
 
 |                   | Creation | Native transfer | ERC20 transfer | Total  |
 | ----------------- | -------- | --------------- | -------------- | ------ |
 | ERC7579 reference | 289438   | 103811          | 93213          | 486462 |
-| Etherspot ERC7579 | 319604   | 105012          | 94402          | 519018 |
+| Etherspot ERC7579 | 319604   | 105012          | 94402          | 519018 | -->
 
-### complete gas usage by function
+### complete gas usage by function (26/02/2024)
 
-| src/ERC7579/modules/MultipleOwnerECDSAValidator.sol:MultipleOwnerECDSAValidator contract |                 |      |        |      |         |
-|------------------------------------------------------------------------------------------|-----------------|------|--------|------|---------|
-| Deployment Cost                                                                          | Deployment Size |      |        |      |         |
-| 235275                                                                                   | 1207            |      |        |      |         |
-| Function Name                                                                            | min             | avg  | median | max  | # calls |
-| onInstall                                                                                | 408             | 408  | 408    | 408  | 52      |
-| validateUserOp                                                                           | 5648            | 6318 | 5648   | 7658 | 3       |
-
-
-| src/ERC7579/wallet/EtherspotWallet7579.sol:EtherspotWallet7579 contract |                 |        |        |        |         |
-|-------------------------------------------------------------------------|-----------------|--------|--------|--------|---------|
-| Deployment Cost                                                         | Deployment Size |        |        |        |         |
-| 2442309                                                                 | 12281           |        |        |        |         |
-| Function Name                                                           | min             | avg    | median | max    | # calls |
-| addGuardian                                                             | 732             | 35158  | 27028  | 50928  | 67      |
-| addOwner                                                                | 1022            | 21516  | 33894  | 33894  | 10      |
-| changeProposalTimelock                                                  | 2658            | 18262  | 26064  | 26064  | 3       |
-| discardCurrentProposal                                                  | 1101            | 4545   | 4798   | 6303   | 5       |
-| execute                                                                 | 26007           | 26007  | 26007  | 26007  | 2       |
-| getProposal                                                             | 450             | 1873   | 2058   | 2561   | 6       |
-| guardianCosign                                                          | 1403            | 23946  | 15304  | 51499  | 8       |
-| guardianCount                                                           | 384             | 384    | 384    | 384    | 2       |
-| guardianPropose                                                         | 716             | 101192 | 143513 | 143513 | 20      |
-| initializeAccount                                                       | 123078          | 150183 | 150715 | 150715 | 52      |
-| isExecutorInstalled                                                     | 2812            | 2812   | 2812   | 2812   | 1       |
-| isGuardian                                                              | 635             | 1035   | 635    | 2635   | 5       |
-| isOwner                                                                 | 678             | 1223   | 678    | 2678   | 11      |
-| isValidatorInstalled                                                    | 2811            | 2811   | 2811   | 2811   | 1       |
-| ownerCount                                                              | 430             | 430    | 430    | 430    | 2       |
-| proposalId                                                              | 407             | 407    | 407    | 407    | 1       |
-| proposalTimelock                                                        | 384             | 384    | 384    | 384    | 1       |
-| removeGuardian                                                          | 2289            | 2967   | 2645   | 4922   | 5       |
-| removeOwner                                                             | 2394            | 3737   | 3675   | 5067   | 6       |
-| supportsInterface                                                       | 463             | 673    | 603    | 954    | 3       |
-| validateUserOp                                                          | 37913           | 41530  | 42334  | 44344  | 3       |
+| src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol:MultipleOwnerECDSAValidator contract |                 |       |        |       |         |
+|----------------------|-----------------|-------|--------|-------|---------|
+| Deployment Cost      | Deployment Size |       |        |       |         |
+| 503737               | 2548            |       |        |       |         |
+| Function Name        | min             | avg   | median | max   | # calls |
+| onInstall            | 22835           | 22835 | 22835  | 22835 | 49      |
+| validateUserOp       | 6591            | 7199  | 7267   | 7538  | 6       |
 
 
-| src/ERC7579/wallet/EtherspotWallet7579Factory.sol:EtherspotWallet7579Factory contract |                 |        |        |        |         |
-|---------------------------------------------------------------------------------------|-----------------|--------|--------|--------|---------|
-| Deployment Cost                                                                       | Deployment Size |        |        |        |         |
-| 239733                                                                                | 1380            |        |        |        |         |
-| Function Name                                                                         | min             | avg    | median | max    | # calls |
-| createAccount                                                                         | 194219          | 222022 | 222568 | 222568 | 52      |
-| getAddress                                                                            | 1280            | 1280   | 1280   | 1280   | 1       |
+| src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol:ModularEtherspotWallet contract |                 |        |        |        |         |
+|------------------------|-----------------|--------|--------|--------|---------|
+| Deployment Cost        | Deployment Size |        |        |        |         |
+| 2231463                | 11228           |        |        |        |         |
+| Function Name  | min             | avg    | median | max    | # calls |
+| addGuardian            | 754             | 34374  | 27050  | 48950  | 67      |
+| addOwner               | 732             | 16970  | 27028  | 27028  | 10      |
+| changeProposalTimelock | 2591            | 16861  | 23997  | 23997  | 3       |
+| discardCurrentProposal | 1079            | 4523   | 4776   | 6281   | 5       |
+| execute                | 26565           | 33622  | 26565  | 61853  | 5       |
+| executeFromExecutor    | 3110            | 3933   | 3933   | 4756   | 2       |
+| getProposal            | 428             | 1851   | 2036   | 2539   | 6       |
+| guardianCosign         | 1381            | 22124  | 15282  | 46677  | 8       |
+| guardianCount          | 340             | 340    | 340    | 340    | 2       |
+| guardianPropose        | 694             | 101170 | 143491 | 143491 | 20      |
+| initializeAccount      | 144821          | 172968 | 174807 | 174807 | 53      |
+| isGuardian             | 591             | 991    | 591    | 2591   | 5       |
+| isOwner                | 590             | 875    | 590    | 2590   | 14      |
+| ownerCount             | 364             | 364    | 364    | 364    | 2       |
+| proposalId             | 407             | 407    | 407    | 407    | 1       |
+| proposalTimelock       | 362             | 362    | 362    | 362    | 1       |
+| removeGuardian         | 737             | 2207   | 2324   | 2965   | 5       |
+| removeOwner            | 716             | 2030   | 2394   | 2944   | 6       |
+| validateUserOp         | 39116           | 39580  | 39723  | 39733  | 6       |
+
+
+| src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol:ModularEtherspotWalletFactory contract |                 |        |        |        |         |
+|---------------------|-----------------|--------|--------|--------|---------|
+| Deployment Cost     | Deployment Size |        |        |        |         |
+| 239733              | 1380            |        |        |        |         |
+| Function Name       | min             | avg    | median | max    | # calls |
+| createAccount       | 1730            | 242540 | 249160 | 249160 | 54      |
+| getAddress          | 1619            | 1628   | 1631   | 1631   | 5       |
+| implementation      | 216             | 216    | 216    | 216    | 1       |

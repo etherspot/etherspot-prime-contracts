@@ -2,14 +2,14 @@
 pragma solidity ^0.8.21;
 
 import "./ModuleManager.sol";
-import "../interfaces/IMSA.sol";
-import "../interfaces/IModule.sol";
+import "../interfaces/IERC7579Account.sol";
+import "../interfaces/IERC7579Module.sol";
 /**
- * @title reference implementation of the minimal modular smart account with Hook Extension
+ * @title reference implementation of HookManager
  * @author zeroknots.eth | rhinestone.wtf
  */
 
-abstract contract HookManager is ModuleManager, IAccountConfig_Hook {
+abstract contract HookManager {
     /// @custom:storage-location erc7201:hookmanager.storage.msa
     struct HookManagerStorage {
         IHook _hook;
@@ -23,7 +23,7 @@ abstract contract HookManager is ModuleManager, IAccountConfig_Hook {
     error HookAlreadyInstalled(address currentHook);
 
     modifier withHook() {
-        address hook = getHook();
+        address hook = _getHook();
         if (hook == address(0)) {
             _;
         } else {
@@ -40,71 +40,35 @@ abstract contract HookManager is ModuleManager, IAccountConfig_Hook {
         }
     }
 
-    /**
-     * @inheritdoc IAccountConfig_Hook
-     */
-    function installHook(
-        address hook,
-        bytes calldata data
-    ) public virtual onlyEntryPointOrSelf {
-        _installHook(hook, data);
-    }
-
     function _installHook(address hook, bytes calldata data) internal virtual {
-        address currentHook = getHook();
+        address currentHook = _getHook();
         if (currentHook != address(0)) {
             revert HookAlreadyInstalled(currentHook);
         }
-        IHook(hook).onInstall(data);
         _setHook(hook);
-        emit EnableHook(hook);
-    }
-
-    /**
-     * @inheritdoc IAccountConfig_Hook
-     */
-    function uninstallHook(
-        address hook,
-        bytes calldata data
-    ) public virtual onlyEntryPointOrSelf {
-        _uninstallHook(hook, data);
+        IHook(hook).onInstall(data);
     }
 
     function _uninstallHook(
         address hook,
         bytes calldata data
     ) internal virtual {
-        IHook(hook).onUninstall(data);
         _setHook(address(0));
-        emit DisableHook(hook);
+        IHook(hook).onUninstall(data);
     }
 
-    /**
-     * @inheritdoc IAccountConfig_Hook
-     */
-    function isHookInstalled(
-        address hook
-    ) public view virtual returns (bool isEnabled) {
-        return getHook() == hook;
-    }
-
-    function getHook() internal view returns (address _hook) {
+    function _getHook() internal view returns (address _hook) {
         bytes32 slot = HOOKMANAGER_STORAGE_LOCATION;
         assembly {
             _hook := sload(slot)
         }
     }
 
-    function supportsInterface(
-        bytes4 interfaceID
-    ) public pure virtual override returns (bool) {
-        if (interfaceID == type(IAccountConfig_Hook).interfaceId) return true;
-        if (interfaceID == IAccountConfig_Hook.installHook.selector)
-            return true;
-        if (interfaceID == IAccountConfig_Hook.uninstallHook.selector)
-            return true;
-        if (interfaceID == IAccountConfig_Hook.isHookInstalled.selector)
-            return true;
-        return super.supportsInterface(interfaceID);
+    function _isHookInstalled(address module) internal view returns (bool) {
+        return _getHook() == module;
+    }
+
+    function getActiveHook() external view returns (address hook) {
+        return _getHook();
     }
 }

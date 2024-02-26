@@ -2,7 +2,6 @@
 pragma solidity ^0.8.21;
 
 import "forge-std/Test.sol";
-import "forge-std/console2.sol";
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol";
 import {MockValidator} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockValidator.sol";
@@ -180,8 +179,6 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
             )
         );
         vm.stopPrank();
-        console2.log("address(account):", address(account));
-        console2.log("address(account2):", address(account2));
         assertFalse(address(account) == address(account2));
     }
 }

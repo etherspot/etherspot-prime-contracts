@@ -2,22 +2,26 @@
 pragma solidity ^0.8.21;
 
 import "../core/ModuleManager.sol";
-import "../core/Fallback.sol";
 import "../core/HookManager.sol";
 
-import "../interfaces/IModule.sol";
+import "../interfaces/IERC7579Module.sol";
 
 struct BootstrapConfig {
     address module;
     bytes data;
 }
 
-contract Bootstrap is ModuleManager, Fallback, HookManager {
+contract Bootstrap is ModuleManager, HookManager {
     function singleInitMSA(IModule validator, bytes calldata data) external {
         // init validator
         _installValidator(address(validator), data);
     }
 
+    /**
+     * This function is intended to be called by the MSA with a delegatecall.
+     * Make sure that the MSA already initilazed the linked lists in the ModuleManager prior to
+     * calling this function
+     */
     function initMSA(
         BootstrapConfig[] calldata _validators,
         BootstrapConfig[] calldata _executors,
@@ -42,7 +46,7 @@ contract Bootstrap is ModuleManager, Fallback, HookManager {
 
         // init fallback
         if (_fallback.module != address(0)) {
-            _installFallback(_fallback.module, _fallback.data);
+            _installFallbackHandler(_fallback.module, _fallback.data);
         }
     }
 
@@ -59,11 +63,5 @@ contract Bootstrap is ModuleManager, Fallback, HookManager {
                 (_validators, _executors, _hook, _fallback)
             )
         );
-    }
-
-    function supportsInterface(
-        bytes4 interfaceID
-    ) public pure virtual override(HookManager, ModuleManager) returns (bool) {
-        return false;
     }
 }

@@ -9,6 +9,7 @@ import {
 } from '../../typings';
 import {
   AddressZero,
+  deployEntryPoint,
   createAccountOwner,
   createAddress,
   isDeployed,
@@ -16,12 +17,13 @@ import {
 
 describe('EtherspotWalletFactory', () => {
   const ethersSigner = ethers.provider.getSigner();
-  const entryPoint = '0x'.padEnd(42, '2');
+  let entryPoint: string;
   let accounts: string[];
   let accountOwner: Wallet;
   let accountFactory: EtherspotWalletFactory;
 
   before(async function () {
+    entryPoint = await deployEntryPoint().then((e) => e.address);
     accounts = await ethers.provider.listAccounts();
     // ignore in geth.. this is just a sanity test. should be refactored to use a single-account mode..
     if (accounts.length < 2) this.skip();

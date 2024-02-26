@@ -22,6 +22,7 @@ import {
   AddressZero,
   fund,
   createAddress,
+  deployEntryPoint,
 } from '../../account-abstraction/test/testutils';
 import { createEtherspotWallet, errorParse } from '../TestUtils';
 import {
@@ -29,19 +30,21 @@ import {
   getUserOpHash,
   packUserOp,
   signUserOp,
+  encodeUserOp,
 } from '../../account-abstraction/test/UserOp';
 import { parseEther } from 'ethers/lib/utils';
 import { UserOperation } from '../../account-abstraction/test/UserOperation';
 
 describe('EtherspotWallet', function () {
+  let entryPoint: string;
   const ethersSigner = ethers.provider.getSigner();
-  const entryPoint = '0x'.padEnd(42, '2');
   let accounts: string[];
   let testUtil: TestUtil;
   let accountFactory: EtherspotWalletFactory;
   let accountOwner: Wallet;
 
   before(async function () {
+    entryPoint = await deployEntryPoint().then((e) => e.address);
     accounts = await ethers.provider.listAccounts();
     // ignore in geth.. this is just a sanity test. should be refactored to use a single-account mode..
     if (accounts.length < 2) this.skip();
@@ -130,8 +133,9 @@ describe('EtherspotWallet', function () {
 
   it('should pack in js the same as solidity', async () => {
     const op = await fillUserOpDefaults({ sender: accounts[0] });
+    const encoded = encodeUserOp(op);
     const packed = packUserOp(op);
-    expect(await testUtil.packUserOp(op)).to.equal(packed);
+    expect(await testUtil.encodeUserOp(packed)).to.equal(encoded);
   });
 
   describe('#validateUserOp', () => {
@@ -189,8 +193,9 @@ describe('EtherspotWallet', function () {
       expectedPay = actualGasPrice * (callGasLimit + verificationGasLimit);
 
       preBalance = await getBalance(account.address);
+      const packedOp = packUserOp(userOp);
       const ret = await account.validateUserOp(
-        userOp,
+        packedOp,
         userOpHash,
         expectedPay,
         { gasPrice: actualGasPrice }
@@ -205,8 +210,9 @@ describe('EtherspotWallet', function () {
 
     it('should return NO_SIG_VALIDATION on wrong signature', async () => {
       const userOpHash = HashZero;
+      const packedOp = packUserOp(userOp);
       const deadline = await account.callStatic.validateUserOp(
-        { ...userOp, nonce: 1 },
+        { ...packedOp, nonce: 1 },
         userOpHash,
         0
       );
@@ -268,8 +274,9 @@ describe('EtherspotWallet', function () {
       expectedPay = actualGasPrice * (callGasLimit + verificationGasLimit);
 
       preBalance = await getBalance(account.address);
+      const packedOp = packUserOp(userOp);
       const ret = await account.validateUserOp(
-        userOp,
+        packedOp,
         userOpHash,
         expectedPay,
         { gasPrice: actualGasPrice }
@@ -284,8 +291,9 @@ describe('EtherspotWallet', function () {
 
     it('should return NO_SIG_VALIDATION on wrong signature', async () => {
       const userOpHash = HashZero;
+      const packedOp = packUserOp(userOp);
       const deadline = await account.callStatic.validateUserOp(
-        { ...userOp, nonce: 1 },
+        { ...packedOp, nonce: 1 },
         userOpHash,
         0
       );
@@ -848,7 +856,9 @@ describe('EtherspotWallet', function () {
           entryPoint,
           accountFactory
         );
-        await expect(account.upgradeTo(createAddress())).to.be.revertedWith(
+        await expect(
+          account.upgradeToAndCall(createAddress(), ethers.utils.hexlify('0x'))
+        ).to.be.revertedWith(
           'EtherspotWallet:: upgrade implementation invalid'
         );
       });
@@ -872,7 +882,10 @@ describe('EtherspotWallet', function () {
         ).deploy(entryPoint, accountFactory.address);
         await accountFactory.setImplementation(newerImplementation.address);
         await expect(
-          account.upgradeTo(newImplementation.address)
+          account.upgradeToAndCall(
+            newImplementation.address,
+            ethers.utils.hexlify('0x')
+          )
         ).to.be.revertedWith(
           'EtherspotWallet:: upgrade implementation invalid'
         );
