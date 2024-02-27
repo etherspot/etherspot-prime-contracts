@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
-import {UserOperation} from "../../../account-abstraction/contracts/interfaces/UserOperation.sol";
+import {UserOperation} from "../../../../../account-abstraction/contracts/interfaces/UserOperation.sol";
 
 interface ISingleOwnerPlugin {
     enum FunctionId {

@@ -5,7 +5,7 @@ pragma solidity ^0.8.19;
 
 import {Test} from "forge-std/Test.sol";
 
-import {IEntryPoint} from "@ERC4337/interfaces/IEntryPoint.sol";
+import {IEntryPoint} from "../../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {ERC721PresetMinterPauserAutoId} from "@openzeppelin/contracts/token/ERC721/presets/ERC721PresetMinterPauserAutoId.sol";
 import {IERC777Recipient} from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
@@ -18,11 +18,11 @@ import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.s
 import {MSCAFactoryFixture} from "./MSCAFactoryFixture.sol";
 import {ErrorsLib} from "../../../src/ERC6900/libraries/ErrorsLib.sol";
 
-import {FunctionReference} from "@ERC6900/src/libraries/FunctionReferenceLib.sol";
-import {IPluginManager} from "@ERC6900/src/interfaces/IPluginManager.sol";
+import {FunctionReference} from "../../../src/ERC6900/erc6900-ref-impl/libraries/FunctionReferenceLib.sol";
+import {IPluginManager} from "../../../src/ERC6900/erc6900-ref-impl/interfaces/IPluginManager.sol";
 
-import {MockERC777} from "@ERC6900/test/mocks/MockERC777.sol";
-import {MockERC1155} from "@ERC6900/test/mocks/MockERC1155.sol";
+import {MockERC777} from "../../../src/ERC6900/erc6900-ref-impl/test/mocks/MockERC777.sol";
+import {MockERC1155} from "../../../src/ERC6900/erc6900-ref-impl/test/mocks/MockERC1155.sol";
 
 contract TokenReceiverPluginTest is Test, IERC1155Receiver {
     EtherspotWalletV2 public acct;

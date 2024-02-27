@@ -6,14 +6,14 @@ pragma solidity ^0.8.19;
 import {Test} from "forge-std/Test.sol";
 import "forge-std/console.sol";
 
-import {EntryPoint} from "@ERC4337/core/EntryPoint.sol";
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
+import {EntryPoint} from "../../../account-abstraction/contracts/core/EntryPoint.sol";
+import {UserOperation} from "../../../account-abstraction/contracts/interfaces/UserOperation.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import {SingleOwnerPlugin} from "../../../src/ERC6900/plugins/SingleOwnerPlugin.sol";
 
-import {ISingleOwnerPlugin} from "@ERC6900/src/plugins/owner/ISingleOwnerPlugin.sol";
-import {ContractOwner} from "@ERC6900/test/mocks/ContractOwner.sol";
+import {ISingleOwnerPlugin} from "../../../src/ERC6900/erc6900-ref-impl/plugins/owner/ISingleOwnerPlugin.sol";
+import {ContractOwner} from "../../../src/ERC6900/erc6900-ref-impl/test/mocks/ContractOwner.sol";
 
 contract SingleOwnerPluginTest is Test {
     using ECDSA for bytes32;

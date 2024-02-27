@@ -6,8 +6,8 @@ pragma solidity ^0.8.19;
 import {Test} from "forge-std/Test.sol";
 import "forge-std/console2.sol";
 
-import {EntryPoint} from "@ERC4337/core/EntryPoint.sol";
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
+import {EntryPoint} from "../../../account-abstraction/contracts/core/EntryPoint.sol";
+import {UserOperation} from "../../../account-abstraction/contracts/interfaces/UserOperation.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import {MultipleOwnerPlugin} from "../../../src/ERC6900/plugins/MultipleOwnerPlugin.sol";
@@ -18,8 +18,8 @@ import {IMultipleOwnerPlugin} from "../../../src/ERC6900/interfaces/IMultipleOwn
 import {IGuardianPlugin} from "../../../src/ERC6900/interfaces/IGuardianPlugin.sol";
 import {ErrorsLib} from "../../../src/ERC6900/libraries/ErrorsLib.sol";
 
-import {IPluginManager} from "@ERC6900/src/interfaces/IPluginManager.sol";
-import {FunctionReference, FunctionReferenceLib} from "@ERC6900/src/libraries/FunctionReferenceLib.sol";
+import {IPluginManager} from "../../../src/ERC6900/erc6900-ref-impl/interfaces/IPluginManager.sol";
+import {FunctionReference, FunctionReferenceLib} from "../../../src/ERC6900/erc6900-ref-impl/libraries/FunctionReferenceLib.sol";
 
 contract GuardianPluginTest is Test {
     using ECDSA for bytes32;

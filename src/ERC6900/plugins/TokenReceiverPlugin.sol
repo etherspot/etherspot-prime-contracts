@@ -5,8 +5,8 @@ import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Recei
 import {IERC777Recipient} from "@openzeppelin/contracts/interfaces/IERC777Recipient.sol";
 import {IERC1155Receiver} from "@openzeppelin/contracts/interfaces/IERC1155Receiver.sol";
 
-import {ManifestFunction, ManifestAssociatedFunctionType, ManifestAssociatedFunction, PluginManifest, ManifestExecutionFunction} from "@ERC6900/src/interfaces/IPlugin.sol";
-import {BasePlugin} from "@ERC6900/src/plugins/BasePlugin.sol";
+import {ManifestFunction, ManifestAssociatedFunctionType, ManifestAssociatedFunction, PluginManifest, ManifestExecutionFunction} from "../erc6900-ref-impl/interfaces/IPlugin.sol";
+import {BasePlugin} from "../erc6900-ref-impl/plugins/BasePlugin.sol";
 
 /// @title Token Receiver Plugin
 /// @author ERC-6900 Authors

@@ -4,21 +4,21 @@ pragma solidity ^0.8.19;
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
-import {IEntryPoint} from "@ERC4337/interfaces/IEntryPoint.sol";
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
-import {BaseAccount} from "@ERC4337/core/BaseAccount.sol";
+import {IEntryPoint} from "../../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {UserOperation} from "../../../account-abstraction/contracts/interfaces/UserOperation.sol";
+import {BaseAccount} from "../../../account-abstraction/contracts/core/BaseAccount.sol";
 
-import {BaseModularAccount} from "@ERC6900/src/account/BaseModularAccount.sol";
-import {BaseModularAccountLoupe} from "@ERC6900/src/account/BaseModularAccountLoupe.sol";
-import {IPlugin, PluginManifest} from "@ERC6900/src/interfaces/IPlugin.sol";
-import {IStandardExecutor} from "@ERC6900/src/interfaces/IStandardExecutor.sol";
-import {IPluginExecutor} from "@ERC6900/src/interfaces/IPluginExecutor.sol";
-import {AccountStorage, getAccountStorage, getPermittedCallKey} from "@ERC6900/src/libraries/AccountStorage.sol";
-import {Execution} from "@ERC6900/src/libraries/ERC6900TypeUtils.sol";
-import {FunctionReference, FunctionReferenceLib} from "@ERC6900/src/libraries/FunctionReferenceLib.sol";
-import {AccountStorageInitializable} from "@ERC6900/src/account/AccountStorageInitializable.sol";
-import {IPluginManager} from "@ERC6900/src/interfaces/IPluginManager.sol";
-import {_coalescePreValidation, _coalesceValidation} from "@ERC6900/src/helpers/ValidationDataHelpers.sol";
+import {BaseModularAccount} from "../erc6900-ref-impl/account/BaseModularAccount.sol";
+import {BaseModularAccountLoupe} from "../erc6900-ref-impl/account/BaseModularAccountLoupe.sol";
+import {IPlugin, PluginManifest} from "../erc6900-ref-impl/interfaces/IPlugin.sol";
+import {IStandardExecutor} from "../erc6900-ref-impl/interfaces/IStandardExecutor.sol";
+import {IPluginExecutor} from "../erc6900-ref-impl/interfaces/IPluginExecutor.sol";
+import {AccountStorage, getAccountStorage, getPermittedCallKey} from "../erc6900-ref-impl/libraries/AccountStorage.sol";
+import {Execution} from "../erc6900-ref-impl/libraries/ERC6900TypeUtils.sol";
+import {FunctionReference, FunctionReferenceLib} from "../erc6900-ref-impl/libraries/FunctionReferenceLib.sol";
+import {AccountStorageInitializable} from "../erc6900-ref-impl/account/AccountStorageInitializable.sol";
+import {IPluginManager} from "../erc6900-ref-impl/interfaces/IPluginManager.sol";
+import {_coalescePreValidation, _coalesceValidation} from "../erc6900-ref-impl/helpers/ValidationDataHelpers.sol";
 
 import {ErrorsLib} from "../libraries/ErrorsLib.sol";
 

@@ -6,8 +6,8 @@ pragma solidity ^0.8.19;
 import {Test, console} from "forge-std/Test.sol";
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {EntryPoint} from "@ERC4337/core/EntryPoint.sol";
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
+import {EntryPoint} from "../../../account-abstraction/contracts/core/EntryPoint.sol";
+import {UserOperation} from "../../../account-abstraction/contracts/interfaces/UserOperation.sol";
 
 import {EtherspotWalletV2} from "../../../src/ERC6900/wallet/EtherspotWalletV2.sol";
 import {SingleOwnerPlugin} from "../../../src/ERC6900/plugins/SingleOwnerPlugin.sol";
@@ -16,18 +16,18 @@ import {GuardianPlugin} from "../../../src/ERC6900/plugins/GuardianPlugin.sol";
 import {TokenReceiverPlugin} from "../../../src/ERC6900/plugins/TokenReceiverPlugin.sol";
 import {MSCAFactoryFixture} from "./MSCAFactoryFixture.sol";
 
-import {BaseModularAccount} from "@ERC6900/src/account/BaseModularAccount.sol";
-import {PluginManifest} from "@ERC6900/src/interfaces/IPlugin.sol";
-import {IPluginLoupe} from "@ERC6900/src/interfaces/IPluginLoupe.sol";
-import {IPluginManager} from "@ERC6900/src/interfaces/IPluginManager.sol";
-import {IPluginExecutor} from "@ERC6900/src/interfaces/IPluginExecutor.sol";
-import {Execution} from "@ERC6900/src/libraries/ERC6900TypeUtils.sol";
-import {FunctionReference} from "@ERC6900/src/libraries/FunctionReferenceLib.sol";
-import {IPlugin, PluginManifest} from "@ERC6900/src/interfaces/IPlugin.sol";
+import {BaseModularAccount} from "../../../src/ERC6900/erc6900-ref-impl/account/BaseModularAccount.sol";
+import {PluginManifest} from "../../../src/ERC6900/erc6900-ref-impl/interfaces/IPlugin.sol";
+import {IPluginLoupe} from "../../../src/ERC6900/erc6900-ref-impl/interfaces/IPluginLoupe.sol";
+import {IPluginManager} from "../../../src/ERC6900/erc6900-ref-impl/interfaces/IPluginManager.sol";
+import {IPluginExecutor} from "../../../src/ERC6900/erc6900-ref-impl/interfaces/IPluginExecutor.sol";
+import {Execution} from "../../../src/ERC6900/erc6900-ref-impl/libraries/ERC6900TypeUtils.sol";
+import {FunctionReference} from "../../../src/ERC6900/erc6900-ref-impl/libraries/FunctionReferenceLib.sol";
+import {IPlugin, PluginManifest} from "../../../src/ERC6900/erc6900-ref-impl/interfaces/IPlugin.sol";
 
-import {Counter} from "@ERC6900/test/mocks/Counter.sol";
-import {ComprehensivePlugin} from "@ERC6900/test/mocks/plugins/ComprehensivePlugin.sol";
-import {MockPlugin} from "@ERC6900/test/mocks/MockPlugin.sol";
+import {Counter} from "../../../src/ERC6900/erc6900-ref-impl/test/mocks/Counter.sol";
+import {ComprehensivePlugin} from "../../../src/ERC6900/erc6900-ref-impl/test/mocks/plugins/ComprehensivePlugin.sol";
+import {MockPlugin} from "../../../src/ERC6900/erc6900-ref-impl/test/mocks/MockPlugin.sol";
 
 contract EtherspotWalletV2Test is Test {
     using ECDSA for bytes32;

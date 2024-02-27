@@ -3,16 +3,16 @@ pragma solidity ^0.8.19;
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {SignatureChecker} from "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
-import {UserOperation} from "@ERC4337/interfaces/UserOperation.sol";
+import {UserOperation} from "../../../account-abstraction/contracts/interfaces/UserOperation.sol";
 
 import {EtherspotWalletV2, UUPSUpgradeable} from "../wallet/EtherspotWalletV2.sol";
 import {ArrayLib} from "../libraries/ArrayLib.sol";
 import {ErrorsLib} from "../libraries/ErrorsLib.sol";
 import {IMultipleOwnerPlugin} from "../interfaces/IMultipleOwnerPlugin.sol";
 
-import {ManifestFunction, ManifestAssociatedFunctionType, ManifestAssociatedFunction, PluginManifest, ManifestExecutionFunction} from "@ERC6900/src/interfaces/IPlugin.sol";
-import {IStandardExecutor} from "@ERC6900/src/interfaces/IStandardExecutor.sol";
-import {BasePlugin} from "@ERC6900/src/plugins/BasePlugin.sol";
+import {ManifestFunction, ManifestAssociatedFunctionType, ManifestAssociatedFunction, PluginManifest, ManifestExecutionFunction} from "../erc6900-ref-impl/interfaces/IPlugin.sol";
+import {IStandardExecutor} from "../erc6900-ref-impl/interfaces/IStandardExecutor.sol";
+import {BasePlugin} from "../erc6900-ref-impl/plugins/BasePlugin.sol";
 
 contract MultipleOwnerPlugin is BasePlugin, IMultipleOwnerPlugin {
     using ECDSA for bytes32;
