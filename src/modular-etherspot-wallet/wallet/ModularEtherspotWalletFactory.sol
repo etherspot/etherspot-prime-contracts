@@ -4,11 +4,11 @@ pragma solidity ^0.8.21;
 import {LibClone} from "solady/src/utils/LibClone.sol";
 import {IModularEtherspotWallet} from "../interfaces/IModularEtherspotWallet.sol";
 
-contract ModularEtherspotWalletFactory {
+contract ModularEtherspotWalletFactory{
     address public immutable implementation;
 
-    constructor(address _msaImplementation) {
-        implementation = _msaImplementation;
+    constructor(address _implementation) {
+        implementation = _implementation;
     }
 
     function createAccount(

@@ -14,8 +14,9 @@ contract MultipleOwnerECDSAValidator is IValidator {
 
     bytes4 private constant ERC1271_SUCCESS = 0x1626ba7e;
     bytes4 private constant ERC1271_FAILURE = 0xffffffff;
-    string constant NAME = "MultipleOwnerECDSAValidator";
-    string constant VERSION = "1.0.0";
+    bytes32 constant NAME = 0x4a32d5b1f5956a46c94bfb08ef0f9d70b9fd1e76f1047bcfd4b8d1cf4ec606ae; // keccak256("MultipleOwnerECDSAValidator")
+    bytes32 constant VERSION = 0x604f330029e6455b43bfb3cfb2e9ebd9e2c90142aa85c5e4be430e6b2b57b740; // keccak256("1.0.0")
+
 
     error InvalidExec();
 
@@ -39,9 +40,10 @@ contract MultipleOwnerECDSAValidator is IValidator {
 
     function isModuleType(
         uint256 typeID
-    ) external view override returns (bool) {}
+    ) external pure override returns (bool) {
+        return typeID == MODULE_TYPE_VALIDATOR;
+    }
 
-    function getModuleTypes() external view returns (EncodedModuleTypes) {}
 
     function validateUserOp(
         PackedUserOperation calldata userOp,
@@ -73,11 +75,20 @@ contract MultipleOwnerECDSAValidator is IValidator {
     }
 
     function isValidSignatureWithSender(
-        address sender,
+        address,
         bytes32 hash,
         bytes calldata data
     ) external view override returns (bytes4) {
-        bytes32 domainSeparator = _domainSeparator();
+        bytes32 domainSeparator;
+        assembly {
+            let temp := mload(0x40) // Load free memory pointer
+            mstore(temp, 0x1901) // Prefix for EIP-191 signature
+            mstore(add(temp, 2), NAME) // Place contract name
+            mstore(add(temp, 34), VERSION) // Place contract version
+            mstore(add(temp, 66), chainid()) // Place chain ID
+            mstore(add(temp, 98), caller()) // Place verifying contract address
+            domainSeparator := keccak256(temp, 130) // Hash the concatenated values
+        }
         bytes32 signedMessageHash = keccak256(
             abi.encodePacked("\x19\x01", domainSeparator, hash)
         );
@@ -87,27 +98,5 @@ contract MultipleOwnerECDSAValidator is IValidator {
             return ERC1271_SUCCESS;
         }
         return ERC1271_FAILURE;
-    }
-
-    /// @dev EIP-712 compliant domain separator
-    function _domainSeparator() internal view returns (bytes32) {
-        bytes32 nameHash = keccak256(bytes(NAME));
-        bytes32 versionHash = keccak256(bytes(VERSION));
-        // Use proxy address for the EIP-712 domain separator.
-        address proxyAddress = address(this);
-        // Construct domain separator with name, version, chainId, and proxy address.
-        bytes32 typeHash = keccak256(
-            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-        );
-        return
-            keccak256(
-                abi.encode(
-                    typeHash,
-                    nameHash,
-                    versionHash,
-                    block.chainid,
-                    proxyAddress
-                )
-            );
     }
 }

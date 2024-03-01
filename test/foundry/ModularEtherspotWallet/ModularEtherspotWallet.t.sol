@@ -101,7 +101,7 @@ contract ModularEtherspotWalletTest is TestBaseUtil {
         );
         // Get the account, initcode and nonce
         (address account, bytes memory initCode) = getMEWAndInitCode();
-        uint256 nonce = getNonce(account, address(ecdsaValidator));
+        uint256 nonce = getNonce(account);
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -161,7 +161,7 @@ contract ModularEtherspotWalletTest is TestBaseUtil {
 
         // Get the account, initcode and nonce
         (address account, bytes memory initCode) = getMEWAndInitCode();
-        uint256 nonce = getNonce(account, address(ecdsaValidator));
+        uint256 nonce = getNonce(account);
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -252,7 +252,7 @@ contract ModularEtherspotWalletTest is TestBaseUtil {
         );
         // Get the account and nonce
         mewAccount = setupMEW();
-        uint256 nonce = getNonce(address(mewAccount), address(ecdsaValidator));
+        uint256 nonce = getNonce(address(mewAccount));
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -299,7 +299,7 @@ contract ModularEtherspotWalletTest is TestBaseUtil {
         );
         // Get the account and nonce
         mewAccount = setupMEW();
-        uint256 nonce = getNonce(address(mewAccount), address(ecdsaValidator));
+        uint256 nonce = getNonce(address(mewAccount));
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -510,14 +510,6 @@ contract ModularEtherspotWalletTest is TestBaseUtil {
         vm.prank(owner1);
         mewAccount.changeProposalTimelock(6 days);
         assertEq(6 days, mewAccount.proposalTimelock());
-    }
-
-    function test_emit_changeProposalTimelock() public {
-        mewAccount = setupMEW();
-        vm.startPrank(owner1);
-        vm.expectEmit(true, true, true, true);
-        emit ProposalTimelockChanged(address(mewAccount), 6 days);
-        mewAccount.changeProposalTimelock(6 days);
     }
 
     function test_fail_changeProposalTimelock() public {

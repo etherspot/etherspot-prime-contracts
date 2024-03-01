@@ -43,13 +43,6 @@ interface IModule {
     function isModuleType(uint256 typeID) external view returns (bool);
 
     /**
-     * @dev Returns bit-encoded integer of the different typeIds of the module
-     *
-     * MUST return all the bit-encoded typeIds of the module
-     */
-    function getModuleTypes() external view returns (EncodedModuleTypes);
-
-    /**
      * @dev Returns if the module was already initialized for a provided smartaccount
      */
     function isInitialized(address smartAccount) external view returns (bool);

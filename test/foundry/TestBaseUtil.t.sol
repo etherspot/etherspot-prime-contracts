@@ -54,30 +54,26 @@ contract TestBaseUtil is BootstrapUtil, Test {
         internal
         returns (address account, bytes memory initCode)
     {
-        // Create config for initial modules
-        BootstrapConfig[] memory validators = makeBootstrapConfig(
-            address(defaultValidator),
-            ""
-        );
-        BootstrapConfig[] memory executors = makeBootstrapConfig(
-            address(defaultExecutor),
-            ""
-        );
-        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig memory fallbackHandler = _makeBootstrapConfig(
+        BootstrapConfig memory defaultBootstrapConfig = _makeBootstrapConfig(
             address(0),
             ""
         );
 
         // Create initcode and salt to be sent to Factory
         bytes memory _initCode = bootstrapSingleton._getInitMSACalldata(
-            validators,
-            executors,
-            hook,
-            fallbackHandler
+            makeBootstrapConfig(
+            address(defaultValidator),
+            ""
+        ),
+        makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        ),
+            defaultBootstrapConfig,
+            defaultBootstrapConfig
         );
-        bytes32 salt = keccak256("1");
 
+    bytes32 salt = keccak256("1");
         // Get address of new account
         account = factory.getAddress(salt, _initCode);
 
@@ -96,15 +92,15 @@ contract TestBaseUtil is BootstrapUtil, Test {
     }
 
     function getNonce(
-        address account,
-        address validator
-    ) internal returns (uint256 nonce) {
+        address account
+    ) internal view returns (uint256 nonce) {
         uint192 key = uint192(bytes24(bytes20(address(ecdsaValidator))));
         nonce = entrypoint.getNonce(address(account), key);
     }
 
     function getDefaultUserOp()
         internal
+        pure
         returns (PackedUserOperation memory userOp)
     {
         userOp = PackedUserOperation({
@@ -126,6 +122,11 @@ contract TestBaseUtil is BootstrapUtil, Test {
         internal
         returns (address account, bytes memory initCode)
     {
+                BootstrapConfig memory defaultBootstrapConfig = _makeBootstrapConfig(
+            address(0),
+            ""
+        );
+
         // Create owner
         (owner1, owner1Key) = makeAddrAndKey("owner1");
 
@@ -138,11 +139,6 @@ contract TestBaseUtil is BootstrapUtil, Test {
             address(defaultExecutor),
             ""
         );
-        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig memory fallbackHandler = _makeBootstrapConfig(
-            address(0),
-            ""
-        );
 
         // Create initcode and salt to be sent to Factory
         bytes memory _initCode = abi.encode(
@@ -150,7 +146,7 @@ contract TestBaseUtil is BootstrapUtil, Test {
             address(bootstrapSingleton),
             abi.encodeCall(
                 bootstrapSingleton.initMSA,
-                (validators, executors, hook, fallbackHandler)
+                (validators, executors, defaultBootstrapConfig, defaultBootstrapConfig)
             )
         );
         bytes32 salt = keccak256("1");
@@ -173,6 +169,11 @@ contract TestBaseUtil is BootstrapUtil, Test {
     }
 
     function setupMEW() internal returns (ModularEtherspotWallet mew) {
+                        BootstrapConfig memory defaultBootstrapConfig = _makeBootstrapConfig(
+            address(0),
+            ""
+        );
+
         // Create owner
         (owner1, owner1Key) = makeAddrAndKey("owner1");
 
@@ -185,11 +186,6 @@ contract TestBaseUtil is BootstrapUtil, Test {
             address(defaultExecutor),
             ""
         );
-        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig memory fallbackHandler = _makeBootstrapConfig(
-            address(0),
-            ""
-        );
 
         // Create initcode and salt to be sent to Factory
         bytes memory _initCode = abi.encode(
@@ -197,7 +193,7 @@ contract TestBaseUtil is BootstrapUtil, Test {
             address(bootstrapSingleton),
             abi.encodeCall(
                 bootstrapSingleton.initMSA,
-                (validators, executors, hook, fallbackHandler)
+                (validators, executors, defaultBootstrapConfig, defaultBootstrapConfig)
             )
         );
         bytes32 salt = keccak256("1");

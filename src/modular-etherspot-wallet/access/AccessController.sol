@@ -6,9 +6,9 @@ import {ErrorsLib} from "../libraries/ErrorsLib.sol";
 
 contract AccessController is IAccessController {
     /// State Variables
-    uint128 immutable MULTIPLY_FACTOR = 1000;
-    uint16 immutable SIXTY_PERCENT = 600;
-    uint24 immutable INITIAL_PROPOSAL_TIMELOCK = 24 hours;
+    uint128 constant MULTIPLY_FACTOR = 1000;
+    uint16 constant SIXTY_PERCENT = 600;
+    uint24 constant INITIAL_PROPOSAL_TIMELOCK = 24 hours;
     uint256 public ownerCount;
     uint256 public guardianCount;
     uint256 public proposalId;
@@ -28,7 +28,9 @@ contract AccessController is IAccessController {
     }
 
     modifier onlyGuardian() {
-        if (!isGuardian(msg.sender)) revert ErrorsLib.OnlyGuardian();
+        if (!isGuardian(msg.sender)) {
+            revert ErrorsLib.OnlyGuardian();
+        }
         _;
     }
 
@@ -54,7 +56,9 @@ contract AccessController is IAccessController {
             _newOwner == address(0) ||
             isGuardian(_newOwner) ||
             isOwner(_newOwner)
-        ) revert ErrorsLib.AddingInvalidOwner();
+        ) {
+            revert ErrorsLib.AddingInvalidOwner();
+        }
         _addOwner(_newOwner);
         emit OwnerAdded(address(this), _newOwner);
     }
@@ -65,9 +69,10 @@ contract AccessController is IAccessController {
      * @param _owner address of wallet owner to remove .
      */
     function removeOwner(address _owner) external onlyOwnerOrSelf {
-        if (_owner == address(0) || !isOwner(_owner))
-            revert ErrorsLib.RemovingInvalidOwner();
-        if (ownerCount <= 1) revert ErrorsLib.WalletNeedsOwner();
+        if (!isOwner(_owner)) revert ErrorsLib.RemovingInvalidOwner();
+        if (ownerCount <= 1) {
+            revert ErrorsLib.WalletNeedsOwner();
+        }
         _removeOwner(_owner);
         emit OwnerRemoved(address(this), _owner);
     }
@@ -82,7 +87,9 @@ contract AccessController is IAccessController {
             _newGuardian == address(0) ||
             isGuardian(_newGuardian) ||
             isOwner(_newGuardian)
-        ) revert ErrorsLib.AddingInvalidGuardian();
+        ) {
+            revert ErrorsLib.AddingInvalidGuardian();
+        }
         _addGuardian(_newGuardian);
         emit GuardianAdded(address(this), _newGuardian);
     }
@@ -93,8 +100,7 @@ contract AccessController is IAccessController {
      * @param _guardian address of existing guardian to remove.
      */
     function removeGuardian(address _guardian) external onlyOwnerOrSelf {
-        if (_guardian == address(0) || !isGuardian(_guardian))
-            revert ErrorsLib.RemovingInvalidGuardian();
+        if (!isGuardian(_guardian)) revert ErrorsLib.RemovingInvalidGuardian();
         _removeGuardian(_guardian);
         emit GuardianRemoved(address(this), _guardian);
     }
@@ -105,11 +111,10 @@ contract AccessController is IAccessController {
      * @dev Only owner or wallet.
      * @param   _newTimelock new timelock in seconds.
      */
-    function changeProposalTimelock(
-        uint256 _newTimelock
-    ) external onlyOwnerOrSelf {
-        proposalTimelock = _newTimelock;
-        emit ProposalTimelockChanged(address(this), _newTimelock);
+    function changeProposalTimelock(uint256 _newTimelock) external onlyOwnerOrSelf {
+        assembly {
+            sstore(proposalTimelock.slot, _newTimelock)  
+        }
     }
 
     /**
@@ -117,21 +122,15 @@ contract AccessController is IAccessController {
      * @dev Only owner or guardian or wallet. Must be after the proposal timelock is met.
      */
     function discardCurrentProposal() external onlyOwnerOrGuardianOrSelf {
-        if (_proposals[proposalId].resolved)
+        NewOwnerProposal storage prop = _proposals[proposalId]; 
+        uint256 timelock = proposalTimelock == 0 ? INITIAL_PROPOSAL_TIMELOCK : proposalTimelock;
+        if (prop.resolved) {
             revert ErrorsLib.ProposalResolved();
-        if (isGuardian(msg.sender) && proposalTimelock > 0) {
-            if (
-                (_proposals[proposalId].proposedAt + proposalTimelock) >=
-                block.timestamp
-            ) revert ErrorsLib.ProposalTimelocked();
         }
-        if (isGuardian(msg.sender) && proposalTimelock == 0) {
-            if (
-                (_proposals[proposalId].proposedAt +
-                    INITIAL_PROPOSAL_TIMELOCK) >= block.timestamp
-            ) revert ErrorsLib.ProposalTimelocked();
-        }
-        _proposals[proposalId].resolved = true;
+        bool allowed = isGuardian(msg.sender);
+        if (allowed && (prop.proposedAt + timelock >= block.timestamp)) revert ErrorsLib.ProposalTimelocked();
+        
+        prop.resolved = true;
         emit ProposalDiscarded(address(this), proposalId, msg.sender);
     }
 
@@ -145,22 +144,29 @@ contract AccessController is IAccessController {
             _newOwner == address(0) ||
             isGuardian(_newOwner) ||
             isOwner(_newOwner)
-        ) revert ErrorsLib.AddingInvalidOwner();
-        if (guardianCount < 3) revert ErrorsLib.NotEnoughGuardians();
+        ) {
+            revert ErrorsLib.AddingInvalidOwner();
+        }
+        if (guardianCount < 3) {
+            revert ErrorsLib.NotEnoughGuardians();
+        }
+        NewOwnerProposal storage prop = _proposals[proposalId]; 
         if (
-            _proposals[proposalId].guardiansApproved.length != 0 &&
-            _proposals[proposalId].resolved == false
-        ) revert ErrorsLib.ProposalUnresolved();
-
-        proposalId = proposalId + 1;
-        _proposals[proposalId].newOwnerProposed = _newOwner;
-        _proposals[proposalId].guardiansApproved.push(msg.sender);
-        _proposals[proposalId].approvalCount += 1;
-        _proposals[proposalId].resolved = false;
-        _proposals[proposalId].proposedAt = block.timestamp;
+            prop.guardiansApproved.length != 0 &&
+            !prop.resolved
+        ) {
+            revert ErrorsLib.ProposalUnresolved();
+        }
+        uint256 newProposalId = proposalId + 1;
+        _proposals[newProposalId].newOwnerProposed = _newOwner;
+        _proposals[newProposalId].guardiansApproved.push(msg.sender);
+        _proposals[newProposalId].approvalCount++;
+        _proposals[newProposalId].resolved = false;
+        _proposals[newProposalId].proposedAt = block.timestamp;
+        proposalId = newProposalId;
         emit ProposalSubmitted(
             address(this),
-            proposalId,
+            newProposalId,
             _newOwner,
             msg.sender
         );
@@ -171,23 +177,29 @@ contract AccessController is IAccessController {
      * @dev Only guardian. Must meet minimum threshold of 60% of total guardians to add new owner.
      */
     function guardianCosign() external onlyGuardian {
-        if (proposalId == 0) revert ErrorsLib.InvalidProposal();
-        if (_checkIfSigned(proposalId))
+        uint256 latestId = proposalId;
+        NewOwnerProposal storage latestProp = _proposals[latestId]; 
+        if (latestId == 0) {
+            revert ErrorsLib.InvalidProposal();
+        }
+        if (_checkIfSigned(latestId)) {
             revert ErrorsLib.AlreadySignedProposal();
-        if (_proposals[proposalId].resolved)
+        }
+        if (latestProp.resolved) {
             revert ErrorsLib.ProposalResolved();
-        _proposals[proposalId].guardiansApproved.push(msg.sender);
-        _proposals[proposalId].approvalCount += 1;
-        address newOwner = _proposals[proposalId].newOwnerProposed;
-        if (_checkQuorumReached(proposalId)) {
-            _proposals[proposalId].resolved = true;
+        }
+        _proposals[latestId].guardiansApproved.push(msg.sender);
+        _proposals[latestId].approvalCount++;
+        address newOwner = latestProp.newOwnerProposed;
+        if (_checkQuorumReached(latestId)) {
+            _proposals[latestId].resolved = true;
             _addOwner(newOwner);
         } else {
             emit QuorumNotReached(
                 address(this),
-                proposalId,
+                latestId,
                 newOwner,
-                _proposals[proposalId].approvalCount
+                _proposals[latestId].approvalCount
             );
         }
     }
@@ -220,21 +232,10 @@ contract AccessController is IAccessController {
      * @return resolved_ bool is the proposal resolved.
      * @return proposedAt_ timestamp of when proposal was initiated.
      */
-    function getProposal(
-        uint256 _proposalId
-    )
-        public
-        view
-        returns (
-            address ownerProposed_,
-            uint256 approvalCount_,
-            address[] memory guardiansApproved_,
-            bool resolved_,
-            uint256 proposedAt_
-        )
-    {
-        if (_proposalId == 0 || _proposalId > proposalId)
+    function getProposal(uint256 _proposalId) public view returns (address ownerProposed_, uint256 approvalCount_, address[] memory guardiansApproved_, bool resolved_, uint256 proposedAt_) {
+        if (_proposalId == 0 || _proposalId > proposalId) {
             revert ErrorsLib.InvalidProposal();
+        }
         NewOwnerProposal memory proposal = _proposals[_proposalId];
         return (
             proposal.newOwnerProposed,
@@ -248,27 +249,27 @@ contract AccessController is IAccessController {
     /// Internal
     function _addOwner(address _newOwner) internal {
         _owners[_newOwner] = true;
-        ownerCount = ownerCount + 1;
+        ownerCount++;
     }
 
     function _addGuardian(address _newGuardian) internal {
         _guardians[_newGuardian] = true;
-        guardianCount = guardianCount + 1;
+        guardianCount++;
     }
 
     function _removeOwner(address _owner) internal {
         _owners[_owner] = false;
-        ownerCount = ownerCount - 1;
+        ownerCount--;
     }
 
     function _removeGuardian(address _guardian) internal {
         _guardians[_guardian] = false;
-        guardianCount = guardianCount - 1;
+        guardianCount--;
     }
 
     function _checkIfSigned(uint256 _proposalId) internal view returns (bool) {
         for (
-            uint i;
+            uint256 i;
             i < _proposals[_proposalId].guardiansApproved.length;
             i++
         ) {

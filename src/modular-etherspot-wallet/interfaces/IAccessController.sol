@@ -33,7 +33,6 @@ interface IAccessController {
         uint256 proposalId,
         address discardedBy
     );
-    event ProposalTimelockChanged(address account, uint256 newTimelock);
 
     /// External
     function addOwner(address _newOwner) external;

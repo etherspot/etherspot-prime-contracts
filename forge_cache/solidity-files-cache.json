@@ -13,7 +13,7 @@
   },
   "files": {
     "account-abstraction/contracts/core/BaseAccount.sol": {
-      "lastModificationDate": 1708445921540,
+      "lastModificationDate": 1709045516640,
       "contentHash": "72f8c2b16f0bd40a373c86ecc12facb3",
       "sourceName": "account-abstraction/contracts/core/BaseAccount.sol",
       "solcConfig": {
@@ -63,7 +63,7 @@
       }
     },
     "account-abstraction/contracts/core/EntryPoint.sol": {
-      "lastModificationDate": 1708445921541,
+      "lastModificationDate": 1709045516641,
       "contentHash": "c4f2ff4a5a94a5813047f515beb7dc88",
       "sourceName": "account-abstraction/contracts/core/EntryPoint.sol",
       "solcConfig": {
@@ -122,7 +122,7 @@
       }
     },
     "account-abstraction/contracts/core/EntryPointSimulations.sol": {
-      "lastModificationDate": 1708445921542,
+      "lastModificationDate": 1709045516641,
       "contentHash": "a8e3ac1723ce5a9be35c2611eeaab02c",
       "sourceName": "account-abstraction/contracts/core/EntryPointSimulations.sol",
       "solcConfig": {
@@ -183,7 +183,7 @@
       }
     },
     "account-abstraction/contracts/core/Helpers.sol": {
-      "lastModificationDate": 1708445921543,
+      "lastModificationDate": 1709045516641,
       "contentHash": "d9a3c7fc04ae5f3fc8011d8792e8cb18",
       "sourceName": "account-abstraction/contracts/core/Helpers.sol",
       "solcConfig": {
@@ -224,7 +224,7 @@
       }
     },
     "account-abstraction/contracts/core/NonceManager.sol": {
-      "lastModificationDate": 1708445921543,
+      "lastModificationDate": 1709045516641,
       "contentHash": "a127aeed000517349e4d579991cc1b5d",
       "sourceName": "account-abstraction/contracts/core/NonceManager.sol",
       "solcConfig": {
@@ -267,7 +267,7 @@
       }
     },
     "account-abstraction/contracts/core/SenderCreator.sol": {
-      "lastModificationDate": 1708445921544,
+      "lastModificationDate": 1709045516642,
       "contentHash": "c4cda983dfb4422cd413360a23ed244a",
       "sourceName": "account-abstraction/contracts/core/SenderCreator.sol",
       "solcConfig": {
@@ -308,7 +308,7 @@
       }
     },
     "account-abstraction/contracts/core/StakeManager.sol": {
-      "lastModificationDate": 1708445921544,
+      "lastModificationDate": 1709045516642,
       "contentHash": "9857ed1921becf91ccf93ca0de9db0b5",
       "sourceName": "account-abstraction/contracts/core/StakeManager.sol",
       "solcConfig": {
@@ -351,7 +351,7 @@
       }
     },
     "account-abstraction/contracts/core/UserOperationLib.sol": {
-      "lastModificationDate": 1708445921544,
+      "lastModificationDate": 1709045516642,
       "contentHash": "49e8ce45c96e09cb83ff7d1d2e72e448",
       "sourceName": "account-abstraction/contracts/core/UserOperationLib.sol",
       "solcConfig": {
@@ -395,7 +395,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/IAccount.sol": {
-      "lastModificationDate": 1708445921545,
+      "lastModificationDate": 1709045516643,
       "contentHash": "1f8a384da0da6354fdd834d63b24dfd4",
       "sourceName": "account-abstraction/contracts/interfaces/IAccount.sol",
       "solcConfig": {
@@ -438,7 +438,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/IAccountExecute.sol": {
-      "lastModificationDate": 1708445921545,
+      "lastModificationDate": 1709045516643,
       "contentHash": "29ded9a414cc72b0b85e3edaa357c9d8",
       "sourceName": "account-abstraction/contracts/interfaces/IAccountExecute.sol",
       "solcConfig": {
@@ -481,7 +481,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/IAggregator.sol": {
-      "lastModificationDate": 1708445921546,
+      "lastModificationDate": 1709045516643,
       "contentHash": "ea70aa8db36795540523cebf73f66469",
       "sourceName": "account-abstraction/contracts/interfaces/IAggregator.sol",
       "solcConfig": {
@@ -524,7 +524,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/IEntryPoint.sol": {
-      "lastModificationDate": 1708445921546,
+      "lastModificationDate": 1709045516644,
       "contentHash": "d201c25e2806de5038e53c646f93810c",
       "sourceName": "account-abstraction/contracts/interfaces/IEntryPoint.sol",
       "solcConfig": {
@@ -570,7 +570,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/IEntryPointSimulations.sol": {
-      "lastModificationDate": 1708445921546,
+      "lastModificationDate": 1709045516644,
       "contentHash": "6a332eff75894d93513aa67b0738c266",
       "sourceName": "account-abstraction/contracts/interfaces/IEntryPointSimulations.sol",
       "solcConfig": {
@@ -617,7 +617,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/INonceManager.sol": {
-      "lastModificationDate": 1708445921546,
+      "lastModificationDate": 1709045516644,
       "contentHash": "2865a605d4aece6b0d511f573003d167",
       "sourceName": "account-abstraction/contracts/interfaces/INonceManager.sol",
       "solcConfig": {
@@ -658,7 +658,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/IPaymaster.sol": {
-      "lastModificationDate": 1708445921547,
+      "lastModificationDate": 1709045516644,
       "contentHash": "0edfe2232b7eb455a17ebaacd0d09243",
       "sourceName": "account-abstraction/contracts/interfaces/IPaymaster.sol",
       "solcConfig": {
@@ -701,7 +701,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/IStakeManager.sol": {
-      "lastModificationDate": 1708445921547,
+      "lastModificationDate": 1709045516644,
       "contentHash": "8a37b39cb2b2d53efcd76e8d6af616ff",
       "sourceName": "account-abstraction/contracts/interfaces/IStakeManager.sol",
       "solcConfig": {
@@ -742,7 +742,7 @@
       }
     },
     "account-abstraction/contracts/interfaces/PackedUserOperation.sol": {
-      "lastModificationDate": 1708445921548,
+      "lastModificationDate": 1709045516645,
       "contentHash": "6cdfe05be923cdc6051633ff1614e956",
       "sourceName": "account-abstraction/contracts/interfaces/PackedUserOperation.sol",
       "solcConfig": {
@@ -783,7 +783,7 @@
       }
     },
     "account-abstraction/contracts/samples/callback/TokenCallbackHandler.sol": {
-      "lastModificationDate": 1708445921554,
+      "lastModificationDate": 1709045516649,
       "contentHash": "7c2d395a28e99da6bca5756ead9bbf8e",
       "sourceName": "account-abstraction/contracts/samples/callback/TokenCallbackHandler.sol",
       "solcConfig": {
@@ -828,7 +828,7 @@
       }
     },
     "account-abstraction/contracts/utils/Exec.sol": {
-      "lastModificationDate": 1708445921561,
+      "lastModificationDate": 1709045516656,
       "contentHash": "8156fbf5a7fe2e169f75483db6787860",
       "sourceName": "account-abstraction/contracts/utils/Exec.sol",
       "solcConfig": {
@@ -869,7 +869,7 @@
       }
     },
     "lib/forge-std/lib/ds-test/src/test.sol": {
-      "lastModificationDate": 1708355316551,
+      "lastModificationDate": 1709045382308,
       "contentHash": "9febff9d09f18af5306669dc276c4c43",
       "sourceName": "lib/forge-std/lib/ds-test/src/test.sol",
       "solcConfig": {
@@ -910,7 +910,7 @@
       }
     },
     "lib/forge-std/src/Base.sol": {
-      "lastModificationDate": 1708355316552,
+      "lastModificationDate": 1709045382308,
       "contentHash": "ee13c050b1914464f1d3f90cde90204b",
       "sourceName": "lib/forge-std/src/Base.sol",
       "solcConfig": {
@@ -960,7 +960,7 @@
       }
     },
     "lib/forge-std/src/Script.sol": {
-      "lastModificationDate": 1708355316552,
+      "lastModificationDate": 1709045382308,
       "contentHash": "ba325c778a7da8a21c2136aa32763c14",
       "sourceName": "lib/forge-std/src/Script.sol",
       "solcConfig": {
@@ -1015,7 +1015,7 @@
       }
     },
     "lib/forge-std/src/StdAssertions.sol": {
-      "lastModificationDate": 1708355316553,
+      "lastModificationDate": 1709045382308,
       "contentHash": "6cc2858240bcd443debbbf075490e325",
       "sourceName": "lib/forge-std/src/StdAssertions.sol",
       "solcConfig": {
@@ -1059,7 +1059,7 @@
       }
     },
     "lib/forge-std/src/StdChains.sol": {
-      "lastModificationDate": 1708355316553,
+      "lastModificationDate": 1709045382309,
       "contentHash": "266a53b71b3a6b9c6c1d7e7763610cb8",
       "sourceName": "lib/forge-std/src/StdChains.sol",
       "solcConfig": {
@@ -1102,7 +1102,7 @@
       }
     },
     "lib/forge-std/src/StdCheats.sol": {
-      "lastModificationDate": 1708355316553,
+      "lastModificationDate": 1709045382309,
       "contentHash": "d984e2c76dae07bac1e292af2a5d4fd1",
       "sourceName": "lib/forge-std/src/StdCheats.sol",
       "solcConfig": {
@@ -1150,7 +1150,7 @@
       }
     },
     "lib/forge-std/src/StdError.sol": {
-      "lastModificationDate": 1708355316553,
+      "lastModificationDate": 1709045382309,
       "contentHash": "64c896e1276a291776e5ea5aecb3870a",
       "sourceName": "lib/forge-std/src/StdError.sol",
       "solcConfig": {
@@ -1191,7 +1191,7 @@
       }
     },
     "lib/forge-std/src/StdInvariant.sol": {
-      "lastModificationDate": 1708355316554,
+      "lastModificationDate": 1709045382309,
       "contentHash": "0a580d6fac69e9d4b6504f747f3c0c24",
       "sourceName": "lib/forge-std/src/StdInvariant.sol",
       "solcConfig": {
@@ -1232,7 +1232,7 @@
       }
     },
     "lib/forge-std/src/StdJson.sol": {
-      "lastModificationDate": 1708355316554,
+      "lastModificationDate": 1709045382309,
       "contentHash": "a341308627b7eeab7589534daad58186",
       "sourceName": "lib/forge-std/src/StdJson.sol",
       "solcConfig": {
@@ -1275,7 +1275,7 @@
       }
     },
     "lib/forge-std/src/StdMath.sol": {
-      "lastModificationDate": 1708355316555,
+      "lastModificationDate": 1709045382310,
       "contentHash": "9da8f453eba6bb98f3d75bc6822bfb29",
       "sourceName": "lib/forge-std/src/StdMath.sol",
       "solcConfig": {
@@ -1316,7 +1316,7 @@
       }
     },
     "lib/forge-std/src/StdStorage.sol": {
-      "lastModificationDate": 1708355316555,
+      "lastModificationDate": 1709045382310,
       "contentHash": "abd6f3379e6e2a7979b18abc21aea0c1",
       "sourceName": "lib/forge-std/src/StdStorage.sol",
       "solcConfig": {
@@ -1362,7 +1362,7 @@
       }
     },
     "lib/forge-std/src/StdStyle.sol": {
-      "lastModificationDate": 1708355316555,
+      "lastModificationDate": 1709045382310,
       "contentHash": "6281165a12aa639705c691fccefd855e",
       "sourceName": "lib/forge-std/src/StdStyle.sol",
       "solcConfig": {
@@ -1405,7 +1405,7 @@
       }
     },
     "lib/forge-std/src/StdUtils.sol": {
-      "lastModificationDate": 1708355316555,
+      "lastModificationDate": 1709045382310,
       "contentHash": "3ce83748fd76644688f916c9cced545b",
       "sourceName": "lib/forge-std/src/StdUtils.sol",
       "solcConfig": {
@@ -1449,7 +1449,7 @@
       }
     },
     "lib/forge-std/src/Test.sol": {
-      "lastModificationDate": 1708355316556,
+      "lastModificationDate": 1709045382310,
       "contentHash": "15866901137b5670eabf31362523bd28",
       "sourceName": "lib/forge-std/src/Test.sol",
       "solcConfig": {
@@ -1508,7 +1508,7 @@
       }
     },
     "lib/forge-std/src/Vm.sol": {
-      "lastModificationDate": 1708355316556,
+      "lastModificationDate": 1709045382310,
       "contentHash": "897d4fc21ee1b7d2d10b9ad9b55ce75d",
       "sourceName": "lib/forge-std/src/Vm.sol",
       "solcConfig": {
@@ -1552,7 +1552,7 @@
       }
     },
     "lib/forge-std/src/console.sol": {
-      "lastModificationDate": 1708355316557,
+      "lastModificationDate": 1709045382311,
       "contentHash": "100b8a33b917da1147740d7ab8b0ded3",
       "sourceName": "lib/forge-std/src/console.sol",
       "solcConfig": {
@@ -1593,7 +1593,7 @@
       }
     },
     "lib/forge-std/src/console2.sol": {
-      "lastModificationDate": 1708355316558,
+      "lastModificationDate": 1709045382311,
       "contentHash": "491ca717c1915995e78cc361485a3067",
       "sourceName": "lib/forge-std/src/console2.sol",
       "solcConfig": {
@@ -1634,7 +1634,7 @@
       }
     },
     "lib/forge-std/src/interfaces/IERC165.sol": {
-      "lastModificationDate": 1708355316559,
+      "lastModificationDate": 1709045382312,
       "contentHash": "90fe5e2e3ed432d6f3b408e7c9e8a739",
       "sourceName": "lib/forge-std/src/interfaces/IERC165.sol",
       "solcConfig": {
@@ -1675,7 +1675,7 @@
       }
     },
     "lib/forge-std/src/interfaces/IMulticall3.sol": {
-      "lastModificationDate": 1708355316560,
+      "lastModificationDate": 1709045382312,
       "contentHash": "7b131ca1ca32ef6378b7b9ad5488b901",
       "sourceName": "lib/forge-std/src/interfaces/IMulticall3.sol",
       "solcConfig": {
@@ -1716,7 +1716,7 @@
       }
     },
     "lib/forge-std/src/safeconsole.sol": {
-      "lastModificationDate": 1708355316562,
+      "lastModificationDate": 1709045382313,
       "contentHash": "ac3b1bf5a444db5db3656021830258a8",
       "sourceName": "lib/forge-std/src/safeconsole.sol",
       "solcConfig": {
@@ -1757,7 +1757,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/access/Ownable.sol": {
-      "lastModificationDate": 1708446468560,
+      "lastModificationDate": 1709045453554,
       "contentHash": "d3c790edc9ccf808a17c5a6cd13614fd",
       "sourceName": "node_modules/@openzeppelin/contracts/access/Ownable.sol",
       "solcConfig": {
@@ -1800,7 +1800,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol": {
-      "lastModificationDate": 1708446468354,
+      "lastModificationDate": 1709045452554,
       "contentHash": "5a6f0412127636d802db818a7d6ac404",
       "sourceName": "node_modules/@openzeppelin/contracts/interfaces/draft-IERC1822.sol",
       "solcConfig": {
@@ -1841,7 +1841,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol": {
-      "lastModificationDate": 1708446468408,
+      "lastModificationDate": 1709045452888,
       "contentHash": "838bc3ef3bcf0376af7d9b2041989b6a",
       "sourceName": "node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol",
       "solcConfig": {
@@ -1886,7 +1886,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol": {
-      "lastModificationDate": 1708446468489,
+      "lastModificationDate": 1709045453333,
       "contentHash": "0a5c323fd908535580597848b8e550fb",
       "sourceName": "node_modules/@openzeppelin/contracts/proxy/beacon/IBeacon.sol",
       "solcConfig": {
@@ -1927,7 +1927,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/proxy/utils/Initializable.sol": {
-      "lastModificationDate": 1708446468547,
+      "lastModificationDate": 1709045453519,
       "contentHash": "f0cedd674b4863ee90d1521a92ab82df",
       "sourceName": "node_modules/@openzeppelin/contracts/proxy/utils/Initializable.sol",
       "solcConfig": {
@@ -1968,7 +1968,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol": {
-      "lastModificationDate": 1708446468588,
+      "lastModificationDate": 1709045453665,
       "contentHash": "c6d3b3ab4be412d410950f5dfd36cb32",
       "sourceName": "node_modules/@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol",
       "solcConfig": {
@@ -2015,7 +2015,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol": {
-      "lastModificationDate": 1708446468500,
+      "lastModificationDate": 1709045453361,
       "contentHash": "d14616defa6d417fafa47e416e3cec73",
       "sourceName": "node_modules/@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol",
       "solcConfig": {
@@ -2058,7 +2058,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol": {
-      "lastModificationDate": 1708446468533,
+      "lastModificationDate": 1709045453457,
       "contentHash": "fc8a9841f4bdd6329c26a00d5e75f4b3",
       "sourceName": "node_modules/@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
       "solcConfig": {
@@ -2099,7 +2099,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/Address.sol": {
-      "lastModificationDate": 1708446468314,
+      "lastModificationDate": 1709045452419,
       "contentHash": "79c699f80eb8a9b168cb34e37816f894",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/Address.sol",
       "solcConfig": {
@@ -2140,7 +2140,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/Context.sol": {
-      "lastModificationDate": 1708446468343,
+      "lastModificationDate": 1709045452521,
       "contentHash": "01c847e2af51f468cb66d9ed83bc3cec",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/Context.sol",
       "solcConfig": {
@@ -2181,7 +2181,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/ReentrancyGuard.sol": {
-      "lastModificationDate": 1708446468566,
+      "lastModificationDate": 1709045453575,
       "contentHash": "a92331adac11b453a4de0323fc948119",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/ReentrancyGuard.sol",
       "solcConfig": {
@@ -2222,7 +2222,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/StorageSlot.sol": {
-      "lastModificationDate": 1708446468581,
+      "lastModificationDate": 1709045453620,
       "contentHash": "08cbccfefa284405c12b4bfa8c8c9c2b",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/StorageSlot.sol",
       "solcConfig": {
@@ -2263,7 +2263,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/Strings.sol": {
-      "lastModificationDate": 1708446468582,
+      "lastModificationDate": 1709045453625,
       "contentHash": "ba57ff4ddf1d9cae9d2009792795b7f6",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/Strings.sol",
       "solcConfig": {
@@ -2307,7 +2307,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol": {
-      "lastModificationDate": 1708446468361,
+      "lastModificationDate": 1709045452578,
       "contentHash": "b96e0d7a3c2b185342c7d083d765b61f",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
       "solcConfig": {
@@ -2348,7 +2348,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol": {
-      "lastModificationDate": 1708446468554,
+      "lastModificationDate": 1709045453545,
       "contentHash": "9e5eec59eaffa554d6cca561dcb914eb",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol",
       "solcConfig": {
@@ -2393,7 +2393,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
-      "lastModificationDate": 1708446468403,
+      "lastModificationDate": 1709045452851,
       "contentHash": "6a55c353946e471d9792965d06208295",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol",
       "solcConfig": {
@@ -2436,7 +2436,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {
-      "lastModificationDate": 1708446468509,
+      "lastModificationDate": 1709045453379,
       "contentHash": "de0163561b417b800d01749cbbe2147e",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol",
       "solcConfig": {
@@ -2477,7 +2477,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/math/Math.sol": {
-      "lastModificationDate": 1708446468551,
+      "lastModificationDate": 1709045453536,
       "contentHash": "718fa8ba0ff269c92e364c1429d9de57",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/math/Math.sol",
       "solcConfig": {
@@ -2518,7 +2518,7 @@
       }
     },
     "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol": {
-      "lastModificationDate": 1708446468580,
+      "lastModificationDate": 1709045453612,
       "contentHash": "b6c6bdc7aaca4fe5b680760a72e09d3e",
       "sourceName": "node_modules/@openzeppelin/contracts/utils/math/SignedMath.sol",
       "solcConfig": {
@@ -2559,7 +2559,7 @@
       }
     },
     "node_modules/solady/src/utils/ECDSA.sol": {
-      "lastModificationDate": 1708445359334,
+      "lastModificationDate": 1709133211621,
       "contentHash": "5a2f33f33f53520b3dc1797af7dd00ae",
       "sourceName": "node_modules/solady/src/utils/ECDSA.sol",
       "solcConfig": {
@@ -2600,7 +2600,7 @@
       }
     },
     "node_modules/solady/src/utils/LibClone.sol": {
-      "lastModificationDate": 1708424041497,
+      "lastModificationDate": 1709133212465,
       "contentHash": "ebbd6051b9d1d2474ff02024d667c05a",
       "sourceName": "node_modules/solady/src/utils/LibClone.sol",
       "solcConfig": {
@@ -2641,8 +2641,8 @@
       }
     },
     "script/ModularEtherspotWallet.s.sol": {
-      "lastModificationDate": 1708696832575,
-      "contentHash": "ab751d30264f5e6d2378e71870ab2e85",
+      "lastModificationDate": 1709132113263,
+      "contentHash": "a560cb919b0c2a8d06a605167561635e",
       "sourceName": "script/ModularEtherspotWallet.s.sol",
       "solcConfig": {
         "settings": {
@@ -2722,7 +2722,7 @@
       }
     },
     "src/access/AccessController.sol": {
-      "lastModificationDate": 1708355316578,
+      "lastModificationDate": 1709045382327,
       "contentHash": "26ebc4410f1393da8a7f1fde654aeb36",
       "sourceName": "src/access/AccessController.sol",
       "solcConfig": {
@@ -2765,7 +2765,7 @@
       }
     },
     "src/helpers/UniversalSignatureValidator.sol": {
-      "lastModificationDate": 1708355316579,
+      "lastModificationDate": 1709045382327,
       "contentHash": "e9350af49524c7077ed64cfdbdbcfd86",
       "sourceName": "src/helpers/UniversalSignatureValidator.sol",
       "solcConfig": {
@@ -2811,7 +2811,7 @@
       }
     },
     "src/interfaces/IAccessController.sol": {
-      "lastModificationDate": 1708355316579,
+      "lastModificationDate": 1709045382327,
       "contentHash": "1a6c3954e1029aba6b47f4d717360923",
       "sourceName": "src/interfaces/IAccessController.sol",
       "solcConfig": {
@@ -2852,7 +2852,7 @@
       }
     },
     "src/interfaces/IERC1271Wallet.sol": {
-      "lastModificationDate": 1708355316579,
+      "lastModificationDate": 1709045382328,
       "contentHash": "312870b60d9901a56947258343a37754",
       "sourceName": "src/interfaces/IERC1271Wallet.sol",
       "solcConfig": {
@@ -2893,7 +2893,7 @@
       }
     },
     "src/interfaces/IEtherspotPaymaster.sol": {
-      "lastModificationDate": 1708446047441,
+      "lastModificationDate": 1709045406749,
       "contentHash": "c726779dc28523a359f335858c48fea9",
       "sourceName": "src/interfaces/IEtherspotPaymaster.sol",
       "solcConfig": {
@@ -2937,7 +2937,7 @@
       }
     },
     "src/interfaces/IEtherspotWallet.sol": {
-      "lastModificationDate": 1708355316580,
+      "lastModificationDate": 1709045382328,
       "contentHash": "f141b3da67e0747151f01431a55855cc",
       "sourceName": "src/interfaces/IEtherspotWallet.sol",
       "solcConfig": {
@@ -2986,7 +2986,7 @@
       }
     },
     "src/interfaces/IEtherspotWalletFactory.sol": {
-      "lastModificationDate": 1708355316580,
+      "lastModificationDate": 1709045382328,
       "contentHash": "9fdd6cd6062a10e76790609931b3620c",
       "sourceName": "src/interfaces/IEtherspotWalletFactory.sol",
       "solcConfig": {
@@ -3027,7 +3027,7 @@
       }
     },
     "src/interfaces/IWhitelist.sol": {
-      "lastModificationDate": 1708355316580,
+      "lastModificationDate": 1709045382328,
       "contentHash": "8d0bf4f24a376c6d8af16b2846fcc711",
       "sourceName": "src/interfaces/IWhitelist.sol",
       "solcConfig": {
@@ -3068,8 +3068,8 @@
       }
     },
     "src/modular-etherspot-wallet/access/AccessController.sol": {
-      "lastModificationDate": 1708513602740,
-      "contentHash": "c75e1c25fc1e1de37719c0a95e4704fd",
+      "lastModificationDate": 1709305233794,
+      "contentHash": "6bda3de001e8f4383962ffde1f9e6f7a",
       "sourceName": "src/modular-etherspot-wallet/access/AccessController.sol",
       "solcConfig": {
         "settings": {
@@ -3112,7 +3112,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/core/AccountBase.sol": {
-      "lastModificationDate": 1708422935235,
+      "lastModificationDate": 1709132113264,
       "contentHash": "218e804bcccf1edffe9dc58099638308",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/core/AccountBase.sol",
       "solcConfig": {
@@ -3153,7 +3153,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/core/ExecutionHelper.sol": {
-      "lastModificationDate": 1708443869620,
+      "lastModificationDate": 1709132113265,
       "contentHash": "88620de5bdb89c0c8405cc3ce0cbc395",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/core/ExecutionHelper.sol",
       "solcConfig": {
@@ -3199,7 +3199,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/core/HookManager.sol": {
-      "lastModificationDate": 1708443880149,
+      "lastModificationDate": 1709132113265,
       "contentHash": "c7335bbf4a1ca994da5ae2fd76e95cea",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/core/HookManager.sol",
       "solcConfig": {
@@ -3252,7 +3252,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/core/ModuleManager.sol": {
-      "lastModificationDate": 1708445654956,
+      "lastModificationDate": 1709132113265,
       "contentHash": "95ebb71f8a3bf90880fb4fa904f398b5",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/core/ModuleManager.sol",
       "solcConfig": {
@@ -3301,7 +3301,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/core/Receiver.sol": {
-      "lastModificationDate": 1708445647638,
+      "lastModificationDate": 1709132113265,
       "contentHash": "e061d542c52b2e1ac77c26afff53c4eb",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/core/Receiver.sol",
       "solcConfig": {
@@ -3342,7 +3342,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol": {
-      "lastModificationDate": 1708511464584,
+      "lastModificationDate": 1709132113266,
       "contentHash": "b2e7c00233c6d80d6e1f8ed36a3e6684",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
       "solcConfig": {
@@ -3388,8 +3388,8 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol": {
-      "lastModificationDate": 1708445925107,
-      "contentHash": "3b688e2104163c1b7c926d63847dbe33",
+      "lastModificationDate": 1709202769721,
+      "contentHash": "c1c435db8e48802f09ba49c51ccb82b6",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol",
       "solcConfig": {
         "settings": {
@@ -3444,7 +3444,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol": {
-      "lastModificationDate": 1708446526210,
+      "lastModificationDate": 1709132113266,
       "contentHash": "6f3c63cda3f2d84991c5cff1fcbafe88",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol",
       "solcConfig": {
@@ -3490,7 +3490,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol": {
-      "lastModificationDate": 1708443985195,
+      "lastModificationDate": 1709132113266,
       "contentHash": "ef5c0fc7bae1424526938dd5c9224469",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
       "solcConfig": {
@@ -3536,7 +3536,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol": {
-      "lastModificationDate": 1708443999495,
+      "lastModificationDate": 1709132113267,
       "contentHash": "679897415c5dd83aa7abc4b7972ab935",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
       "solcConfig": {
@@ -3582,7 +3582,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol": {
-      "lastModificationDate": 1708444016948,
+      "lastModificationDate": 1709132113267,
       "contentHash": "5cf03a1e0eacab41e10108352370d942",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
       "solcConfig": {
@@ -3623,7 +3623,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol": {
-      "lastModificationDate": 1708424566788,
+      "lastModificationDate": 1709132113267,
       "contentHash": "3a155a6ea6afac158c3fba6c1edb63e3",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol",
       "solcConfig": {
@@ -3664,7 +3664,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol": {
-      "lastModificationDate": 1708446870249,
+      "lastModificationDate": 1709132113267,
       "contentHash": "c7900d471318252ce269487d72fd81dd",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol",
       "solcConfig": {
@@ -3719,7 +3719,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol": {
-      "lastModificationDate": 1708511848695,
+      "lastModificationDate": 1709132113268,
       "contentHash": "9553e810e8fabfa30478ae73534c262a",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol",
       "solcConfig": {
@@ -3782,7 +3782,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockExecutor.sol": {
-      "lastModificationDate": 1708446692566,
+      "lastModificationDate": 1709132113268,
       "contentHash": "c76059c24f8cf38eb9b0f94c933a46a6",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockExecutor.sol",
       "solcConfig": {
@@ -3831,7 +3831,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockTarget.sol": {
-      "lastModificationDate": 1708446586331,
+      "lastModificationDate": 1709132113268,
       "contentHash": "8b8ef4f9c19037e4a789b8e51cee161e",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockTarget.sol",
       "solcConfig": {
@@ -3872,7 +3872,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockValidator.sol": {
-      "lastModificationDate": 1708446700908,
+      "lastModificationDate": 1709132113268,
       "contentHash": "1d683f83cd4d6a8ba1fe1bd383b0dcec",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockValidator.sol",
       "solcConfig": {
@@ -3917,7 +3917,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol": {
-      "lastModificationDate": 1708446645436,
+      "lastModificationDate": 1709132113269,
       "contentHash": "42785731839cf5c027f3332c036214fd",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol",
       "solcConfig": {
@@ -3971,8 +3971,8 @@
       }
     },
     "src/modular-etherspot-wallet/interfaces/IAccessController.sol": {
-      "lastModificationDate": 1708355316576,
-      "contentHash": "2504a2571c3b84f28b1088fea795bd6f",
+      "lastModificationDate": 1709285622544,
+      "contentHash": "200fb752eee6750a02dd16739f827e17",
       "sourceName": "src/modular-etherspot-wallet/interfaces/IAccessController.sol",
       "solcConfig": {
         "settings": {
@@ -4012,7 +4012,7 @@
       }
     },
     "src/modular-etherspot-wallet/interfaces/IModularEtherspotWallet.sol": {
-      "lastModificationDate": 1708421340337,
+      "lastModificationDate": 1709132113269,
       "contentHash": "d8bf1836f3fc4a4de012d5f3b4a09e94",
       "sourceName": "src/modular-etherspot-wallet/interfaces/IModularEtherspotWallet.sol",
       "solcConfig": {
@@ -4065,7 +4065,7 @@
       }
     },
     "src/modular-etherspot-wallet/libraries/ArrayLib.sol": {
-      "lastModificationDate": 1708355316576,
+      "lastModificationDate": 1709132113269,
       "contentHash": "9f9ec10e243bef8c80731371242996d9",
       "sourceName": "src/modular-etherspot-wallet/libraries/ArrayLib.sol",
       "solcConfig": {
@@ -4106,7 +4106,7 @@
       }
     },
     "src/modular-etherspot-wallet/libraries/ErrorsLib.sol": {
-      "lastModificationDate": 1708355316576,
+      "lastModificationDate": 1709132113269,
       "contentHash": "06758b15082f6b25c6ea66e8acbedeea",
       "sourceName": "src/modular-etherspot-wallet/libraries/ErrorsLib.sol",
       "solcConfig": {
@@ -4147,8 +4147,8 @@
       }
     },
     "src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol": {
-      "lastModificationDate": 1708705224053,
-      "contentHash": "37a5d018221267be1a18b58be1f74a31",
+      "lastModificationDate": 1709306446976,
+      "contentHash": "91cdea37dee923d042e2cd6128c06df4",
       "sourceName": "src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol",
       "solcConfig": {
         "settings": {
@@ -4208,8 +4208,8 @@
       }
     },
     "src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol": {
-      "lastModificationDate": 1708523213598,
-      "contentHash": "0e2e839f2c5314adaf26dfc2977c0363",
+      "lastModificationDate": 1709296164858,
+      "contentHash": "c52b3948630d547c7b75ca1d23e0f8be",
       "sourceName": "src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol",
       "solcConfig": {
         "settings": {
@@ -4267,8 +4267,8 @@
       }
     },
     "src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol": {
-      "lastModificationDate": 1708445767289,
-      "contentHash": "0072b8edf91d91e58bfaa18dc46a4769",
+      "lastModificationDate": 1709285346970,
+      "contentHash": "aa75aeb28eef5e2868d989198f453577",
       "sourceName": "src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol",
       "solcConfig": {
         "settings": {
@@ -4311,7 +4311,7 @@
       }
     },
     "src/paymaster/BasePaymaster.sol": {
-      "lastModificationDate": 1708446082670,
+      "lastModificationDate": 1709132113271,
       "contentHash": "6243144226fde47545cbc0f400654364",
       "sourceName": "src/paymaster/BasePaymaster.sol",
       "solcConfig": {
@@ -4364,7 +4364,7 @@
       }
     },
     "src/paymaster/EtherspotPaymaster.sol": {
-      "lastModificationDate": 1708446111478,
+      "lastModificationDate": 1709132113272,
       "contentHash": "e1579a7e3b797f265c8cc5e5129b2c58",
       "sourceName": "src/paymaster/EtherspotPaymaster.sol",
       "solcConfig": {
@@ -4426,7 +4426,7 @@
       }
     },
     "src/paymaster/Whitelist.sol": {
-      "lastModificationDate": 1708355316580,
+      "lastModificationDate": 1709045382329,
       "contentHash": "3d56ab8d8ee05d359d809b38d96bba26",
       "sourceName": "src/paymaster/Whitelist.sol",
       "solcConfig": {
@@ -4469,7 +4469,7 @@
       }
     },
     "src/wallet/EtherspotWallet.sol": {
-      "lastModificationDate": 1708446140132,
+      "lastModificationDate": 1709132113273,
       "contentHash": "ea33d3f66eadc70989e88cd9bf9cd116",
       "sourceName": "src/wallet/EtherspotWallet.sol",
       "solcConfig": {
@@ -4541,7 +4541,7 @@
       }
     },
     "src/wallet/EtherspotWalletFactory.sol": {
-      "lastModificationDate": 1708355316581,
+      "lastModificationDate": 1709045382329,
       "contentHash": "5a8e51ce5297fffaa90fabb34fa00ec9",
       "sourceName": "src/wallet/EtherspotWalletFactory.sol",
       "solcConfig": {
@@ -4615,7 +4615,7 @@
       }
     },
     "src/wallet/Proxy.sol": {
-      "lastModificationDate": 1708355316581,
+      "lastModificationDate": 1709045382329,
       "contentHash": "22d2c1d4e22dc5c07985999a0c4ce922",
       "sourceName": "src/wallet/Proxy.sol",
       "solcConfig": {
@@ -4656,8 +4656,8 @@
       }
     },
     "test/foundry/ModularEtherspotWallet/ModularEtherspotWallet.t.sol": {
-      "lastModificationDate": 1708696835604,
-      "contentHash": "9dffda0560270dc0c05a6c30ed64c98f",
+      "lastModificationDate": 1709306150673,
+      "contentHash": "1d57c576a93d0d63b243595849b89073",
       "sourceName": "test/foundry/ModularEtherspotWallet/ModularEtherspotWallet.t.sol",
       "solcConfig": {
         "settings": {
@@ -4765,7 +4765,7 @@
       }
     },
     "test/foundry/ModularEtherspotWallet/ModularEtherspotWalletFactory.t.sol": {
-      "lastModificationDate": 1708615230367,
+      "lastModificationDate": 1709225514856,
       "contentHash": "ff4a43e2bb535415e736f1f3e2cfda52",
       "sourceName": "test/foundry/ModularEtherspotWallet/ModularEtherspotWalletFactory.t.sol",
       "solcConfig": {
@@ -4871,8 +4871,8 @@
       }
     },
     "test/foundry/TestBaseUtil.t.sol": {
-      "lastModificationDate": 1708696835605,
-      "contentHash": "ae463f43cd2553a9b46bf734804c1d7b",
+      "lastModificationDate": 1709306039201,
+      "contentHash": "13675c3c1cbb5a8f7ca7db1ca0b4e315",
       "sourceName": "test/foundry/TestBaseUtil.t.sol",
       "solcConfig": {
         "settings": {

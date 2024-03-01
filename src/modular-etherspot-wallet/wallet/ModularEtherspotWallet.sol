@@ -209,8 +209,7 @@ contract ModularEtherspotWallet is
         override
         returns (string memory)
     {
-        // vendor.flavour.semver
-        return "uMSA.simple/noHook.v0.1";
+        return "etherspotwallet.modular.v1.0.0";
     }
 
     /**
@@ -231,10 +230,7 @@ contract ModularEtherspotWallet is
     function supportsModule(
         uint256 modulTypeId
     ) external view virtual override returns (bool) {
-        if (modulTypeId == MODULE_TYPE_VALIDATOR) return true;
-        else if (modulTypeId == MODULE_TYPE_EXECUTOR) return true;
-        else if (modulTypeId == MODULE_TYPE_FALLBACK) return true;
-        else return false;
+        return (modulTypeId | MODULE_TYPE_VALIDATOR | MODULE_TYPE_EXECUTOR | MODULE_TYPE_FALLBACK) != 0;
     }
 
     function initializeAccount(bytes calldata data) public payable virtual {
