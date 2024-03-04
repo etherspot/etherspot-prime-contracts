@@ -3,13 +3,6 @@ forge-std/=lib/forge-std/src/
 
 @openzeppelin/=node_modules/@openzeppelin/
 
-@ERC6900/=erc6900-ref-impl/
-@ERC4337=erc6900-ref-impl/lib/account-abstraction/contracts
-
-@eth-infinitism/account-abstraction/=erc6900-ref-impl/lib/account-abstraction/contracts
-
-@ERC7579/=erc7579-ref-impl/
-
-solady/=erc7579-ref-impl/lib/solady/src/
+@solady/=node_modules/solady/src/
 sentinellist/=erc7579-ref-impl/lib/sentinellist/src/
-@ERC7579AA/=erc7579-ref-impl/lib/account-abstraction/contracts
+

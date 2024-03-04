@@ -5,12 +5,7 @@
 
 ## Installation & Setup
 
-1. Initalize submodule and update  
-`git submodule init && git submodule update`
-2. Install dependencies  
-`npm i`
-3. Install submodule dependencies and compile  
-`cd account-abstraction && yarn && npx hardhat compile`
+`npm run setup`
 
 ## Contract Deployments
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.12;
 
-import "../../account-abstraction/contracts/interfaces/UserOperation.sol";
+import "../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import "../interfaces/IWhitelist.sol";
 
 interface IEtherspotPaymaster is IWhitelist {
@@ -30,7 +30,7 @@ interface IEtherspotPaymaster is IWhitelist {
     function getDeposit() external view returns (uint256);
 
     function validatePaymasterUserOp(
-        UserOperation calldata userOp,
+        PackedUserOperation calldata userOp,
         bytes32 userOpHash,
         uint256 maxCost
     ) external returns (bytes memory context, uint256 validationData);
@@ -53,7 +53,7 @@ interface IEtherspotPaymaster is IWhitelist {
     ) external;
 
     function getHash(
-        UserOperation calldata userOp,
+        PackedUserOperation calldata userOp,
         uint48 validUntil,
         uint48 validAfter
     ) external view returns (bytes32);
