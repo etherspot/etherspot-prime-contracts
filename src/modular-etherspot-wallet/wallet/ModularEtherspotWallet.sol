@@ -6,14 +6,13 @@ import {ExecutionLib} from "../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ExecutionHelper} from "../erc7579-ref-impl/core/ExecutionHelper.sol";
 import {PackedUserOperation} from "../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import "../erc7579-ref-impl/interfaces/IERC7579Module.sol";
-import {IERC7579Account} from "../erc7579-ref-impl/interfaces/IERC7579Account.sol";
-import {IMSA} from "../erc7579-ref-impl/interfaces/IMSA.sol";
+import {IModularEtherspotWallet} from "../interfaces/IModularEtherspotWallet.sol";
 import {ModuleManager} from "../erc7579-ref-impl/core/ModuleManager.sol";
 import {AccessController} from "../access/AccessController.sol";
 
 contract ModularEtherspotWallet is
     AccessController,
-    IMSA,
+    IModularEtherspotWallet,
     ExecutionHelper,
     ModuleManager
 {
@@ -21,7 +20,7 @@ contract ModularEtherspotWallet is
     using ModeLib for ModeCode;
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function execute(
         ModeCode mode,
@@ -45,7 +44,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function executeFromExecutor(
         ModeCode mode,
@@ -77,7 +76,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function executeUserOp(
         PackedUserOperation calldata userOp
@@ -88,7 +87,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function installModule(
         uint256 moduleType,
@@ -106,7 +105,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function uninstallModule(
         uint256 moduleType,
@@ -125,7 +124,7 @@ contract ModularEtherspotWallet is
 
     /**
      * Validator selection / encoding is NOT in scope of this standard.
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function validateUserOp(
         PackedUserOperation calldata userOp,
@@ -181,7 +180,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      * @param additionalContext is not needed here. It is only used in cases where the modules are
      * stored in more complex mappings
      */
@@ -200,7 +199,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function accountId()
         external
@@ -213,7 +212,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function supportsAccountMode(
         ModeCode mode
@@ -225,7 +224,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @inheritdoc IERC7579Account
+     * @dev see {IERC7579Account}.
      */
     function supportsModule(
         uint256 modulTypeId

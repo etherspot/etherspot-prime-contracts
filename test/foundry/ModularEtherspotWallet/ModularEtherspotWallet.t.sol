@@ -7,7 +7,6 @@ import {MockExecutor} from "../../../src/modular-etherspot-wallet/erc7579-ref-im
 import {MockTarget} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockTarget.sol";
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol";
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
-import {IAccountConfig, IAccountConfig_Hook, IModularEtherspotWallet, IExecution} from "../../../src/modular-etherspot-wallet/interfaces/IModularEtherspotWallet.sol";
 import {ModularEtherspotWallet} from "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {ModularEtherspotWalletFactory} from "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
 import {MultipleOwnerECDSAValidator} from "../../../src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol";
