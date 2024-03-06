@@ -13,7 +13,8 @@
     "build:ts": "tsc --project ./tsconfig.build.json",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "setup": "git submodule init && git submodule update && npm i && cd account-abstraction && yarn && npx hardhat compile"
   },
   "repository": {
     "type": "git",
@@ -53,7 +54,6 @@
     "typescript": "4.9.5"
   },
   "devDependencies": {
-    "@account-abstraction/contracts": "^0.6.0",
     "@ethereumjs/tx": "4.1.2",
     "@nomicfoundation/hardhat-foundry": "^1.1.0",
     "@nomicfoundation/hardhat-toolbox": "2.0.2",
@@ -64,7 +64,9 @@
     "ethereumjs-wallet": "1.0.2",
     "hardhat-deploy": "0.11.23",
     "hardhat-deploy-ethers": "0.3.0-beta.13",
-    "hardhat-tracer": "^2.5.0"
+    "hardhat-exposed": "^0.3.14",
+    "hardhat-tracer": "^2.5.0",
+    "solady": "^0.0.168"
   },
   "resolutions": {
     "hardhat/**/@ethereumjs/tx": "3.5.0"
