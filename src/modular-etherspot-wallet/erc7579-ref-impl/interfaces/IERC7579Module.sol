@@ -2,7 +2,6 @@
 pragma solidity ^0.8.21;
 
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
-import {EncodedModuleTypes} from "../libs/ModuleTypeLib.sol";
 
 uint256 constant VALIDATION_SUCCESS = 0;
 uint256 constant VALIDATION_FAILED = 1;
@@ -36,11 +35,11 @@ interface IModule {
 
     /**
      * @dev Returns boolean value if module is a certain type
-     * @param typeID the module type ID according the ERC-7579 spec
+     * @param moduleTypeId the module type ID according the ERC-7579 spec
      *
      * MUST return true if the module is of the given type and false otherwise
      */
-    function isModuleType(uint256 typeID) external view returns (bool);
+    function isModuleType(uint256 moduleTypeId) external view returns (bool);
 
     /**
      * @dev Returns if the module was already initialized for a provided smartaccount
@@ -64,7 +63,9 @@ interface IValidator is IModule {
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
-    ) external returns (uint256);
+    )
+        external
+        returns (uint256);
 
     /**
      * Validator can be used for ERC-1271 validation
@@ -73,17 +74,22 @@ interface IValidator is IModule {
         address sender,
         bytes32 hash,
         bytes calldata data
-    ) external view returns (bytes4);
+    )
+        external
+        view
+        returns (bytes4);
 }
 
-interface IExecutor is IModule {}
+interface IExecutor is IModule { }
 
 interface IHook is IModule {
     function preCheck(
         address msgSender,
         bytes calldata msgData
-    ) external returns (bytes memory hookData);
+    )
+        external
+        returns (bytes memory hookData);
     function postCheck(bytes calldata hookData) external returns (bool success);
 }
 
-interface IFallback is IModule {}
+interface IFallback is IModule { }

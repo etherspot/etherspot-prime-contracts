@@ -49,7 +49,7 @@ pragma solidity ^0.8.23;
  * ExecutionCallData: n bytes
  * single, delegatecall or batch exec abi.encoded as bytes
  */
-import {Execution} from "../interfaces/IERC7579Account.sol";
+import { Execution } from "../interfaces/IERC7579Account.sol";
 
 // Custom type for improved developer experience
 type ModeCode is bytes32;
@@ -68,6 +68,7 @@ CallType constant CALLTYPE_SINGLE = CallType.wrap(0x00);
 CallType constant CALLTYPE_BATCH = CallType.wrap(0x01);
 // @dev Implementing delegatecall is OPTIONAL!
 // implement delegatecall with extreme care.
+CallType constant CALLTYPE_STATIC = CallType.wrap(0xFE);
 CallType constant CALLTYPE_DELEGATECALL = CallType.wrap(0xFF);
 
 // @dev default behavior is to revert on failure
@@ -79,17 +80,13 @@ ExecType constant EXECTYPE_TRY = ExecType.wrap(0x01);
 
 ModeSelector constant MODE_DEFAULT = ModeSelector.wrap(bytes4(0x00000000));
 // Example declaration of a custom mode selector
-ModeSelector constant MODE_OFFSET = ModeSelector.wrap(
-    bytes4(keccak256("default.mode.offset"))
-);
+ModeSelector constant MODE_OFFSET = ModeSelector.wrap(bytes4(keccak256("default.mode.offset")));
 
 /**
  * @dev ModeLib is a helper library to encode/decode ModeCodes
  */
 library ModeLib {
-    function decode(
-        ModeCode mode
-    )
+    function decode(ModeCode mode)
         internal
         pure
         returns (
@@ -112,51 +109,36 @@ library ModeLib {
         ExecType execType,
         ModeSelector mode,
         ModePayload payload
-    ) internal pure returns (ModeCode) {
-        return
-            ModeCode.wrap(
-                bytes32(
-                    abi.encodePacked(
-                        callType,
-                        execType,
-                        bytes4(0),
-                        ModeSelector.unwrap(mode),
-                        payload
-                    )
-                )
-            );
+    )
+        internal
+        pure
+        returns (ModeCode)
+    {
+        return ModeCode.wrap(
+            bytes32(
+                abi.encodePacked(callType, execType, bytes4(0), ModeSelector.unwrap(mode), payload)
+            )
+        );
     }
 
     function encodeSimpleBatch() internal pure returns (ModeCode mode) {
-        mode = encode(
-            CALLTYPE_BATCH,
-            EXECTYPE_DEFAULT,
-            MODE_DEFAULT,
-            ModePayload.wrap(0x00)
-        );
+        mode = encode(CALLTYPE_BATCH, EXECTYPE_DEFAULT, MODE_DEFAULT, ModePayload.wrap(0x00));
     }
 
     function encodeSimpleSingle() internal pure returns (ModeCode mode) {
-        mode = encode(
-            CALLTYPE_SINGLE,
-            EXECTYPE_DEFAULT,
-            MODE_DEFAULT,
-            ModePayload.wrap(0x00)
-        );
+        mode = encode(CALLTYPE_SINGLE, EXECTYPE_DEFAULT, MODE_DEFAULT, ModePayload.wrap(0x00));
     }
 
-    function getCallType(
-        ModeCode mode
-    ) internal pure returns (CallType calltype) {
+    function getCallType(ModeCode mode) internal pure returns (CallType calltype) {
         assembly {
             calltype := mode
         }
     }
 }
 
-using {eqModeSelector as ==} for ModeSelector global;
-using {eqCallType as ==} for CallType global;
-using {eqExecType as ==} for ExecType global;
+using { eqModeSelector as == } for ModeSelector global;
+using { eqCallType as == } for CallType global;
+using { eqExecType as == } for ExecType global;
 
 function eqCallType(CallType a, CallType b) pure returns (bool) {
     return CallType.unwrap(a) == CallType.unwrap(b);
