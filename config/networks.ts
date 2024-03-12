@@ -203,6 +203,11 @@ const networks: HardhatUserConfig['networks'] = {
     url: 'https://sepolia.base.org',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
+  mantleSepolia: {
+    chainId: 5003,
+    url: 'https://rpc.sepolia.mantle.xyz',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
   dev: { url: 'http://localhost:8545' },
 };
 export default networks;

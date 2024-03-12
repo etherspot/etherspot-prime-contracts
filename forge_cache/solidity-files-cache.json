@@ -2641,7 +2641,7 @@
       }
     },
     "script/ModularEtherspotWallet.s.sol": {
-      "lastModificationDate": 1709569072245,
+      "lastModificationDate": 1709632070876,
       "contentHash": "a560cb919b0c2a8d06a605167561635e",
       "sourceName": "script/ModularEtherspotWallet.s.sol",
       "solcConfig": {
@@ -2704,7 +2704,6 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol",
         "src/modular-etherspot-wallet/interfaces/IAccessController.sol",
@@ -3153,8 +3152,8 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/core/ExecutionHelper.sol": {
-      "lastModificationDate": 1709569072246,
-      "contentHash": "88620de5bdb89c0c8405cc3ce0cbc395",
+      "lastModificationDate": 1709924087350,
+      "contentHash": "ad8f782edbf40d0ebfef350baa8018fe",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/core/ExecutionHelper.sol",
       "solcConfig": {
         "settings": {
@@ -3199,7 +3198,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/core/HookManager.sol": {
-      "lastModificationDate": 1709569072246,
+      "lastModificationDate": 1709632070878,
       "contentHash": "c7335bbf4a1ca994da5ae2fd76e95cea",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/core/HookManager.sol",
       "solcConfig": {
@@ -3241,7 +3240,6 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol"
       ],
       "versionRequirement": "^0.8.21",
@@ -3252,8 +3250,8 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/core/ModuleManager.sol": {
-      "lastModificationDate": 1709569072247,
-      "contentHash": "95ebb71f8a3bf90880fb4fa904f398b5",
+      "lastModificationDate": 1709924030452,
+      "contentHash": "eb447be4dbfa9fd0f2c8b0d3e3b35151",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/core/ModuleManager.sol",
       "solcConfig": {
         "settings": {
@@ -3285,12 +3283,14 @@
         }
       },
       "imports": [
+        "account-abstraction/contracts/interfaces/IAccount.sol",
         "account-abstraction/contracts/interfaces/PackedUserOperation.sol",
         "lib/forge-std/src/interfaces/IERC165.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/AccountBase.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/Receiver.sol",
+        "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
+        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol"
       ],
       "versionRequirement": "^0.8.21",
@@ -3342,8 +3342,8 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol": {
-      "lastModificationDate": 1709569072247,
-      "contentHash": "b2e7c00233c6d80d6e1f8ed36a3e6684",
+      "lastModificationDate": 1709924355140,
+      "contentHash": "5ae975448a74c55244a06efa9060f36d",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
       "solcConfig": {
         "settings": {
@@ -3388,8 +3388,8 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol": {
-      "lastModificationDate": 1709569072247,
-      "contentHash": "c1c435db8e48802f09ba49c51ccb82b6",
+      "lastModificationDate": 1709924306562,
+      "contentHash": "de91c23720e48d20724187b4b668a411",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol",
       "solcConfig": {
         "settings": {
@@ -3421,8 +3421,7 @@
         }
       },
       "imports": [
-        "account-abstraction/contracts/interfaces/PackedUserOperation.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol"
+        "account-abstraction/contracts/interfaces/PackedUserOperation.sol"
       ],
       "versionRequirement": "^0.8.21",
       "artifacts": {
@@ -3444,7 +3443,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol": {
-      "lastModificationDate": 1709569072247,
+      "lastModificationDate": 1709632070879,
       "contentHash": "6f3c63cda3f2d84991c5cff1fcbafe88",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol",
       "solcConfig": {
@@ -3490,7 +3489,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol": {
-      "lastModificationDate": 1709569072248,
+      "lastModificationDate": 1709632070880,
       "contentHash": "ef5c0fc7bae1424526938dd5c9224469",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
       "solcConfig": {
@@ -3536,8 +3535,8 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol": {
-      "lastModificationDate": 1709569072248,
-      "contentHash": "679897415c5dd83aa7abc4b7972ab935",
+      "lastModificationDate": 1709924024862,
+      "contentHash": "b29ba6026377f0a38528b862a3e9630d",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
       "solcConfig": {
         "settings": {
@@ -3664,7 +3663,7 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol": {
-      "lastModificationDate": 1709569072248,
+      "lastModificationDate": 1709632070881,
       "contentHash": "c7900d471318252ce269487d72fd81dd",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol",
       "solcConfig": {
@@ -3707,7 +3706,6 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol"
       ],
@@ -3781,9 +3779,50 @@
         }
       }
     },
+    "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockDelegateTarget.sol": {
+      "lastModificationDate": 1709977823467,
+      "contentHash": "7267db215aa34034bf3e9936135a2819",
+      "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockDelegateTarget.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ]
+            }
+          },
+          "evmVersion": "paris",
+          "libraries": {}
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.23",
+      "artifacts": {
+        "MockDelegateTarget": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "MockDelegateTarget.sol/MockDelegateTarget.json"
+        }
+      }
+    },
     "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockExecutor.sol": {
-      "lastModificationDate": 1709569072249,
-      "contentHash": "c76059c24f8cf38eb9b0f94c933a46a6",
+      "lastModificationDate": 1709978021021,
+      "contentHash": "51fcd0ef213eb9638db8eefa9180cf70",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockExecutor.sol",
       "solcConfig": {
         "settings": {
@@ -3820,8 +3859,7 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol"
+        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol"
       ],
       "versionRequirement": "^0.8.23",
       "artifacts": {
@@ -3872,8 +3910,8 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockValidator.sol": {
-      "lastModificationDate": 1709569072249,
-      "contentHash": "1d683f83cd4d6a8ba1fe1bd383b0dcec",
+      "lastModificationDate": 1709978059542,
+      "contentHash": "a77864776d2ea8e36b02e74534125d81",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockValidator.sol",
       "solcConfig": {
         "settings": {
@@ -3906,8 +3944,7 @@
       },
       "imports": [
         "account-abstraction/contracts/interfaces/PackedUserOperation.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol"
+        "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol"
       ],
       "versionRequirement": "^0.8.23",
       "artifacts": {
@@ -3917,8 +3954,8 @@
       }
     },
     "src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol": {
-      "lastModificationDate": 1709569072249,
-      "contentHash": "42785731839cf5c027f3332c036214fd",
+      "lastModificationDate": 1709924386790,
+      "contentHash": "728604c6bca31d4b1fde1a0015fb8eed",
       "sourceName": "src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol",
       "solcConfig": {
         "settings": {
@@ -3960,7 +3997,6 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol"
       ],
       "versionRequirement": "^0.8.21",
@@ -4012,7 +4048,7 @@
       }
     },
     "src/modular-etherspot-wallet/interfaces/IModularEtherspotWallet.sol": {
-      "lastModificationDate": 1709569370968,
+      "lastModificationDate": 1709738902096,
       "contentHash": "4eaa54d053c8fc042952ada0db368f7c",
       "sourceName": "src/modular-etherspot-wallet/interfaces/IModularEtherspotWallet.sol",
       "solcConfig": {
@@ -4142,7 +4178,7 @@
       }
     },
     "src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol": {
-      "lastModificationDate": 1709569072251,
+      "lastModificationDate": 1709739355272,
       "contentHash": "1e2e06f532b473dcfcaa2c3ae7890ba9",
       "sourceName": "src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol",
       "solcConfig": {
@@ -4182,6 +4218,7 @@
         "src/modular-etherspot-wallet/access/AccessController.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/AccountBase.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/ExecutionHelper.sol",
+        "src/modular-etherspot-wallet/erc7579-ref-impl/core/HookManager.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/ModuleManager.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/Receiver.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
@@ -4189,7 +4226,6 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol",
         "src/modular-etherspot-wallet/interfaces/IAccessController.sol",
         "src/modular-etherspot-wallet/interfaces/IModularEtherspotWallet.sol",
@@ -4204,8 +4240,8 @@
       }
     },
     "src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol": {
-      "lastModificationDate": 1709569327878,
-      "contentHash": "91ab13f17a637aa4f84f4a133d024448",
+      "lastModificationDate": 1709924096510,
+      "contentHash": "abfb75998a6088a784ffdc28c5ae2da3",
       "sourceName": "src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol",
       "solcConfig": {
         "settings": {
@@ -4243,6 +4279,7 @@
         "src/modular-etherspot-wallet/access/AccessController.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/AccountBase.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/ExecutionHelper.sol",
+        "src/modular-etherspot-wallet/erc7579-ref-impl/core/HookManager.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/ModuleManager.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/core/Receiver.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol",
@@ -4250,7 +4287,6 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol",
         "src/modular-etherspot-wallet/interfaces/IAccessController.sol",
         "src/modular-etherspot-wallet/interfaces/IModularEtherspotWallet.sol",
@@ -4264,7 +4300,7 @@
       }
     },
     "src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol": {
-      "lastModificationDate": 1709569072251,
+      "lastModificationDate": 1709632070885,
       "contentHash": "aa75aeb28eef5e2868d989198f453577",
       "sourceName": "src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol",
       "solcConfig": {
@@ -4659,8 +4695,8 @@
       }
     },
     "test/foundry/ModularEtherspotWallet/ModularEtherspotWallet.t.sol": {
-      "lastModificationDate": 1709569418584,
-      "contentHash": "fa24cd1443ffea1402b0545201ed5053",
+      "lastModificationDate": 1710173748771,
+      "contentHash": "6fbb1b937240de5a39baa22d4bac7dc6",
       "sourceName": "test/foundry/ModularEtherspotWallet/ModularEtherspotWallet.t.sol",
       "solcConfig": {
         "settings": {
@@ -4744,10 +4780,10 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol",
+        "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockDelegateTarget.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockExecutor.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockTarget.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockValidator.sol",
@@ -4758,7 +4794,7 @@
         "src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol",
         "src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol",
         "src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol",
-        "test/foundry/TestBaseUtil.t.sol"
+        "test/foundry/TestAdvancedUtils.t.sol"
       ],
       "versionRequirement": "^0.8.21",
       "artifacts": {
@@ -4768,8 +4804,8 @@
       }
     },
     "test/foundry/ModularEtherspotWallet/ModularEtherspotWalletFactory.t.sol": {
-      "lastModificationDate": 1709569072254,
-      "contentHash": "ff4a43e2bb535415e736f1f3e2cfda52",
+      "lastModificationDate": 1709978589836,
+      "contentHash": "ab4718c3b020958f351ba09ee2ad0d64",
       "sourceName": "test/foundry/ModularEtherspotWallet/ModularEtherspotWalletFactory.t.sol",
       "solcConfig": {
         "settings": {
@@ -4852,7 +4888,6 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol",
@@ -4873,10 +4908,10 @@
         }
       }
     },
-    "test/foundry/TestBaseUtil.t.sol": {
-      "lastModificationDate": 1709569072254,
-      "contentHash": "13675c3c1cbb5a8f7ca7db1ca0b4e315",
-      "sourceName": "test/foundry/TestBaseUtil.t.sol",
+    "test/foundry/TestAdvancedUtils.t.sol": {
+      "lastModificationDate": 1710173734750,
+      "contentHash": "6216d0c4cdfc3799f0c529672eaecdbd",
+      "sourceName": "test/foundry/TestAdvancedUtils.t.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -4959,7 +4994,6 @@
         "src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IMSA.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol",
-        "src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModuleTypeLib.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol",
         "src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol",
@@ -4976,8 +5010,8 @@
       ],
       "versionRequirement": "^0.8.23",
       "artifacts": {
-        "TestBaseUtil": {
-          "0.8.23+commit.f704f362.Darwin.appleclang": "TestBaseUtil.t.sol/TestBaseUtil.json"
+        "TestAdvancedUtils": {
+          "0.8.23+commit.f704f362.Darwin.appleclang": "TestAdvancedUtils.t.sol/TestAdvancedUtils.json"
         }
       }
     }
