@@ -204,7 +204,7 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     },
     {
       network: 'baseSepolia',
-      chainId: 84523,
+      chainId: 84532,
       urls: {
         apiURL: 'https://base-sepolia.blockscout.com/api',
         browserURL: 'https://base-sepolia.blockscout.com/',
