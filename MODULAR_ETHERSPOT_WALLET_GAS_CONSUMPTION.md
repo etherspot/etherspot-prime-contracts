@@ -7,9 +7,9 @@
 | ERC7579 reference | 289438   | 103811          | 93213          | 486462 |
 | Etherspot ERC7579 | 319604   | 105012          | 94402          | 519018 | -->
 
-### complete gas usage by function (01/03/2024)
+### complete gas usage by function (11/03/2024)
 
-| MultipleOwnerECDSAValidator.sol |        |       |        |       |         |
+| MultipleOwnerECDSAValidator.sol |   |       |        |       |         |
 |-------------------|-----------------|-------|--------|-------|---------|
 | Deployment Cost   | Deployment Size |       |        |       |         |
 | 471705            | 2388            |       |        |       |         |
@@ -20,32 +20,32 @@
 | ModularEtherspotWallet.sol |                 |        |        |        |         |
 |----------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost            | Deployment Size |        |        |        |         |
-| 2149487                    | 10768           |        |        |        |         |
+| 3225771                    | 16143           |        |        |        |         |
 | Function Name              | min             | avg    | median | max    | # calls |
-| addGuardian                | 754             | 34376  | 27052  | 48952  | 67      |
-| addOwner                   | 732             | 16967  | 27024  | 27024  | 10      |
-| changeProposalTimelock     | 2591            | 12617  | 12617  | 22644  | 2       |
-| discardCurrentProposal     | 3223            | 4583   | 4776   | 5615   | 5       |
-| execute                    | 26565           | 33622  | 26565  | 61853  | 5       |
-| executeFromExecutor        | 3110            | 3933   | 3933   | 4756   | 2       |
-| getProposal                | 428             | 1851   | 2036   | 2539   | 6       |
+| addGuardian                | 710             | 34332  | 27008  | 48908  | 67      |
+| addOwner                   | 710             | 16945  | 27002  | 27002  | 10      |
+| changeProposalTimelock     | 2636            | 12662  | 12662  | 22689  | 2       |
+| discardCurrentProposal     | 3179            | 4539   | 4732   | 5571   | 5       |
+| execute                    | 28878           | 35650  | 28878  | 64160  | 7       |
+| executeFromExecutor        | 3511            | 16089  | 5152   | 39605  | 3       |
+| getProposal                | 384             | 1807   | 1992   | 2495   | 6       |
 | guardianCosign             | 1356            | 21726  | 14940  | 45916  | 8       |
-| guardianCount              | 340             | 340    | 340    | 340    | 2       |
-| guardianPropose            | 694             | 100697 | 142827 | 142827 | 20      |
-| initializeAccount          | 144817          | 172907 | 174780 | 174780 | 52      |
-| isGuardian                 | 591             | 991    | 591    | 2591   | 5       |
-| isOwner                    | 590             | 875    | 590    | 2590   | 14      |
-| ownerCount                 | 364             | 364    | 364    | 364    | 2       |
+| guardianCount              | 407             | 407    | 407    | 407    | 2       |
+| guardianPropose            | 759             | 100762 | 142892 | 142892 | 20      |
+| initializeAccount          | 145306          | 173487 | 175292 | 175292 | 54      |
+| isGuardian                 | 624             | 1024   | 624    | 2624   | 5       |
+| isOwner                    | 601             | 851    | 601    | 2601   | 16      |
+| ownerCount                 | 386             | 386    | 386    | 386    | 2       |
 | proposalId                 | 407             | 407    | 407    | 407    | 1       |
-| proposalTimelock           | 362             | 362    | 362    | 362    | 1       |
-| removeGuardian             | 2281            | 2616   | 2688   | 2916   | 5       |
+| proposalTimelock           | 406             | 406    | 406    | 406    | 1       |
+| removeGuardian             | 2264            | 2596   | 2666   | 2894   | 5       |
 | removeOwner                | 1018            | 2363   | 2510   | 2895   | 6       |
-| validateUserOp             | 39093           | 39557  | 39700  | 39710  | 6       |
+| validateUserOp             | 39084           | 39533  | 39722  | 39723  | 8       |
 
 | ModularEtherspotWalletFactory.sol |     |        |        |        |         |
 |-----------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost       | Deployment Size |        |        |        |         |
 | 239733                | 1380            |        |        |        |         |
-| Function Name         | min             | avg    | median | max    | # calls |
-| createAccount         | 1730            | 242515 | 249133 | 249133 | 54      |
-| getAddress            | 1619            | 1628   | 1631   | 1631   | 5       |
+| createAccount         | 1754            | 243094 | 249694 | 249694 | 55      |
+| getAddress            | 1644            | 1654   | 1656   | 1656   | 7       |
+| implementation        | 216             | 216    | 216    | 216    | 1       |

@@ -206,6 +206,10 @@ const networks: HardhatUserConfig['networks'] = {
   ancient8TestnetV2: {
     chainId: 28122024,
     url: 'https://rpcv2-testnet.ancient8.gg/',
+  },
+  mantleSepolia: {
+    chainId: 5003,
+    url: 'https://rpc.sepolia.mantle.xyz',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
   dev: { url: 'http://localhost:8545' },

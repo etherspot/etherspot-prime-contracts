@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import {CallType, ExecType, ModeCode} from "../libs/ModeLib.sol";
+import { CallType, ExecType, ModeCode } from "../libs/ModeLib.sol";
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/IAccount.sol";
 
 struct Execution {
@@ -24,10 +24,7 @@ interface IERC7579Account {
      * @param mode The encoded execution mode of the transaction. See ModeLib.sol for details
      * @param executionCalldata The encoded execution call data
      */
-    function execute(
-        ModeCode mode,
-        bytes calldata executionCalldata
-    ) external payable;
+    function execute(ModeCode mode, bytes calldata executionCalldata) external payable;
 
     /**
      * @dev Executes a transaction on behalf of the account.
@@ -42,7 +39,10 @@ interface IERC7579Account {
     function executeFromExecutor(
         ModeCode mode,
         bytes calldata executionCalldata
-    ) external payable returns (bytes[] memory returnData);
+    )
+        external
+        payable
+        returns (bytes[] memory returnData);
 
     /**
      * @dev ERC-4337 executeUserOp according to ERC-4337 v0.7
@@ -52,9 +52,7 @@ interface IERC7579Account {
      *
      * @param userOp PackedUserOperation struct (see ERC-4337 v0.7+)
      */
-    function executeUserOp(
-        PackedUserOperation calldata userOp
-    ) external payable;
+    function executeUserOp(PackedUserOperation calldata userOp) external payable;
 
     /**
      * @dev ERC-4337 validateUserOp according to ERC-4337 v0.7
@@ -69,7 +67,10 @@ interface IERC7579Account {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash,
         uint256 missingAccountFunds
-    ) external payable returns (uint256 validSignature);
+    )
+        external
+        payable
+        returns (uint256 validSignature);
 
     /**
      * @dev ERC-1271 isValidSignature
@@ -79,46 +80,45 @@ interface IERC7579Account {
      * @param hash The hash of the data that is signed
      * @param data The data that is signed
      */
-    function isValidSignature(
-        bytes32 hash,
-        bytes calldata data
-    ) external payable returns (bytes4);
+    function isValidSignature(bytes32 hash, bytes calldata data) external view returns (bytes4);
 
     /**
      * @dev installs a Module of a certain type on the smart account
      * @dev Implement Authorization control of your chosing
-     * @param moduleType the module type ID according the ERC-7579 spec
+     * @param moduleTypeId the module type ID according the ERC-7579 spec
      * @param module the module address
      * @param initData arbitrary data that may be required on the module during `onInstall`
      * initialization.
      */
     function installModule(
-        uint256 moduleType,
+        uint256 moduleTypeId,
         address module,
         bytes calldata initData
-    ) external payable;
+    )
+        external
+        payable;
 
     /**
      * @dev uninstalls a Module of a certain type on the smart account
      * @dev Implement Authorization control of your chosing
-     * @param moduleType the module type ID according the ERC-7579 spec
+     * @param moduleTypeId the module type ID according the ERC-7579 spec
      * @param module the module address
-     * @param deInitData arbitrary data that may be required on the module during `onInstall`
-     * initialization.
+     * @param deInitData arbitrary data that may be required on the module during `onUninstall`
+     * de-initialization.
      */
     function uninstallModule(
-        uint256 moduleType,
+        uint256 moduleTypeId,
         address module,
         bytes calldata deInitData
-    ) external payable;
+    )
+        external
+        payable;
 
     /**
      * Function to check if the account supports a certain CallType or ExecType (see ModeLib.sol)
      * @param encodedMode the encoded mode
      */
-    function supportsAccountMode(
-        ModeCode encodedMode
-    ) external view returns (bool);
+    function supportsExecutionMode(ModeCode encodedMode) external view returns (bool);
 
     /**
      * Function to check if the account supports installation of a certain module type Id
@@ -128,7 +128,7 @@ interface IERC7579Account {
 
     /**
      * Function to check if the account has a certain module installed
-     * @param moduleType the module type ID according the ERC-7579 spec
+     * @param moduleTypeId the module type ID according the ERC-7579 spec
      *      Note: keep in mind that some contracts can be multiple module types at the same time. It
      *            thus may be necessary to query multiple module types
      * @param module the module address
@@ -138,10 +138,13 @@ interface IERC7579Account {
      *                          are stored in mappings, this param might be needed
      */
     function isModuleInstalled(
-        uint256 moduleType,
+        uint256 moduleTypeId,
         address module,
         bytes calldata additionalContext
-    ) external view returns (bool);
+    )
+        external
+        view
+        returns (bool);
 
     /**
      * @dev Returns the account id of the smart account
@@ -149,8 +152,5 @@ interface IERC7579Account {
      * the accountId should be structured like so:
      *        "vendorname.accountname.semver"
      */
-    function accountId()
-        external
-        view
-        returns (string memory accountImplementationId);
+    function accountId() external view returns (string memory accountImplementationId);
 }

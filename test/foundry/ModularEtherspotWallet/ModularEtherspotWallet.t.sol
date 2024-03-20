@@ -5,17 +5,20 @@ import "forge-std/Test.sol";
 import {MockValidator} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockValidator.sol";
 import {MockExecutor} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockExecutor.sol";
 import {MockTarget} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockTarget.sol";
+import {MockDelegateTarget} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockDelegateTarget.sol";
+import {ModeLib,ModeCode,CallType,ExecType,ModeSelector,ModePayload,CALLTYPE_DELEGATECALL,EXECTYPE_DEFAULT,MODE_DEFAULT} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol";
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 import {ModularEtherspotWallet} from "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {ModularEtherspotWalletFactory} from "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
 import {MultipleOwnerECDSAValidator} from "../../../src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol";
-import "../TestBaseUtil.t.sol";
+import "../TestAdvancedUtils.t.sol";
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 
-contract ModularEtherspotWalletTest is TestBaseUtil {
+contract ModularEtherspotWalletTest is TestAdvancedUtils {
     bytes32 immutable SALT = bytes32("TestSALT");
     ModularEtherspotWallet mew;
+    MockDelegateTarget delegateTarget;
 
     address owner2;
     uint256 owner2Key;
@@ -78,6 +81,7 @@ contract ModularEtherspotWalletTest is TestBaseUtil {
         (guardian3, guardian3Key) = makeAddrAndKey("guardian3");
         (guardian4, guardian4Key) = makeAddrAndKey("guardian4");
         (badActor, badActorKey) = makeAddrAndKey("badActor");
+        delegateTarget = new MockDelegateTarget();
     }
 
     function test_execSingleMEW() public returns (address) {
@@ -230,6 +234,104 @@ contract ModularEtherspotWalletTest is TestBaseUtil {
         assertEq(ret.length, 2);
         assertEq(abi.decode(ret[0], (uint256)), 1338);
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function test_delegateCall() public {
+        // Create calldata for the account to execute
+        address valueTarget = makeAddr("valueTarget");
+        uint256 value = 1 ether;
+        bytes memory sendValue =
+            abi.encodeWithSelector(MockDelegateTarget.sendValue.selector, valueTarget, value);
+
+        // Encode the call into the calldata for the userOp
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encode(
+                    CALLTYPE_DELEGATECALL, EXECTYPE_DEFAULT, MODE_DEFAULT, ModePayload.wrap(0x00)
+                    ),
+                abi.encodePacked(address(delegateTarget), sendValue)
+            )
+        );
+
+    // Get the account, initcode and nonce
+        (address account, bytes memory initCode) = getMEWAndInitCode();
+        uint256 nonce = getNonce(account);
+
+
+        // Create the userOp and add the data
+        PackedUserOperation memory userOp = getDefaultUserOp();
+        userOp.sender = address(account);
+        userOp.nonce = nonce;
+        userOp.initCode = initCode;
+        userOp.callData = userOpCalldata;
+
+                bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            owner1Key,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        userOp.signature = signature;
+
+        // Create userOps array
+        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+
+        // Send the userOp to the entrypoint
+        entrypoint.handleOps(userOps, payable(address(0x69)));
+
+        // Assert that the value was set ie that execution was successful
+        assertTrue(valueTarget.balance == value);
+    }
+
+    function test_delegateCall_fromExecutor() public {
+        address account = test_execSingleMEW();
+
+        // Create calldata for the account to execute
+        address valueTarget = makeAddr("valueTarget");
+        uint256 value = 1 ether;
+        bytes memory sendValue =
+            abi.encodeWithSelector(MockDelegateTarget.sendValue.selector, valueTarget, value);
+
+        // Execute the delegatecall via the executor
+        bytes[] memory ret = defaultExecutor.execDelegatecall(
+            IERC7579Account(address(account)), abi.encodePacked(address(delegateTarget), sendValue)
+        );
+
+        // Assert that the value was set ie that execution was successful
+        assertTrue(valueTarget.balance == value);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     function test_execFromAnotherOwner() public {
         // Create calldata for the account to execute

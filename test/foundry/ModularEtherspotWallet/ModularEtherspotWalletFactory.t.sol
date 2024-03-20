@@ -52,7 +52,7 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
             ""
         );
         BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig memory fallbackHandler = _makeBootstrapConfig(
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
             ""
         );
@@ -62,7 +62,7 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
             address(bootstrapSingleton),
             abi.encodeCall(
                 Bootstrap.initMSA,
-                (validators, executors, hook, fallbackHandler)
+                (validators, executors, hook, fallbacks)
             )
         );
 
@@ -94,7 +94,7 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
             ""
         );
         BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig memory fallbackHandler = _makeBootstrapConfig(
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
             ""
         );
@@ -104,7 +104,7 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
             address(bootstrapSingleton),
             abi.encodeCall(
                 Bootstrap.initMSA,
-                (validators, executors, hook, fallbackHandler)
+                (validators, executors, hook, fallbacks)
             )
         );
 
@@ -138,7 +138,7 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
             ""
         );
         BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig memory fallbackHandler = _makeBootstrapConfig(
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
             ""
         );
@@ -148,7 +148,7 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
             address(bootstrapSingleton),
             abi.encodeCall(
                 Bootstrap.initMSA,
-                (validators, executors, hook, fallbackHandler)
+                (validators, executors, hook, fallbacks)
             )
         );
 
@@ -165,7 +165,7 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
             address(bootstrapSingleton),
             abi.encodeCall(
                 Bootstrap.initMSA,
-                (validators, executors, hook, fallbackHandler)
+                (validators, executors, hook, fallbacks)
             )
         );
 

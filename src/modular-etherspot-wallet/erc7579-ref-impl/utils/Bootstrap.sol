@@ -23,20 +23,22 @@ contract Bootstrap is ModuleManager, HookManager {
      * calling this function
      */
     function initMSA(
-        BootstrapConfig[] calldata _validators,
-        BootstrapConfig[] calldata _executors,
+        BootstrapConfig[] calldata $valdiators,
+        BootstrapConfig[] calldata $executors,
         BootstrapConfig calldata _hook,
-        BootstrapConfig calldata _fallback
-    ) external {
+        BootstrapConfig[] calldata _fallbacks
+    )
+        external
+    {
         // init validators
-        for (uint256 i; i < _validators.length; i++) {
-            _installValidator(_validators[i].module, _validators[i].data);
+        for (uint256 i; i < $valdiators.length; i++) {
+            _installValidator($valdiators[i].module, $valdiators[i].data);
         }
 
         // init executors
-        for (uint256 i; i < _executors.length; i++) {
-            if (_executors[i].module == address(0)) continue;
-            _installExecutor(_executors[i].module, _executors[i].data);
+        for (uint256 i; i < $executors.length; i++) {
+            if ($executors[i].module == address(0)) continue;
+            _installExecutor($executors[i].module, $executors[i].data);
         }
 
         // init hook
@@ -45,23 +47,25 @@ contract Bootstrap is ModuleManager, HookManager {
         }
 
         // init fallback
-        if (_fallback.module != address(0)) {
-            _installFallbackHandler(_fallback.module, _fallback.data);
+        for (uint256 i; i < _fallbacks.length; i++) {
+            if (_fallbacks[i].module == address(0)) continue;
+            _installFallbackHandler(_fallbacks[i].module, _fallbacks[i].data);
         }
     }
 
     function _getInitMSACalldata(
-        BootstrapConfig[] calldata _validators,
-        BootstrapConfig[] calldata _executors,
+        BootstrapConfig[] calldata $valdiators,
+        BootstrapConfig[] calldata $executors,
         BootstrapConfig calldata _hook,
-        BootstrapConfig calldata _fallback
-    ) external view returns (bytes memory init) {
+        BootstrapConfig[] calldata _fallbacks
+    )
+        external
+        view
+        returns (bytes memory init)
+    {
         init = abi.encode(
             address(this),
-            abi.encodeCall(
-                this.initMSA,
-                (_validators, _executors, _hook, _fallback)
-            )
+            abi.encodeCall(this.initMSA, ($valdiators, $executors, _hook, _fallbacks))
         );
     }
 }

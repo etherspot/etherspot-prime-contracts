@@ -40,6 +40,7 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     arbitrumSepolia: process.env.ARBISCAN_API_KEY!,
     baseSepolia: process.env.BASESCAN_API_KEY!,
     ancient8TestnetV2: process.env.BASESCAN_API_KEY!, // works with same key
+    mantleSepolia: process.env.BASESCAN_API_KEY!, // works with same key
   },
   customChains: [
     {
@@ -204,7 +205,7 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     },
     {
       network: 'baseSepolia',
-      chainId: 84523,
+      chainId: 84532,
       urls: {
         apiURL: 'https://base-sepolia.blockscout.com/api',
         browserURL: 'https://base-sepolia.blockscout.com/',
@@ -216,6 +217,14 @@ const etherscan: HardhatUserConfig['etherscan'] = {
       urls: {
         apiURL: 'https://scanv2-testnet.ancient8.gg/api',
         browserURL: 'https://scanv2-testnet.ancient8.gg/',
+      },
+    },
+    {
+      network: 'mantleSepolia',
+      chainId: 5003,
+      urls: {
+        apiURL: 'https://explorer.sepolia.mantle.xyz/api',
+        browserURL: 'https://explorer.sepolia.mantle.xyz/',
       },
     },
   ],

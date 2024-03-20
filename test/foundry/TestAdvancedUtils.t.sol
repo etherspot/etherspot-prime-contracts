@@ -15,7 +15,7 @@ import {ModeLib, ModeCode, CallType, ExecType, ModeSelector, ModePayload} from "
 
 import "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 
-contract TestBaseUtil is BootstrapUtil, Test {
+contract TestAdvancedUtils is BootstrapUtil, Test {
     // singletons
     ModularEtherspotWallet implementation;
     ModularEtherspotWalletFactory factory;
@@ -54,24 +54,14 @@ contract TestBaseUtil is BootstrapUtil, Test {
         internal
         returns (address account, bytes memory initCode)
     {
-        BootstrapConfig memory defaultBootstrapConfig = _makeBootstrapConfig(
-            address(0),
-            ""
-        );
+               // Create config for initial modules
+        BootstrapConfig[] memory validators = makeBootstrapConfig(address(defaultValidator), "");
+        BootstrapConfig[] memory executors = makeBootstrapConfig(address(defaultExecutor), "");
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(address(0), "");
 
         // Create initcode and salt to be sent to Factory
-        bytes memory _initCode = bootstrapSingleton._getInitMSACalldata(
-            makeBootstrapConfig(
-            address(defaultValidator),
-            ""
-        ),
-        makeBootstrapConfig(
-            address(defaultExecutor),
-            ""
-        ),
-            defaultBootstrapConfig,
-            defaultBootstrapConfig
-        );
+        bytes memory _initCode = bootstrapSingleton._getInitMSACalldata(validators, executors, hook, fallbacks);
 
     bytes32 salt = keccak256("1");
         // Get address of new account
@@ -87,8 +77,8 @@ contract TestBaseUtil is BootstrapUtil, Test {
             )
         );
 
-        // Deal 1 ether to the account
-        vm.deal(account, 1 ether);
+        // Deal 100 ether to the account
+        vm.deal(account, 100 ether);
     }
 
     function getNonce(
@@ -122,23 +112,16 @@ contract TestBaseUtil is BootstrapUtil, Test {
         internal
         returns (address account, bytes memory initCode)
     {
-                BootstrapConfig memory defaultBootstrapConfig = _makeBootstrapConfig(
-            address(0),
-            ""
-        );
+              // Create config for initial modules
+        BootstrapConfig[] memory validators = makeBootstrapConfig(address(ecdsaValidator),
+            abi.encodePacked(owner1));
+        BootstrapConfig[] memory executors = makeBootstrapConfig(address(defaultExecutor), "");
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(address(0), "");
 
         // Create owner
         (owner1, owner1Key) = makeAddrAndKey("owner1");
 
-        // Create config for initial modules
-        BootstrapConfig[] memory validators = makeBootstrapConfig(
-            address(ecdsaValidator),
-            abi.encodePacked(owner1)
-        );
-        BootstrapConfig[] memory executors = makeBootstrapConfig(
-            address(defaultExecutor),
-            ""
-        );
 
         // Create initcode and salt to be sent to Factory
         bytes memory _initCode = abi.encode(
@@ -146,7 +129,7 @@ contract TestBaseUtil is BootstrapUtil, Test {
             address(bootstrapSingleton),
             abi.encodeCall(
                 bootstrapSingleton.initMSA,
-                (validators, executors, defaultBootstrapConfig, defaultBootstrapConfig)
+                (validators, executors, hook, fallbacks)
             )
         );
         bytes32 salt = keccak256("1");
@@ -164,28 +147,20 @@ contract TestBaseUtil is BootstrapUtil, Test {
             )
         );
 
-        // Deal 1 ether to the account
-        vm.deal(account, 1 ether);
+        // Deal 100 ether to the account
+        vm.deal(account, 100 ether);
     }
 
     function setupMEW() internal returns (ModularEtherspotWallet mew) {
-                        BootstrapConfig memory defaultBootstrapConfig = _makeBootstrapConfig(
-            address(0),
-            ""
-        );
+       // Create config for initial modules
+        BootstrapConfig[] memory validators = makeBootstrapConfig( address(ecdsaValidator),
+            abi.encodePacked(owner1));
+        BootstrapConfig[] memory executors = makeBootstrapConfig(address(defaultExecutor), "");
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(address(0), "");
 
         // Create owner
         (owner1, owner1Key) = makeAddrAndKey("owner1");
-
-        // Create config for initial modules
-        BootstrapConfig[] memory validators = makeBootstrapConfig(
-            address(ecdsaValidator),
-            abi.encodePacked(owner1)
-        );
-        BootstrapConfig[] memory executors = makeBootstrapConfig(
-            address(defaultExecutor),
-            ""
-        );
 
         // Create initcode and salt to be sent to Factory
         bytes memory _initCode = abi.encode(
@@ -193,7 +168,7 @@ contract TestBaseUtil is BootstrapUtil, Test {
             address(bootstrapSingleton),
             abi.encodeCall(
                 bootstrapSingleton.initMSA,
-                (validators, executors, defaultBootstrapConfig, defaultBootstrapConfig)
+                (validators, executors, hook, fallbacks)
             )
         );
         bytes32 salt = keccak256("1");
@@ -203,7 +178,7 @@ contract TestBaseUtil is BootstrapUtil, Test {
         mewAccount = ModularEtherspotWallet(
             payable(factory.createAccount({salt: salt, initCode: _initCode}))
         );
-        vm.deal(address(mewAccount), 1 ether);
+        vm.deal(address(mewAccount), 100 ether);
         vm.stopPrank();
         return mewAccount;
     }
