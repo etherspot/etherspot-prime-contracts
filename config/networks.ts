@@ -78,12 +78,12 @@ const networks: HardhatUserConfig['networks'] = {
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     initialBaseFeePerGas: 7,
   },
-  rskt: {
+  rootstockTestnet: {
     chainId: 31,
     url: 'https://public-node.testnet.rsk.co',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
-  rskm: {
+  rootstock: {
     chainId: 30,
     url: 'https://public-node.rsk.co',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
