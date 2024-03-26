@@ -208,6 +208,11 @@ const networks: HardhatUserConfig['networks'] = {
     url: 'https://rpc.sepolia.mantle.xyz',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
+  ancient8Testnet: {
+    chainId: 28122024,
+    url: 'https://rpcv2-testnet.ancient8.gg/',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
   dev: { url: 'http://localhost:8545' },
 };
 export default networks;
