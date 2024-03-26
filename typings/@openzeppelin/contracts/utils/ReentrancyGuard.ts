@@ -9,6 +9,7 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
+  PromiseOrValue,
 } from "../../../common";
 
 export interface ReentrancyGuardInterface extends utils.Interface {

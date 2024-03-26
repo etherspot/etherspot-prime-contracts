@@ -21,6 +21,8 @@ node_modules
 
 # Hardhat
 .hardhat
+typings
+coverage.json
 
 # IDEs
 /.idea
@@ -30,7 +32,7 @@ node_modules
 *.launch
 .settings/
 *.sublime-workspace
-.vscode/*
+.vscode/
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -47,4 +49,6 @@ contracts-exposed/
 
 # Foundry
 broadcast
-forge_cache/*
+forge_cache/
+.gas-snapshot
+

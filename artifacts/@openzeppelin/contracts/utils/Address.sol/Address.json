@@ -2,9 +2,37 @@
   "_format": "hh-sol-artifact-1",
   "contractName": "Address",
   "sourceName": "@openzeppelin/contracts/utils/Address.sol",
-  "abi": [],
-  "bytecode": "0x60566037600b82828239805160001a607314602a57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220dc973c466ebb9c1292eac1039e50b76971faf802246f8752e78009a53551e20364736f6c63430008170033",
-  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220dc973c466ebb9c1292eac1039e50b76971faf802246f8752e78009a53551e20364736f6c63430008170033",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        }
+      ],
+      "name": "AddressEmptyCode",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        }
+      ],
+      "name": "AddressInsufficientBalance",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "FailedInnerCall",
+      "type": "error"
+    }
+  ],
+  "bytecode": "0x60566037600b82828239805160001a607314602a57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220034d81ebbd34204c06273abe4c222f047ea90b24e5f3f671650e01cc48de00cb64736f6c63430008170033",
+  "deployedBytecode": "0x73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220034d81ebbd34204c06273abe4c222f047ea90b24e5f3f671650e01cc48de00cb64736f6c63430008170033",
   "linkReferences": {},
   "deployedLinkReferences": {}
 }

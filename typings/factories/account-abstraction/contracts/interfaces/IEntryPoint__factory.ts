@@ -13,6 +13,22 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "bool",
+        name: "success",
+        type: "bool",
+      },
+      {
+        internalType: "bytes",
+        name: "ret",
+        type: "bytes",
+      },
+    ],
+    name: "DelegateAndRevert",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
         internalType: "uint256",
         name: "opIndex",
         type: "uint256",
@@ -24,6 +40,27 @@ const _abi = [
       },
     ],
     name: "FailedOp",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "opIndex",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "reason",
+        type: "string",
+      },
+      {
+        internalType: "bytes",
+        name: "inner",
+        type: "bytes",
+      },
+    ],
+    name: "FailedOpWithRevert",
     type: "error",
   },
   {
@@ -298,6 +335,31 @@ const _abi = [
         name: "nonce",
         type: "uint256",
       },
+    ],
+    name: "UserOperationPrefundTooLow",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "userOpHash",
+        type: "bytes32",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "nonce",
+        type: "uint256",
+      },
       {
         indexed: false,
         internalType: "bytes",
@@ -369,6 +431,24 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "target",
+        type: "address",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "delegateAndRevert",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "account",
         type: "address",
       },
@@ -391,9 +471,9 @@ const _abi = [
       {
         components: [
           {
-            internalType: "uint112",
+            internalType: "uint256",
             name: "deposit",
-            type: "uint112",
+            type: "uint256",
           },
           {
             internalType: "bool",
@@ -486,14 +566,9 @@ const _abi = [
             type: "bytes",
           },
           {
-            internalType: "uint256",
-            name: "callGasLimit",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "verificationGasLimit",
-            type: "uint256",
+            internalType: "bytes32",
+            name: "accountGasLimits",
+            type: "bytes32",
           },
           {
             internalType: "uint256",
@@ -501,14 +576,9 @@ const _abi = [
             type: "uint256",
           },
           {
-            internalType: "uint256",
-            name: "maxFeePerGas",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "maxPriorityFeePerGas",
-            type: "uint256",
+            internalType: "bytes32",
+            name: "gasFees",
+            type: "bytes32",
           },
           {
             internalType: "bytes",
@@ -521,7 +591,7 @@ const _abi = [
             type: "bytes",
           },
         ],
-        internalType: "struct UserOperation",
+        internalType: "struct PackedUserOperation",
         name: "userOp",
         type: "tuple",
       },
@@ -564,14 +634,9 @@ const _abi = [
                 type: "bytes",
               },
               {
-                internalType: "uint256",
-                name: "callGasLimit",
-                type: "uint256",
-              },
-              {
-                internalType: "uint256",
-                name: "verificationGasLimit",
-                type: "uint256",
+                internalType: "bytes32",
+                name: "accountGasLimits",
+                type: "bytes32",
               },
               {
                 internalType: "uint256",
@@ -579,14 +644,9 @@ const _abi = [
                 type: "uint256",
               },
               {
-                internalType: "uint256",
-                name: "maxFeePerGas",
-                type: "uint256",
-              },
-              {
-                internalType: "uint256",
-                name: "maxPriorityFeePerGas",
-                type: "uint256",
+                internalType: "bytes32",
+                name: "gasFees",
+                type: "bytes32",
               },
               {
                 internalType: "bytes",
@@ -599,7 +659,7 @@ const _abi = [
                 type: "bytes",
               },
             ],
-            internalType: "struct UserOperation[]",
+            internalType: "struct PackedUserOperation[]",
             name: "userOps",
             type: "tuple[]",
           },
@@ -654,14 +714,9 @@ const _abi = [
             type: "bytes",
           },
           {
-            internalType: "uint256",
-            name: "callGasLimit",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "verificationGasLimit",
-            type: "uint256",
+            internalType: "bytes32",
+            name: "accountGasLimits",
+            type: "bytes32",
           },
           {
             internalType: "uint256",
@@ -669,14 +724,9 @@ const _abi = [
             type: "uint256",
           },
           {
-            internalType: "uint256",
-            name: "maxFeePerGas",
-            type: "uint256",
-          },
-          {
-            internalType: "uint256",
-            name: "maxPriorityFeePerGas",
-            type: "uint256",
+            internalType: "bytes32",
+            name: "gasFees",
+            type: "bytes32",
           },
           {
             internalType: "bytes",
@@ -689,7 +739,7 @@ const _abi = [
             type: "bytes",
           },
         ],
-        internalType: "struct UserOperation[]",
+        internalType: "struct PackedUserOperation[]",
         name: "ops",
         type: "tuple[]",
       },

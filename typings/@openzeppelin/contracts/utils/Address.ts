@@ -9,6 +9,7 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
+  PromiseOrValue,
 } from "../../../common";
 
 export interface AddressInterface extends utils.Interface {
