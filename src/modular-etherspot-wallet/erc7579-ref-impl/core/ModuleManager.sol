@@ -248,11 +248,11 @@ abstract contract ModuleManager is AccountBase, Receiver {
         CallType callType = activeFallback.calltype;
 
         if (callType == CALLTYPE_DELEGATECALL) revert FallbackInvalidCallType();
-
+        address[] memory allowedCallers = new address[](0);
         $moduleManager().$fallbacks[selector] = FallbackHandler(
             address(0),
             CallType.wrap(0x00),
-            delete allowedCallers
+            allowedCallers
         );
 
         IFallback(handler).onUninstall(_deInitData);
@@ -287,7 +287,9 @@ abstract contract ModuleManager is AccountBase, Receiver {
     // validates that the caller is allowed and reverts if not.
 
     function _validateCaller(bytes4 sig) private view {
-        uint256 allowed = $moduleManager().$fallbacks[sig].allowedCallers;
+        address[] memory allowed = $moduleManager()
+            .$fallbacks[sig]
+            .allowedCallers;
         if (ArrayLib._contains(allowed, msg.sender) == false) {
             revert InvalidFallbackCaller(msg.sender);
         }
