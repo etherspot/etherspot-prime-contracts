@@ -54,7 +54,7 @@ contract ModuleIsolationHook is IHook {
         ) {
             ModeCode mode = ModeCode.wrap(bytes32(msgData[4:36]));
             (CallType callType, ExecType execType, , ) = mode.decode();
-            this.integrityCheck(callType, msgData[68 + 32:]);
+            integrityCheck(callType, msgData[68 + 32:]);
         }
         return "";
     }
@@ -81,7 +81,7 @@ contract ModuleIsolationHook is IHook {
                     (bytes4(executions[i].callData[2]) >> 16) |
                     (bytes4(executions[i].callData[3]) >> 24);
                 require(
-                    !this.contains(checkSig, bannedSigs),
+                    !contains(checkSig, bannedSigs),
                     "MEW::ModuleIsolationHook:BannedSignature"
                 );
             }
@@ -97,7 +97,7 @@ contract ModuleIsolationHook is IHook {
                 (bytes4(callData[2]) >> 16) |
                 (bytes4(callData[3]) >> 24);
             require(
-                !this.contains(checkSig, bannedSigs),
+                !contains(checkSig, bannedSigs),
                 "MEW::ModuleIsolationHook:BannedSignature"
             );
         } else if (callType == CALLTYPE_DELEGATECALL) {
@@ -106,7 +106,7 @@ contract ModuleIsolationHook is IHook {
                 (bytes4(executionCallData[2]) >> 16) |
                 (bytes4(executionCallData[3]) >> 24);
             require(
-                !this.contains(checkSig, bannedSigs),
+                !contains(checkSig, bannedSigs),
                 "MEW::ModuleIsolationHook:BannedSignature"
             );
         }
