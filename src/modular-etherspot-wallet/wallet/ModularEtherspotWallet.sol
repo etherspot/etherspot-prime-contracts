@@ -150,7 +150,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @dev see {IERC7579Account}.
+     *  @dev see {IERC7579Account}.
      */
     function executeUserOp(
         PackedUserOperation calldata userOp
@@ -161,7 +161,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @dev see {IERC7579Account}.
+     *  @dev see {IERC7579Account}.
      */
     function installModule(
         uint256 moduleTypeId,
@@ -181,7 +181,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @dev see {IERC7579Account}.
+     *  @dev see {IERC7579Account}.
      */
     function uninstallModule(
         uint256 moduleTypeId,
@@ -284,7 +284,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @dev see {IERC7579Account}.
+     *  @dev see {IERC7579Account}.
      */
     function accountId()
         external
@@ -318,7 +318,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @dev see {IERC7579Account}.
+     *  @dev see {IERC7579Account}.
      */
     function supportsModule(
         uint256 modulTypeId
@@ -331,8 +331,7 @@ contract ModularEtherspotWallet is
     }
 
     /**
-     * @dev Initializes the account. Function might be called directly, or by a Factory
-     * @param data. encoded data that can be used during the initialization phase
+     *  @dev see {IERC7579Account}.
      */
     function initializeAccount(
         bytes calldata data
