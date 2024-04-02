@@ -78,12 +78,12 @@ const networks: HardhatUserConfig['networks'] = {
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
     initialBaseFeePerGas: 7,
   },
-  rskt: {
+  rootstockTestnet: {
     chainId: 31,
     url: 'https://public-node.testnet.rsk.co',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
-  rskm: {
+  rootstock: {
     chainId: 30,
     url: 'https://public-node.rsk.co',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
@@ -206,6 +206,11 @@ const networks: HardhatUserConfig['networks'] = {
   mantleSepolia: {
     chainId: 5003,
     url: 'https://rpc.sepolia.mantle.xyz',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
+  ancient8Testnet: {
+    chainId: 28122024,
+    url: 'https://rpcv2-testnet.ancient8.gg/',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
   dev: { url: 'http://localhost:8545' },
