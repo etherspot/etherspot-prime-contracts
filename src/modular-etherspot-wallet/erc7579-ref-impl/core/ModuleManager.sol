@@ -182,10 +182,6 @@ abstract contract ModuleManager is AccountBase, Receiver {
     //  Manage Fallback
     ////////////////////////////////////////////////////
 
-    // AUDIT: Added to function.
-    // assembly block (see inline), removal of delegatecall block and replaced
-    // with revert statement to check if calltype is delegatecall
-
     function _installFallbackHandler(
         address handler,
         bytes calldata params
@@ -221,10 +217,6 @@ abstract contract ModuleManager is AccountBase, Receiver {
 
         IFallback(handler).onInstall(initData);
     }
-
-    // AUDIT: Added to function.
-    // removal of delegatecall block and replaced
-    // with revert statement to check if calltype is delegatecall
 
     function _uninstallFallbackHandler(
         address handler,
@@ -283,7 +275,6 @@ abstract contract ModuleManager is AccountBase, Receiver {
         return $moduleManager().$fallbacks[functionSig];
     }
 
-    // AUDIT: New function added to contract.
     // validates that the caller is allowed and reverts if not.
 
     function _validateCaller(bytes4 sig) private view {
@@ -296,7 +287,6 @@ abstract contract ModuleManager is AccountBase, Receiver {
     }
 
     // FALLBACK
-    // AUDIT: New code added to the function.
     // calling _validateCaller()
 
     fallback() external payable override(Receiver) {
