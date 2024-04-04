@@ -214,6 +214,7 @@ contract ModularEtherspotWallet is
         payable
         virtual
         override
+        onlyEntryPoint
         payPrefund(missingAccountFunds)
         returns (uint256 validSignature)
     {
