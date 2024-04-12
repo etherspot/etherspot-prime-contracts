@@ -54,16 +54,30 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         internal
         returns (address account, bytes memory initCode)
     {
-               // Create config for initial modules
-        BootstrapConfig[] memory validators = makeBootstrapConfig(address(defaultValidator), "");
-        BootstrapConfig[] memory executors = makeBootstrapConfig(address(defaultExecutor), "");
+        // Create config for initial modules
+        BootstrapConfig[] memory validators = makeBootstrapConfig(
+            address(defaultValidator),
+            ""
+        );
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
         BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
+            ""
+        );
 
         // Create initcode and salt to be sent to Factory
-        bytes memory _initCode = bootstrapSingleton._getInitMSACalldata(validators, executors, hook, fallbacks);
+        bytes memory _initCode = bootstrapSingleton._getInitMSACalldata(
+            validators,
+            executors,
+            hook,
+            fallbacks
+        );
 
-    bytes32 salt = keccak256("1");
+        bytes32 salt = keccak256("1");
         // Get address of new account
         account = factory.getAddress(salt, _initCode);
 
@@ -81,9 +95,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         vm.deal(account, 100 ether);
     }
 
-    function getNonce(
-        address account
-    ) internal view returns (uint256 nonce) {
+    function getNonce(address account) internal view returns (uint256 nonce) {
         uint192 key = uint192(bytes24(bytes20(address(ecdsaValidator))));
         nonce = entrypoint.getNonce(address(account), key);
     }
@@ -112,16 +124,23 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         internal
         returns (address account, bytes memory initCode)
     {
-              // Create config for initial modules
-        BootstrapConfig[] memory validators = makeBootstrapConfig(address(ecdsaValidator),
-            abi.encodePacked(owner1));
-        BootstrapConfig[] memory executors = makeBootstrapConfig(address(defaultExecutor), "");
+        // Create config for initial modules
+        BootstrapConfig[] memory validators = makeBootstrapConfig(
+            address(ecdsaValidator),
+            abi.encodePacked(owner1)
+        );
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
         BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
+            ""
+        );
 
         // Create owner
         (owner1, owner1Key) = makeAddrAndKey("owner1");
-
 
         // Create initcode and salt to be sent to Factory
         bytes memory _initCode = abi.encode(
@@ -152,12 +171,20 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     }
 
     function setupMEW() internal returns (ModularEtherspotWallet mew) {
-       // Create config for initial modules
-        BootstrapConfig[] memory validators = makeBootstrapConfig( address(ecdsaValidator),
-            abi.encodePacked(owner1));
-        BootstrapConfig[] memory executors = makeBootstrapConfig(address(defaultExecutor), "");
+        // Create config for initial modules
+        BootstrapConfig[] memory validators = makeBootstrapConfig(
+            address(ecdsaValidator),
+            abi.encodePacked(owner1)
+        );
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
         BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
-        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
+            ""
+        );
 
         // Create owner
         (owner1, owner1Key) = makeAddrAndKey("owner1");

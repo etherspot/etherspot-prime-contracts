@@ -20,6 +20,15 @@ contract ModularEtherspotWallet is
 {
     using ExecutionLib for bytes;
     using ModeLib for ModeCode;
+    address public immutable implementation = address(this);
+
+    /**
+     * @dev modifier to restrict access to calling on implementation
+     */
+    modifier onlyProxy() {
+        if (address(this) == implementation) revert OnlyProxy();
+        _;
+    }
 
     /**
      * @dev see {IERC7579Account}.
@@ -31,13 +40,8 @@ contract ModularEtherspotWallet is
     function execute(
         ModeCode mode,
         bytes calldata executionCalldata
-    )
-        external
-        payable
-        onlyEntryPointOrSelf
-        withHook
-    {
-        (CallType callType, ExecType execType,,) = mode.decode();
+    ) external payable onlyEntryPointOrSelf withHook {
+        (CallType callType, ExecType execType, , ) = mode.decode();
 
         // check if calltype is batch or single
         if (callType == CALLTYPE_BATCH) {
@@ -49,20 +53,29 @@ contract ModularEtherspotWallet is
             else revert UnsupportedExecType(execType);
         } else if (callType == CALLTYPE_SINGLE) {
             // destructure executionCallData according to single exec
-            (address target, uint256 value, bytes calldata callData) =
-                executionCalldata.decodeSingle();
+            (
+                address target,
+                uint256 value,
+                bytes calldata callData
+            ) = executionCalldata.decodeSingle();
             // check if execType is revert or try
-            if (execType == EXECTYPE_DEFAULT) _execute(target, value, callData);
-            // TODO: implement event emission for tryExecute singleCall
-            else if (execType == EXECTYPE_TRY) _tryExecute(target, value, callData);
+            if (execType == EXECTYPE_DEFAULT)
+                _execute(target, value, callData);
+                // TODO: implement event emission for tryExecute singleCall
+            else if (execType == EXECTYPE_TRY)
+                _tryExecute(target, value, callData);
             else revert UnsupportedExecType(execType);
         } else if (callType == CALLTYPE_DELEGATECALL) {
             // destructure executionCallData according to single exec
-            address delegate = address(uint160(bytes20(executionCalldata[0:20])));
+            address delegate = address(
+                uint160(bytes20(executionCalldata[0:20]))
+            );
             bytes calldata callData = executionCalldata[20:];
             // check if execType is revert or try
-            if (execType == EXECTYPE_DEFAULT) _executeDelegatecall(delegate, callData);
-            else if (execType == EXECTYPE_TRY) _tryExecuteDelegatecall(delegate, callData);
+            if (execType == EXECTYPE_DEFAULT)
+                _executeDelegatecall(delegate, callData);
+            else if (execType == EXECTYPE_TRY)
+                _tryExecuteDelegatecall(delegate, callData);
             else revert UnsupportedExecType(execType);
         } else {
             revert UnsupportedCallType(callType);
@@ -88,7 +101,7 @@ contract ModularEtherspotWallet is
             bytes[] memory returnData // TODO returnData is not used
         )
     {
-        (CallType callType, ExecType execType,,) = mode.decode();
+        (CallType callType, ExecType execType, , ) = mode.decode();
 
         // check if calltype is batch or single
         if (callType == CALLTYPE_BATCH) {
@@ -96,12 +109,16 @@ contract ModularEtherspotWallet is
             Execution[] calldata executions = executionCalldata.decodeBatch();
             // check if execType is revert or try
             if (execType == EXECTYPE_DEFAULT) returnData = _execute(executions);
-            else if (execType == EXECTYPE_TRY) returnData = _tryExecute(executions);
+            else if (execType == EXECTYPE_TRY)
+                returnData = _tryExecute(executions);
             else revert UnsupportedExecType(execType);
         } else if (callType == CALLTYPE_SINGLE) {
             // destructure executionCallData according to single exec
-            (address target, uint256 value, bytes calldata callData) =
-                executionCalldata.decodeSingle();
+            (
+                address target,
+                uint256 value,
+                bytes calldata callData
+            ) = executionCalldata.decodeSingle();
             returnData = new bytes[](1);
             bool success;
             // check if execType is revert or try
@@ -117,11 +134,15 @@ contract ModularEtherspotWallet is
             }
         } else if (callType == CALLTYPE_DELEGATECALL) {
             // destructure executionCallData according to single exec
-            address delegate = address(uint160(bytes20(executionCalldata[0:20])));
+            address delegate = address(
+                uint160(bytes20(executionCalldata[0:20]))
+            );
             bytes calldata callData = executionCalldata[20:];
             // check if execType is revert or try
-            if (execType == EXECTYPE_DEFAULT) _executeDelegatecall(delegate, callData);
-            else if (execType == EXECTYPE_TRY) _tryExecuteDelegatecall(delegate, callData);
+            if (execType == EXECTYPE_DEFAULT)
+                _executeDelegatecall(delegate, callData);
+            else if (execType == EXECTYPE_TRY)
+                _tryExecuteDelegatecall(delegate, callData);
             else revert UnsupportedExecType(execType);
         } else {
             revert UnsupportedCallType(callType);
@@ -131,13 +152,11 @@ contract ModularEtherspotWallet is
     /**
      *  @dev see {IERC7579Account}.
      */
-    function executeUserOp(PackedUserOperation calldata userOp)
-        external
-        payable
-        onlyEntryPointOrSelf
-    {
+    function executeUserOp(
+        PackedUserOperation calldata userOp
+    ) external payable onlyEntryPointOrSelf {
         bytes calldata callData = userOp.callData[4:];
-        (bool success,) = address(this).delegatecall(callData);
+        (bool success, ) = address(this).delegatecall(callData);
         if (!success) revert ExecutionFailed();
     }
 
@@ -148,15 +167,15 @@ contract ModularEtherspotWallet is
         uint256 moduleTypeId,
         address module,
         bytes calldata initData
-    )
-        external
-        payable
-        onlyEntryPointOrSelf
-    {
-        if (moduleTypeId == MODULE_TYPE_VALIDATOR) _installValidator(module, initData);
-        else if (moduleTypeId == MODULE_TYPE_EXECUTOR) _installExecutor(module, initData);
-        else if (moduleTypeId == MODULE_TYPE_FALLBACK) _installFallbackHandler(module, initData);
-        else if (moduleTypeId == MODULE_TYPE_HOOK) _installHook(module, initData);
+    ) external payable onlyEntryPointOrSelf {
+        if (moduleTypeId == MODULE_TYPE_VALIDATOR)
+            _installValidator(module, initData);
+        else if (moduleTypeId == MODULE_TYPE_EXECUTOR)
+            _installExecutor(module, initData);
+        else if (moduleTypeId == MODULE_TYPE_FALLBACK)
+            _installFallbackHandler(module, initData);
+        else if (moduleTypeId == MODULE_TYPE_HOOK)
+            _installHook(module, initData);
         else revert UnsupportedModuleType(moduleTypeId);
         emit ModuleInstalled(moduleTypeId, module);
     }
@@ -168,11 +187,7 @@ contract ModularEtherspotWallet is
         uint256 moduleTypeId,
         address module,
         bytes calldata deInitData
-    )
-        external
-        payable
-        onlyEntryPointOrSelf
-    {
+    ) external payable onlyEntryPointOrSelf {
         if (moduleTypeId == MODULE_TYPE_VALIDATOR) {
             _uninstallValidator(module, deInitData);
         } else if (moduleTypeId == MODULE_TYPE_EXECUTOR) {
@@ -199,6 +214,7 @@ contract ModularEtherspotWallet is
         payable
         virtual
         override
+        onlyEntryPoint
         payPrefund(missingAccountFunds)
         returns (uint256 validSignature)
     {
@@ -215,7 +231,10 @@ contract ModularEtherspotWallet is
         if (!_isValidatorInstalled(validator)) return VALIDATION_FAILED;
 
         // bubble up the return value of the validator module
-        validSignature = IValidator(validator).validateUserOp(userOp, userOpHash);
+        validSignature = IValidator(validator).validateUserOp(
+            userOp,
+            userOpHash
+        );
     }
 
     /**
@@ -229,16 +248,15 @@ contract ModularEtherspotWallet is
     function isValidSignature(
         bytes32 hash,
         bytes calldata data
-    )
-        external
-        view
-        virtual
-        override
-        returns (bytes4)
-    {
+    ) external view virtual override returns (bytes4) {
         address validator = address(bytes20(data[0:20]));
         if (!_isValidatorInstalled(validator)) revert InvalidModule(validator);
-        return IValidator(validator).isValidSignatureWithSender(msg.sender, hash, data[20:]);
+        return
+            IValidator(validator).isValidSignatureWithSender(
+                msg.sender,
+                hash,
+                data[20:]
+            );
     }
 
     /**
@@ -248,18 +266,17 @@ contract ModularEtherspotWallet is
         uint256 moduleTypeId,
         address module,
         bytes calldata additionalContext
-    )
-        external
-        view
-        override
-        returns (bool)
-    {
+    ) external view override returns (bool) {
         if (moduleTypeId == MODULE_TYPE_VALIDATOR) {
             return _isValidatorInstalled(module);
         } else if (moduleTypeId == MODULE_TYPE_EXECUTOR) {
             return _isExecutorInstalled(module);
         } else if (moduleTypeId == MODULE_TYPE_FALLBACK) {
-            return _isFallbackHandlerInstalled(abi.decode(additionalContext, (bytes4)), module);
+            return
+                _isFallbackHandlerInstalled(
+                    abi.decode(additionalContext, (bytes4)),
+                    module
+                );
         } else if (moduleTypeId == MODULE_TYPE_HOOK) {
             return _isHookInstalled(module);
         } else {
@@ -280,34 +297,33 @@ contract ModularEtherspotWallet is
         return "etherspotwallet.modular.v1.0.0";
     }
 
+    /**
+     * @dev see {IERC7579Account}.
+     */
+    function supportsExecutionMode(
+        ModeCode mode
+    ) external view virtual override returns (bool isSupported) {
+        (CallType callType, ExecType execType, , ) = mode.decode();
+        if (callType == CALLTYPE_BATCH) isSupported = true;
+        else if (callType == CALLTYPE_SINGLE) isSupported = true;
+        else if (callType == CALLTYPE_DELEGATECALL)
+            isSupported = true;
+            // if callType is not single, batch or delegatecall return false
+        else return false;
+
+        if (execType == EXECTYPE_DEFAULT) isSupported = true;
+        else if (execType == EXECTYPE_TRY)
+            isSupported = true;
+            // if execType is not default or try, return false
+        else return false;
+    }
 
     /**
      *  @dev see {IERC7579Account}.
      */
-    function supportsExecutionMode(ModeCode mode)
-        external
-        view
-        virtual
-        override
-        returns (bool isSupported)
-    {
-        (CallType callType, ExecType execType,,) = mode.decode();
-        if (callType == CALLTYPE_BATCH) isSupported = true;
-        else if (callType == CALLTYPE_SINGLE) isSupported = true;
-        else if (callType == CALLTYPE_DELEGATECALL) isSupported = true;
-        // if callType is not single, batch or delegatecall return false
-        else return false;
-
-        if (execType == EXECTYPE_DEFAULT) isSupported = true;
-        else if (execType == EXECTYPE_TRY) isSupported = true;
-        // if execType is not default or try, return false
-        else return false;
-    }
-
-   /**
-     * @dev see {IERC7579Account}.
-     */
-    function supportsModule(uint256 modulTypeId) external view virtual override returns (bool) {
+    function supportsModule(
+        uint256 modulTypeId
+    ) external view virtual override returns (bool) {
         if (modulTypeId == MODULE_TYPE_VALIDATOR) return true;
         else if (modulTypeId == MODULE_TYPE_EXECUTOR) return true;
         else if (modulTypeId == MODULE_TYPE_FALLBACK) return true;
@@ -318,7 +334,9 @@ contract ModularEtherspotWallet is
     /**
      *  @dev see {IERC7579Account}.
      */
-    function initializeAccount(bytes calldata data) public payable virtual {
+    function initializeAccount(
+        bytes calldata data
+    ) public payable virtual onlyProxy {
         _initModuleManager();
         (address owner, address bootstrap, bytes memory bootstrapCall) = abi
             .decode(data, (address, address, bytes));
