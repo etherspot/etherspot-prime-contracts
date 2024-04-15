@@ -11,6 +11,8 @@ import {ModuleManager} from "../erc7579-ref-impl/core/ModuleManager.sol";
 import {HookManager} from "../erc7579-ref-impl/core/HookManager.sol";
 import {AccessController} from "../access/AccessController.sol";
 
+import "forge-std/console2.sol";
+
 contract ModularEtherspotWallet is
     AccessController,
     IModularEtherspotWallet,
@@ -172,9 +174,10 @@ contract ModularEtherspotWallet is
             _installValidator(module, initData);
         else if (moduleTypeId == MODULE_TYPE_EXECUTOR)
             _installExecutor(module, initData);
-        else if (moduleTypeId == MODULE_TYPE_FALLBACK)
+        else if (moduleTypeId == MODULE_TYPE_FALLBACK) {
+            console2.log("ITS A FALLBACK => installModule");
             _installFallbackHandler(module, initData);
-        else if (moduleTypeId == MODULE_TYPE_HOOK)
+        } else if (moduleTypeId == MODULE_TYPE_HOOK)
             _installHook(module, initData);
         else revert UnsupportedModuleType(moduleTypeId);
         emit ModuleInstalled(moduleTypeId, module);

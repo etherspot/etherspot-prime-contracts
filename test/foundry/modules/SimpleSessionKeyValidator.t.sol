@@ -4,8 +4,8 @@ pragma solidity ^0.8.13;
 import "forge-std/Test.sol";
 import "../../../src/modular-etherspot-wallet/modules/validator/SimpleSessionKeyValidator.sol";
 import "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
-import "../../../src/modular-etherspot-wallet/test/TestERC20.sol";
-import "../../../src/modular-etherspot-wallet/test/TestERC20Actions.sol";
+import "../../../src/modular-etherspot-wallet/test/TestERC721.sol";
+import "../../../src/modular-etherspot-wallet/test/ERC721Actions.sol";
 import {PackedUserOperation} from "../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {VALIDATION_FAILED} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../TestAdvancedUtils.t.sol";
@@ -19,8 +19,8 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
 
     ModularEtherspotWallet mew;
     SimpleSessionKeyValidator validator;
-    ERC20Actions action;
-    TestERC20 erc20;
+    ERC721Actions action;
+    TestERC721 erc721;
     MockFallback mockFallback;
 
     address alice;
@@ -54,7 +54,7 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         // Enable session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             uint48(block.timestamp + 1),
             uint48(block.timestamp + 1 days)
         );
@@ -72,7 +72,7 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         // Enable session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
@@ -81,7 +81,7 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         // Rotate session key
         bytes memory newSessionData = abi.encodePacked(
             sessionKey1Addr,
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
@@ -95,7 +95,7 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         // Enable session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
@@ -111,13 +111,13 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
     function testGetAssociatedSessionKeys() public {
         bytes memory sessionData1 = abi.encodePacked(
             sessionKeyAddr,
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         bytes memory sessionData2 = abi.encodePacked(
             sessionKey1Addr,
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             uint48(block.timestamp + 2 days),
             uint48(block.timestamp + 3 days)
         );
@@ -133,14 +133,17 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
 
         bytes memory sessionData1 = abi.encodePacked(
             sessionKeyAddr,
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             validAfter,
             validUntil
         );
         validator.enableSessionKey(sessionData1);
         SimpleSessionKeyValidator.SessionData memory data = validator
             .getSessionKeyData(sessionKeyAddr);
-        assertEq(data.funcSelector, TestERC20.testTransferFrom.selector);
+        assertEq(
+            data.funcSelector,
+            ERC721Actions.transferERC721Action.selector
+        );
         assertEq(data.validAfter, validAfter);
         assertEq(data.validUntil, validUntil);
     }
@@ -149,7 +152,7 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         // Enable valid session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
@@ -184,60 +187,48 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         vm.deal(address(mew), 1 ether);
         vm.startPrank(address(mew));
 
+        address[] memory allowedCallers = new address[](1);
+        allowedCallers[0] = address(entrypoint);
+
         mew.installModule(
             MODULE_TYPE_FALLBACK,
             address(mockFallback),
-            abi.encodePacked(
-                MockFallback.staticCallTarget.selector,
-                CALLTYPE_STATIC,
+            abi.encode(
+                ERC721Actions.transferERC721Action.selector,
+                CALLTYPE_DELEGATECALL,
+                allowedCallers,
                 ""
             )
         );
 
         console2.log("address(mew)", address(mew));
         console2.log("owner1", owner1);
-        console2.log(
-            "is fallback handler installed?",
-            mockFallback.isInitialized(address(mew))
-        );
-        console2.log(
-            "is multi ecdsa validator installed?",
-            ecdsaValidator.isInitialized(address(mew))
-        );
-        action = new ERC20Actions();
-        erc20 = new TestERC20(address(mew));
+        action = new ERC721Actions();
+        erc721 = new TestERC721();
+        erc721.mint(address(mew), 0);
+        erc721.mint(address(mew), 1);
         console2.log("address(mew)", address(mew));
-        console2.log("test erc20", address(erc20));
+        console2.log("test erc721", address(erc721));
 
-        uint256 preMEWBalance = erc20.balanceOf(address(mew));
-        console2.log("pre MEW balance", preMEWBalance);
-        uint256 preBobBalance = erc20.balanceOf(address(bob));
-        console2.log("pre Bob balance", preBobBalance);
-
-        erc20.approve(address(mew), 1 ether);
-
-        // erc20.approve(address(action), 1 ether);
         // Enable valid session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            ERC20Actions.transferERC20Action.selector,
+            ERC721Actions.transferERC721Action.selector,
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
         // Construct user op data
         bytes memory data = abi.encodeWithSelector(
-            ERC20Actions.transferERC20Action.selector,
-            address(erc20),
-            address(mew),
-            address(bob),
-            (uint256)(1 ether)
+            ERC721Actions.transferERC721Action.selector,
+            address(erc721),
+            0,
+            address(0xdead)
         );
         PackedUserOperation memory userOp = entrypoint.fillUserOp(
             address(mew),
             data
         );
-        // userOp.nonce = uint256(uint160(sessionKeyValidatorAddr)) << 96;
         userOp.nonce = getNonce(address(mew), address(sessionKeyValidator));
         bytes32 hash = entrypoint.getUserOpHash(userOp);
 
@@ -246,44 +237,34 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
             ECDSA.toEthSignedMessageHash(hash)
         );
         userOp.signature = abi.encodePacked(r, s, v);
-        // userOp.signature = bytes.concat(
-        //     userOp.signature,
-        //     entrypoint.signUserOpHash(vm, sessionKeyPrivate, userOp)
-        // );
         // Validation should succeed
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         entrypoint.handleOps(userOps, beneficiary);
 
-        uint256 postMEWBalance = erc20.balanceOf(address(mew));
-        console2.log("post MEW balance", postMEWBalance);
-        uint256 postBobBalance = erc20.balanceOf(address(bob));
-        console2.log("post Bob balance", postBobBalance);
-        // assertEq(erc20.balanceOf(address(mew)), (uint256)(0 ether));
-        // assertEq(erc20.balanceOf(address(0xdead)), (uint256)(10 ether));
-        // Disable session
-        // sessionKeyValidator.disableSessionKey(sessionKeyAddr);
-        // // Validation should now fail
-        // vm.expectRevert(abi.encodeWithSignature("SSKV_InvalidSessionKey()"));
-        // sessionKeyValidator.validateUserOp(userOp, userOpHash);
+        assertEq(erc721.ownerOf(0), address(0xdead));
+
+        // Validation should now fail
+        sessionKeyValidator.disableSessionKey(sessionKeyAddr);
+        vm.expectRevert(abi.encodeWithSignature("SSKV_InvalidSessionKey()"));
+        sessionKeyValidator.validateUserOp(userOp, hash);
     }
 
     function test_fail_InvalidFunctionSelector() public {
         mew = setupMEWWithSessionKeys();
         vm.startPrank(address(mew));
-        erc20 = new TestERC20(address(mew));
-        erc20.approve(address(this), 1 ether);
+        erc721 = new TestERC721();
         // Construct and enable session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            TestERC20.invalidFunc.selector,
+            ERC721Actions.invalidERC721Action.selector,
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
         // Construct invalid selector user op data
         bytes memory data = abi.encodeWithSelector(
-            TestERC20.testTransferFrom.selector,
+            ERC721Actions.transferERC721Action.selector,
             address(mew),
             address(bob),
             (uint256)(1 ether)
@@ -312,85 +293,4 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         );
         entrypoint.handleOps(userOps, beneficiary);
     }
-}
-
-// computes the hash of a permit
-function getStructHash(
-    bytes4 sig,
-    uint48 validUntil,
-    uint48 validAfter,
-    address validator,
-    address executor,
-    bytes memory enableData
-) pure returns (bytes32) {
-    return
-        keccak256(
-            abi.encode(
-                keccak256(
-                    "ValidatorApproved(bytes4 sig,uint256 validatorData,address executor,bytes enableData)"
-                ),
-                bytes4(sig),
-                uint256(
-                    uint256(uint160(validator)) |
-                        (uint256(validAfter) << 160) |
-                        (uint256(validUntil) << (48 + 160))
-                ),
-                executor,
-                keccak256(enableData)
-            )
-        );
-}
-
-// computes the hash of the fully encoded EIP-712 message for the domain, which can be used to recover the signer
-function getTypedDataHash(
-    address sender,
-    bytes4 sig,
-    uint48 validUntil,
-    uint48 validAfter,
-    address validator,
-    address executor,
-    bytes memory enableData
-) view returns (bytes32) {
-    return
-        keccak256(
-            abi.encodePacked(
-                "\x19\x01",
-                _buildDomainSeparator(
-                    "ModularEtherspotWallet",
-                    "1.0.0",
-                    sender
-                ),
-                getStructHash(
-                    sig,
-                    validUntil,
-                    validAfter,
-                    validator,
-                    executor,
-                    enableData
-                )
-            )
-        );
-}
-
-function _buildDomainSeparator(
-    string memory name,
-    string memory version,
-    address verifyingContract
-) view returns (bytes32) {
-    bytes32 hashedName = keccak256(bytes(name));
-    bytes32 hashedVersion = keccak256(bytes(version));
-    bytes32 typeHash = keccak256(
-        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-    );
-
-    return
-        keccak256(
-            abi.encode(
-                typeHash,
-                hashedName,
-                hashedVersion,
-                block.chainid,
-                address(verifyingContract)
-            )
-        );
 }

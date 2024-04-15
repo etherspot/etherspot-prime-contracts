@@ -9,7 +9,6 @@ import {ModeLib} from "../../libs/ModeLib.sol";
 import "forge-std/console2.sol";
 
 contract MockFallback is IFallback {
-    mapping(address => bool) internal _initialized;
     function delegateCallTarget(
         uint256 param
     ) public view returns (uint256 _param, address sender, address _this) {
@@ -74,15 +73,9 @@ contract MockFallback is IFallback {
         /* solhint-enable no-inline-assembly */
     }
 
-    function onInstall(bytes calldata data) external override {
-        if (isInitialized(msg.sender)) revert AlreadyInitialized(msg.sender);
-        _initialized[msg.sender] = true;
-    }
+    function onInstall(bytes calldata data) external override {}
 
-    function onUninstall(bytes calldata data) external override {
-        if (!isInitialized(msg.sender)) revert NotInitialized(msg.sender);
-        _initialized[msg.sender] = false;
-    }
+    function onUninstall(bytes calldata data) external override {}
 
     function isModuleType(
         uint256 typeID
@@ -90,7 +83,5 @@ contract MockFallback is IFallback {
 
     function isInitialized(
         address smartAccount
-    ) public view override returns (bool) {
-        return _initialized[smartAccount];
-    }
+    ) public view override returns (bool) {}
 }

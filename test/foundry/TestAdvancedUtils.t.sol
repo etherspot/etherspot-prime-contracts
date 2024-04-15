@@ -14,7 +14,7 @@ import {MockExecutor} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/
 import {MockTarget} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockTarget.sol";
 import {MockFallback} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockFallbackHandler.sol";
 import {ExecutionLib} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
-import {ModeLib, ModeCode, CallType, ExecType, ModeSelector, ModePayload} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
+import {ModeLib, ModeCode, CallType, ExecType, ModeSelector, ModePayload, CALLTYPE_STATIC} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
 import {PackedUserOperation} from "../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 
 import "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
