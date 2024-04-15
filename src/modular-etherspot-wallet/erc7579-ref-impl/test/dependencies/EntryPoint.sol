@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import "../../../../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {IEntryPoint} from "../../../../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
 import {EntryPoint, SenderCreator} from "../../../../../account-abstraction/contracts/core/EntryPoint.sol";
 import {EntryPointSimulations} from "../../../../../account-abstraction/contracts/core/EntryPointSimulations.sol";
