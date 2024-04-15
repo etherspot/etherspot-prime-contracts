@@ -111,9 +111,11 @@ contract AccessController is IAccessController {
      * @dev Only owner or wallet.
      * @param   _newTimelock new timelock in seconds.
      */
-    function changeProposalTimelock(uint256 _newTimelock) external onlyOwnerOrSelf {
+    function changeProposalTimelock(
+        uint256 _newTimelock
+    ) external onlyOwnerOrSelf {
         assembly {
-            sstore(proposalTimelock.slot, _newTimelock)  
+            sstore(proposalTimelock.slot, _newTimelock)
         }
     }
 
@@ -121,15 +123,18 @@ contract AccessController is IAccessController {
      * @notice Discards the current proposal.
      * @dev Only owner or guardian or wallet. Must be after the proposal timelock is met.
      */
-    function discardCurrentProposal() external onlyOwnerOrGuardianOrSelf {
-        NewOwnerProposal storage prop = _proposals[proposalId]; 
-        uint256 timelock = proposalTimelock == 0 ? INITIAL_PROPOSAL_TIMELOCK : proposalTimelock;
-        if (prop.resolved) {
+    function discardCurrentProposal() public onlyOwnerOrGuardianOrSelf {
+        NewOwnerProposal storage prop = _proposals[proposalId];
+        uint256 timelock = proposalTimelock == 0
+            ? INITIAL_PROPOSAL_TIMELOCK
+            : proposalTimelock;
+        if (_resolvedProposal()) {
             revert ErrorsLib.ProposalResolved();
         }
         bool allowed = isGuardian(msg.sender);
-        if (allowed && (prop.proposedAt + timelock >= block.timestamp)) revert ErrorsLib.ProposalTimelocked();
-        
+        if (allowed && (prop.proposedAt + timelock >= block.timestamp))
+            revert ErrorsLib.ProposalTimelocked();
+
         prop.resolved = true;
         emit ProposalDiscarded(address(this), proposalId, msg.sender);
     }
@@ -150,11 +155,8 @@ contract AccessController is IAccessController {
         if (guardianCount < 3) {
             revert ErrorsLib.NotEnoughGuardians();
         }
-        NewOwnerProposal storage prop = _proposals[proposalId]; 
-        if (
-            prop.guardiansApproved.length != 0 &&
-            !prop.resolved
-        ) {
+        NewOwnerProposal storage prop = _proposals[proposalId];
+        if (prop.guardiansApproved.length != 0 && !prop.resolved) {
             revert ErrorsLib.ProposalUnresolved();
         }
         uint256 newProposalId = proposalId + 1;
@@ -178,14 +180,14 @@ contract AccessController is IAccessController {
      */
     function guardianCosign() external onlyGuardian {
         uint256 latestId = proposalId;
-        NewOwnerProposal storage latestProp = _proposals[latestId]; 
+        NewOwnerProposal storage latestProp = _proposals[latestId];
         if (latestId == 0) {
             revert ErrorsLib.InvalidProposal();
         }
         if (_checkIfSigned(latestId)) {
             revert ErrorsLib.AlreadySignedProposal();
         }
-        if (latestProp.resolved) {
+        if (_resolvedProposal()) {
             revert ErrorsLib.ProposalResolved();
         }
         _proposals[latestId].guardiansApproved.push(msg.sender);
@@ -232,7 +234,19 @@ contract AccessController is IAccessController {
      * @return resolved_ bool is the proposal resolved.
      * @return proposedAt_ timestamp of when proposal was initiated.
      */
-    function getProposal(uint256 _proposalId) public view returns (address ownerProposed_, uint256 approvalCount_, address[] memory guardiansApproved_, bool resolved_, uint256 proposedAt_) {
+    function getProposal(
+        uint256 _proposalId
+    )
+        public
+        view
+        returns (
+            address ownerProposed_,
+            uint256 approvalCount_,
+            address[] memory guardiansApproved_,
+            bool resolved_,
+            uint256 proposedAt_
+        )
+    {
         if (_proposalId == 0 || _proposalId > proposalId) {
             revert ErrorsLib.InvalidProposal();
         }
@@ -255,6 +269,7 @@ contract AccessController is IAccessController {
     function _addGuardian(address _newGuardian) internal {
         _guardians[_newGuardian] = true;
         guardianCount++;
+        if (!_resolvedProposal()) discardCurrentProposal();
     }
 
     function _removeOwner(address _owner) internal {
@@ -265,6 +280,7 @@ contract AccessController is IAccessController {
     function _removeGuardian(address _guardian) internal {
         _guardians[_guardian] = false;
         guardianCount--;
+        if (!_resolvedProposal()) discardCurrentProposal();
     }
 
     function _checkIfSigned(uint256 _proposalId) internal view returns (bool) {
@@ -286,5 +302,10 @@ contract AccessController is IAccessController {
         return ((_proposals[_proposalId].approvalCount * MULTIPLY_FACTOR) /
             guardianCount >=
             SIXTY_PERCENT);
+    }
+
+    function _resolvedProposal() internal view returns (bool) {
+        NewOwnerProposal storage prop = _proposals[proposalId];
+        return prop.resolved;
     }
 }

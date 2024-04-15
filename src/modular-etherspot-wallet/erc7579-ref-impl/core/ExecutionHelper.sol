@@ -78,7 +78,7 @@ contract ExecutionHelper {
         assembly {
             result := mload(0x40)
             calldatacopy(result, callData.offset, callData.length)
-            success := iszero(call(gas(), target, value, result, callData.length, codesize(), 0x00))
+            success := call(gas(), target, value, result, callData.length, codesize(), 0x00)
             mstore(result, returndatasize()) // Store the length.
             let o := add(result, 0x20)
             returndatacopy(o, 0x00, returndatasize()) // Copy the returndata.
@@ -125,7 +125,7 @@ contract ExecutionHelper {
             calldatacopy(result, callData.offset, callData.length)
             // Forwards the `data` to `delegate` via delegatecall.
             success :=
-                iszero(delegatecall(gas(), delegate, result, callData.length, codesize(), 0x00))
+                delegatecall(gas(), delegate, result, callData.length, codesize(), 0x00)
             mstore(result, returndatasize()) // Store the length.
             let o := add(result, 0x20)
             returndatacopy(o, 0x00, returndatasize()) // Copy the returndata.

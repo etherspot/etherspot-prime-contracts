@@ -7,7 +7,7 @@ import {AccountBase} from "./AccountBase.sol";
 import "../interfaces/IERC7579Module.sol";
 import "forge-std/interfaces/IERC165.sol";
 import "./Receiver.sol";
-import "forge-std/console2.sol";
+import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
 /**
  * @title ModuleManager
@@ -22,6 +22,8 @@ abstract contract ModuleManager is AccountBase, Receiver {
     error InvalidModule(address module);
     error NoFallbackHandler(bytes4 selector);
     error CannotRemoveLastValidator();
+    error FallbackInvalidCallType();
+    error InvalidFallbackCaller(address caller);
 
     // keccak256("modulemanager.storage.msa");
     bytes32 internal constant MODULEMANAGER_STORAGE_LOCATION =
@@ -30,12 +32,13 @@ abstract contract ModuleManager is AccountBase, Receiver {
     struct FallbackHandler {
         address handler;
         CallType calltype;
+        address[] allowedCallers;
     }
 
     /// @custom:storage-location erc7201:modulemanager.storage.msa
     struct ModuleManagerStorage {
         // linked list of validators. List is initialized by initializeAccount()
-        SentinelListLib.SentinelList $valdiators;
+        SentinelListLib.SentinelList $validators;
         // linked list of executors. List is initialized by initializeAccount()
         SentinelListLib.SentinelList $executors;
         // single fallback handler for all fallbacks
@@ -63,21 +66,21 @@ abstract contract ModuleManager is AccountBase, Receiver {
     }
 
     modifier onlyValidatorModule(address validator) {
-        SentinelListLib.SentinelList storage $valdiators = $moduleManager()
-            .$valdiators;
-        if (!$valdiators.contains(validator)) revert InvalidModule(validator);
+        SentinelListLib.SentinelList storage $validators = $moduleManager()
+            .$validators;
+        if (!$validators.contains(validator)) revert InvalidModule(validator);
         _;
     }
 
     function _initModuleManager() internal virtual {
         ModuleManagerStorage storage $ims = $moduleManager();
         $ims.$executors.init();
-        $ims.$valdiators.init();
+        $ims.$validators.init();
     }
 
     function isAlreadyInitialized() internal view virtual returns (bool) {
         ModuleManagerStorage storage $ims = $moduleManager();
-        return $ims.$valdiators.alreadyInitialized();
+        return $ims.$validators.alreadyInitialized();
     }
 
     /////////////////////////////////////////////////////
@@ -87,9 +90,9 @@ abstract contract ModuleManager is AccountBase, Receiver {
         address validator,
         bytes calldata data
     ) internal virtual {
-        SentinelListLib.SentinelList storage $valdiators = $moduleManager()
-            .$valdiators;
-        $valdiators.push(validator);
+        SentinelListLib.SentinelList storage $validators = $moduleManager()
+            .$validators;
+        $validators.push(validator);
         IValidator(validator).onInstall(data);
     }
 
@@ -98,22 +101,22 @@ abstract contract ModuleManager is AccountBase, Receiver {
         bytes calldata data
     ) internal {
         // TODO: check if its the last validator. this might brick the account
-        SentinelListLib.SentinelList storage $valdiators = $moduleManager()
-            .$valdiators;
+        SentinelListLib.SentinelList storage $validators = $moduleManager()
+            .$validators;
         (address prev, bytes memory disableModuleData) = abi.decode(
             data,
             (address, bytes)
         );
-        $valdiators.pop(prev, validator);
+        $validators.pop(prev, validator);
         IValidator(validator).onUninstall(disableModuleData);
     }
 
     function _isValidatorInstalled(
         address validator
     ) internal view virtual returns (bool) {
-        SentinelListLib.SentinelList storage $valdiators = $moduleManager()
-            .$valdiators;
-        return $valdiators.contains(validator);
+        SentinelListLib.SentinelList storage $validators = $moduleManager()
+            .$validators;
+        return $validators.contains(validator);
     }
 
     /**
@@ -124,9 +127,9 @@ abstract contract ModuleManager is AccountBase, Receiver {
         address cursor,
         uint256 size
     ) external view virtual returns (address[] memory array, address next) {
-        SentinelListLib.SentinelList storage $valdiators = $moduleManager()
-            .$valdiators;
-        return $valdiators.getEntriesPaginated(cursor, size);
+        SentinelListLib.SentinelList storage $validators = $moduleManager()
+            .$validators;
+        return $validators.getEntriesPaginated(cursor, size);
     }
 
     /////////////////////////////////////////////////////
@@ -183,28 +186,36 @@ abstract contract ModuleManager is AccountBase, Receiver {
         address handler,
         bytes calldata params
     ) internal virtual {
-        bytes4 selector = bytes4(params[0:4]);
-        CallType calltype = CallType.wrap(bytes1(params[4]));
-        bytes memory initData = params[5:];
+        bytes memory _params = params;
+        bytes4 selector;
+        CallType calltype;
+        address[] memory allowedCallers;
+        bytes memory initData;
+        assembly {
+            // Copy selector from params
+            selector := mload(add(_params, 0x20))
+            // Copy calltype from params
+            calltype := mload(add(_params, 0x24))
+            // Copy rest of params to memory
+            let offset := 0x24
+            calldatacopy(0x40, offset, sub(calldatasize(), offset))
+            // Load allowedCallers array from memory
+            allowedCallers := mload(0x40)
+            // Get pointer to initData (after allowedCallers array)
+            initData := add(allowedCallers, add(mload(allowedCallers), 0x20))
+        }
+        if (calltype == CALLTYPE_DELEGATECALL) revert FallbackInvalidCallType();
 
         if (_isFallbackHandlerInstalled(selector)) {
             revert("Function selector already used");
         }
         $moduleManager().$fallbacks[selector] = FallbackHandler(
             handler,
-            calltype
+            calltype,
+            allowedCallers
         );
 
-        if (calltype == CALLTYPE_DELEGATECALL) {
-            (bool success, ) = handler.delegatecall(
-                abi.encodeWithSelector(IModule.onInstall.selector, initData)
-            );
-            if (!success) {
-                revert("Fallback handler failed to install");
-            }
-        } else {
-            IFallback(handler).onInstall(initData);
-        }
+        IFallback(handler).onInstall(initData);
     }
 
     function _uninstallFallbackHandler(
@@ -228,24 +239,15 @@ abstract contract ModuleManager is AccountBase, Receiver {
 
         CallType callType = activeFallback.calltype;
 
+        if (callType == CALLTYPE_DELEGATECALL) revert FallbackInvalidCallType();
+        address[] memory allowedCallers = new address[](0);
         $moduleManager().$fallbacks[selector] = FallbackHandler(
             address(0),
-            CallType.wrap(0x00)
+            CallType.wrap(0x00),
+            allowedCallers
         );
 
-        if (callType == CALLTYPE_DELEGATECALL) {
-            (bool success, ) = handler.delegatecall(
-                abi.encodeWithSelector(
-                    IModule.onUninstall.selector,
-                    _deInitData
-                )
-            );
-            if (!success) {
-                revert("Fallback handler failed to uninstall");
-            }
-        } else {
-            IFallback(handler).onUninstall(_deInitData);
-        }
+        IFallback(handler).onUninstall(_deInitData);
     }
 
     function _isFallbackHandlerInstalled(
@@ -273,8 +275,22 @@ abstract contract ModuleManager is AccountBase, Receiver {
         return $moduleManager().$fallbacks[functionSig];
     }
 
+    // validates that the caller is allowed and reverts if not.
+
+    function _validateCaller(bytes4 sig) private view {
+        address[] memory allowed = $moduleManager()
+            .$fallbacks[sig]
+            .allowedCallers;
+        if (ArrayLib._contains(allowed, msg.sender) == false) {
+            revert InvalidFallbackCaller(msg.sender);
+        }
+    }
+
     // FALLBACK
-    fallback() external payable override(Receiver) receiverFallback {
+    // calling _validateCaller()
+
+    fallback() external payable override(Receiver) {
+        _validateCaller(msg.sig);
         FallbackHandler storage $fallbackHandler = $moduleManager().$fallbacks[
             msg.sig
         ];
@@ -349,28 +365,6 @@ abstract contract ModuleManager is AccountBase, Receiver {
                     revert(returnDataPtr, returndatasize())
                 }
                 return(returnDataPtr, returndatasize())
-            }
-        }
-
-        if (calltype == CALLTYPE_DELEGATECALL) {
-            assembly {
-                calldatacopy(0, 0, calldatasize())
-                let result := delegatecall(
-                    gas(),
-                    handler,
-                    0,
-                    calldatasize(),
-                    0,
-                    0
-                )
-                returndatacopy(0, 0, returndatasize())
-                switch result
-                case 0 {
-                    revert(0, returndatasize())
-                }
-                default {
-                    return(0, returndatasize())
-                }
             }
         }
     }
