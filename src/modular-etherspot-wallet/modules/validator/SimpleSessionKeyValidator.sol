@@ -71,12 +71,12 @@ contract SimpleSessionKeyValidator is IValidator {
         PackedUserOperation calldata userOp
     ) public view returns (bool valid) {
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
+        if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
+            revert SSKV_InvalidSessionKey();
         if (bytes4(userOp.callData[0:4]) != sd.funcSelector)
             revert SSKV_UnsupportedSelector();
         if (checkSessionKeyPaused(_sessionKey))
             revert SSKV_SessionPaused(_sessionKey);
-        if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
-            revert SSKV_InvalidSessionKey();
         return true;
     }
 
