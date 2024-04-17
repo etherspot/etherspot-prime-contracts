@@ -196,22 +196,51 @@ abstract contract ModuleManager is AccountBase, Receiver {
         bytes memory initData;
         console2.log("_installFallbackHandler => before ass block");
         assembly {
-            // Copy selector from params
-            selector := mload(add(_params, 0x20))
-            // Copy calltype from params
-            calltype := mload(add(_params, 0x24))
-            // Copy rest of params to memory
-            let offset := 0x24
-            calldatacopy(0x40, offset, sub(calldatasize(), offset))
-            // Load allowedCallers array from memory
+            let configPtr := add(params.offset, 0x20)
+            let configLen := calldataload(params.offset)
+
+            selector := calldataload(params.offset)
+            calltype := calldataload(configPtr)
+
+            let allowedCallersLen := calldataload(add(configPtr, 0x20))
+
             allowedCallers := mload(0x40)
-            // Get pointer to initData (after allowedCallers array)
-            initData := add(allowedCallers, add(mload(allowedCallers), 0x20))
+            mstore(
+                0x40,
+                add(
+                    allowedCallers,
+                    and(add(mul(allowedCallersLen, 0x20), 0x1f), not(0x1f))
+                )
+            )
+
+            for {
+                let i := 0
+            } lt(i, allowedCallersLen) {
+                i := add(i, 1)
+            } {
+                mstore(
+                    add(allowedCallers, mul(i, 0x20)),
+                    calldataload(add(configPtr, add(0x60, mul(i, 0x20))))
+                )
+            }
+
+            let initDataPos := calldataload(add(configPtr, 0x40))
+            let initDataLen := calldataload(
+                sub(add(configPtr, initDataPos), 0x20)
+            )
+            let initDataPtr := 0x60
+            mstore(initDataPtr, initDataLen)
+            calldatacopy(
+                add(initDataPtr, 0x20),
+                add(configPtr, initDataPos),
+                initDataLen
+            )
+            initData := initDataPtr
         }
         console2.log("_installFallbackHandler => after ass block");
 
-        if (calltype == CALLTYPE_DELEGATECALL) revert FallbackInvalidCallType();
-        console2.log("_installFallbackHandler => after del call check");
+        // if (calltype == CALLTYPE_DELEGATECALL) revert FallbackInvalidCallType();
+        // console2.log("_installFallbackHandler => after del call check");
 
         if (_isFallbackHandlerInstalled(selector)) {
             revert("Function selector already used");

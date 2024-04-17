@@ -67,14 +67,16 @@ contract SimpleSessionKeyValidator is IValidator {
     }
 
     function checkValidSessionKey(
-        address _sessionKey
+        address _sessionKey,
+        PackedUserOperation calldata userOp
     ) public view returns (bool valid) {
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
+        if (bytes4(userOp.callData[0:4]) != sd.funcSelector)
+            revert SSKV_UnsupportedSelector();
         if (checkSessionKeyPaused(_sessionKey))
             revert SSKV_SessionPaused(_sessionKey);
         if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
             revert SSKV_InvalidSessionKey();
-        console2.log(">>>>>>>>>>> TRUE - check ValidSessionKey <<<<<<<<<<<<<<");
         return true;
     }
 
@@ -105,10 +107,10 @@ contract SimpleSessionKeyValidator is IValidator {
         address recovered = ECDSA.recover(hash, userOp.signature);
         console2.log("HERE 3");
 
-        if (!checkValidSessionKey(recovered)) return VALIDATION_FAILED;
+        if (!checkValidSessionKey(recovered, userOp)) return VALIDATION_FAILED;
         SessionData storage sd = sessionData[recovered][msg.sender];
-        if (bytes4(userOp.callData[0:4]) != sd.funcSelector)
-            revert SSKV_UnsupportedSelector();
+        // if (bytes4(userOp.callData[0:4]) != sd.funcSelector)
+        //     revert SSKV_UnsupportedSelector();
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 

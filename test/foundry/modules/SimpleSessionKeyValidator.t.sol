@@ -60,12 +60,13 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         );
         validator.enableSessionKey(sessionData);
         // Session should be enabled
-        assertTrue(validator.checkValidSessionKey(sessionKeyAddr));
+        assertFalse(
+            validator.getSessionKeyData(sessionKeyAddr).validUntil == 0
+        );
         // Disable session
         validator.disableSessionKey(sessionKeyAddr);
-        vm.expectRevert(abi.encodeWithSignature("SSKV_InvalidSessionKey()"));
         // Session should now be disabled
-        validator.checkValidSessionKey(sessionKeyAddr);
+        assertTrue(validator.getSessionKeyData(sessionKeyAddr).validUntil == 0);
     }
 
     function testRotateSessionKey() public {
@@ -77,7 +78,9 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp + 1 days)
         );
         validator.enableSessionKey(sessionData);
-        assertTrue(validator.checkValidSessionKey(sessionKeyAddr));
+        assertFalse(
+            validator.getSessionKeyData(sessionKeyAddr).validUntil == 0
+        );
         // Rotate session key
         bytes memory newSessionData = abi.encodePacked(
             sessionKey1Addr,
@@ -86,9 +89,10 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp + 1 days)
         );
         validator.rotateSessionKey(sessionKeyAddr, newSessionData);
-        assertTrue(validator.checkValidSessionKey(sessionKey1Addr));
-        vm.expectRevert(abi.encodeWithSignature("SSKV_InvalidSessionKey()"));
-        validator.checkValidSessionKey(sessionKeyAddr);
+        assertFalse(
+            validator.getSessionKeyData(sessionKey1Addr).validUntil == 0
+        );
+        assertTrue(validator.getSessionKeyData(sessionKeyAddr).validUntil == 0);
     }
 
     function testSessionPause() public {
@@ -186,9 +190,12 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         mew = setupMEWWithSessionKeys();
         vm.deal(address(mew), 1 ether);
         vm.startPrank(address(mew));
+        action = new ERC721Actions();
+        erc721 = new TestERC721();
 
-        address[] memory allowedCallers = new address[](1);
+        address[] memory allowedCallers = new address[](2);
         allowedCallers[0] = address(entrypoint);
+        allowedCallers[1] = address(mew);
 
         mew.installModule(
             MODULE_TYPE_FALLBACK,
@@ -201,10 +208,6 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
             )
         );
 
-        console2.log("address(mew)", address(mew));
-        console2.log("owner1", owner1);
-        action = new ERC721Actions();
-        erc721 = new TestERC721();
         erc721.mint(address(mew), 0);
         erc721.mint(address(mew), 1);
         console2.log("address(mew)", address(mew));
@@ -254,6 +257,7 @@ contract SimpleSessionKeyValidatorTest is TestAdvancedUtils {
         mew = setupMEWWithSessionKeys();
         vm.startPrank(address(mew));
         erc721 = new TestERC721();
+        action = new ERC721Actions();
         // Construct and enable session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
