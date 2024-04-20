@@ -66,15 +66,23 @@ contract SimpleSessionKeyValidator is IValidator {
         return sessionData[_sessionKey][msg.sender].paused;
     }
 
-    function checkValidSessionKey(
+    function validateSessionKeyParams(
         address _sessionKey,
         PackedUserOperation calldata userOp
     ) public view returns (bool valid) {
+        bytes calldata callData = userOp.callData;
+        bytes4 methodSig;
+        assembly {
+            let len := callData.length
+            if gt(len, 3) {
+                methodSig := calldataload(callData.offset)
+            }
+        }
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
         if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
             revert SSKV_InvalidSessionKey();
-        if (bytes4(userOp.callData[0:4]) != sd.funcSelector)
-            revert SSKV_UnsupportedSelector();
+        console2.logBytes4(sd.funcSelector);
+        if (methodSig != sd.funcSelector) revert SSKV_UnsupportedSelector();
         if (checkSessionKeyPaused(_sessionKey))
             revert SSKV_SessionPaused(_sessionKey);
         return true;
@@ -98,19 +106,45 @@ contract SimpleSessionKeyValidator is IValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256 validationData) {
+        bytes calldata callData = userOp.callData;
+        bytes4 methodSig;
+        assembly {
+            let len := callData.length
+            if gt(len, 3) {
+                methodSig := calldataload(callData.offset)
+            }
+        }
+        console2.logBytes4(methodSig);
+        // (address tokenAddr, uint256 callValue, ) = abi.decode(
+        // userOp.callData[4:], // skip selector
+        //     (address, uint256, bytes)
+        // );
+        // bytes calldata data;
+
+        // {
+        //     //offset represents where does the inner bytes array start
+        //     uint256 offset = uint256(bytes32(userOp.callData[4 + 64:4 + 96]));
+        //     uint256 length = uint256(
+        //         bytes32(userOp.callData[4 + offset:4 + offset + 32])
+        //     );
+        //     //we expect data to be the `IERC20.transfer(address, uint256)` calldata
+        //     data = userOp.callData[4 + offset + 32:4 + offset + 32 + length];
+        // }
+        // console2.logBytes(data);
+
+        // (address recipientCalled, uint256 amount) = abi.decode(
+        //     data[4:],
+        //     (address, uint256)
+        // );
+        // console2.log("recipientCalled:", recipientCalled);
+        // console2.log("amount:", amount);
+
+        // console2.log("TokenAddress of UserOp:", tokenAddr);
         bytes32 hash = ECDSA.toEthSignedMessageHash(userOpHash);
-        console2.log("userop.sender", userOp.sender);
-        console2.log("HERE 1");
-        console2.log("recovered", ECDSA.recover(hash, userOp.signature));
-        console2.log("HERE 2");
-
         address recovered = ECDSA.recover(hash, userOp.signature);
-        console2.log("HERE 3");
-
-        if (!checkValidSessionKey(recovered, userOp)) return VALIDATION_FAILED;
+        if (!validateSessionKeyParams(recovered, userOp))
+            return VALIDATION_FAILED;
         SessionData storage sd = sessionData[recovered][msg.sender];
-        // if (bytes4(userOp.callData[0:4]) != sd.funcSelector)
-        //     revert SSKV_UnsupportedSelector();
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 

@@ -8,7 +8,6 @@ import "../interfaces/IERC7579Module.sol";
 import "forge-std/interfaces/IERC165.sol";
 import "./Receiver.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
-import "forge-std/console2.sol";
 
 /**
  * @title ModuleManager
@@ -187,14 +186,11 @@ abstract contract ModuleManager is AccountBase, Receiver {
         address handler,
         bytes calldata params
     ) internal virtual {
-        console2.log("_installFallbackHandler", handler);
-        console2.logBytes(params);
         bytes memory _params = params;
         bytes4 selector;
         CallType calltype;
         address[] memory allowedCallers;
         bytes memory initData;
-        console2.log("_installFallbackHandler => before ass block");
         assembly {
             let configPtr := add(params.offset, 0x20)
             let configLen := calldataload(params.offset)
@@ -237,10 +233,8 @@ abstract contract ModuleManager is AccountBase, Receiver {
             )
             initData := initDataPtr
         }
-        console2.log("_installFallbackHandler => after ass block");
 
-        // if (calltype == CALLTYPE_DELEGATECALL) revert FallbackInvalidCallType();
-        // console2.log("_installFallbackHandler => after del call check");
+        if (calltype == CALLTYPE_DELEGATECALL) revert FallbackInvalidCallType();
 
         if (_isFallbackHandlerInstalled(selector)) {
             revert("Function selector already used");
@@ -332,7 +326,6 @@ abstract contract ModuleManager is AccountBase, Receiver {
         ];
         address handler = $fallbackHandler.handler;
         CallType calltype = $fallbackHandler.calltype;
-        console2.log("Fallback handler: %s", handler);
 
         if (handler == address(0)) revert NoFallbackHandler(msg.sig);
 

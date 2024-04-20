@@ -175,7 +175,6 @@ contract ModularEtherspotWallet is
         else if (moduleTypeId == MODULE_TYPE_EXECUTOR)
             _installExecutor(module, initData);
         else if (moduleTypeId == MODULE_TYPE_FALLBACK) {
-            console2.log("ITS A FALLBACK => installModule");
             _installFallbackHandler(module, initData);
         } else if (moduleTypeId == MODULE_TYPE_HOOK)
             _installHook(module, initData);
