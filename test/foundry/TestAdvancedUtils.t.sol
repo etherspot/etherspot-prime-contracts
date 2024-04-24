@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {ModularEtherspotWallet} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol";
-import {SimpleSessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validator/SimpleSessionKeyValidator.sol";
+import {ERC20SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validator/ERC20SessionKeyValidator.sol";
 import "../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import {ModularEtherspotWalletFactory} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
 import {BootstrapUtil, BootstrapConfig} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol";
@@ -29,7 +29,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     MockExecutor defaultExecutor;
     MockFallback fallbackHandler;
     MultipleOwnerECDSAValidator ecdsaValidator;
-    SimpleSessionKeyValidator sessionKeyValidator;
+    ERC20SessionKeyValidator sessionKeyValidator;
 
     ModularEtherspotWallet mewAccount;
     MockTarget target;
@@ -54,7 +54,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         ecdsaValidator = new MultipleOwnerECDSAValidator();
 
         // SimpleSessionKeyValidtor for MEW
-        sessionKeyValidator = new SimpleSessionKeyValidator();
+        sessionKeyValidator = new ERC20SessionKeyValidator();
 
         // Set up Target for testing
         target = new MockTarget();
@@ -235,7 +235,10 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
             address(defaultExecutor),
             ""
         );
-        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig memory hook = _makeBootstrapConfig(
+            address(sessionKeyValidator),
+            ""
+        );
         BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
             ""
