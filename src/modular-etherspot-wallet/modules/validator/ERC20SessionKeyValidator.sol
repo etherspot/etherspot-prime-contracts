@@ -17,7 +17,7 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
     error ERC20SKV_InvalidSessionKey();
     error ERC20SKV_SessionPaused(address sessionKey);
     error ERC20SKV_UnsuportedToken();
-    error ERC20SKV_UnsupportedSelector();
+    error ERC20SKV_UnsupportedSelector(bytes4 selectorUsed);
     error ERC20SKV_SessionKeySpendLimitExceeded();
     error ERC20SKV_InsufficientApprovalAmount();
     error NotImplemented();
@@ -47,6 +47,8 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
         uint256 spendingLimit = uint256(bytes32(_sessionData[44:76]));
         uint48 validAfter = uint48(bytes6(_sessionData[76:82]));
         uint48 validUntil = uint48(bytes6(_sessionData[82:88]));
+        if (!_validateSelector(funcSelector))
+            revert ERC20SKV_UnsupportedSelector(funcSelector);
         sessionData[sessionKey][msg.sender] = SessionData(
             token,
             funcSelector,
@@ -107,7 +109,8 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
         if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
             revert ERC20SKV_InvalidSessionKey();
         if (targetContract != sd.token) revert ERC20SKV_UnsuportedToken();
-        if (methodSig != sd.funcSelector) revert ERC20SKV_UnsupportedSelector();
+        if (methodSig != sd.funcSelector)
+            revert ERC20SKV_UnsupportedSelector(methodSig);
         if (amount > sd.spendingLimit)
             revert ERC20SKV_SessionKeySpendLimitExceeded();
         if (checkSessionKeyPaused(_sessionKey))
@@ -252,5 +255,18 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
         sd.spendingLimit = sd.spendingLimit - amount;
         console2.log("spendLimit post adj:", sd.spendingLimit);
         return true;
+    }
+
+    function _validateSelector(bytes4 _selector) internal view returns (bool) {
+        bytes4[] memory allowedSigs = new bytes4[](3);
+        allowedSigs[0] = IERC20.approve.selector;
+        allowedSigs[1] = IERC20.transfer.selector;
+        allowedSigs[2] = IERC20.transferFrom.selector;
+        for (uint256 i; i < allowedSigs.length; i++) {
+            if (_selector == allowedSigs[i]) {
+                return true;
+            }
+        }
+        return false;
     }
 }

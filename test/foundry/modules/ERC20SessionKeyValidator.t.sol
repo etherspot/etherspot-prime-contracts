@@ -12,7 +12,7 @@ import {PackedUserOperation} from "../../../account-abstraction/contracts/interf
 import {VALIDATION_FAILED} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../TestAdvancedUtils.t.sol";
 import "../../../src/modular-etherspot-wallet/utils/ERC4337Utils.sol";
-import {MockFallback} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockFallbackHandler.sol";
+import {SimpleFallback} from "../../../src/modular-etherspot-wallet/test/SimpleFallback.sol";
 
 using ERC4337Utils for IEntryPoint;
 
@@ -25,7 +25,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     TestERC20 erc20;
     ERC721Actions action;
     TestERC721 erc721;
-    MockFallback mockFallback;
+    SimpleFallback fb;
 
     address alice;
     uint256 aliceKey;
@@ -40,7 +40,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     function setUp() public override {
         super.setUp();
         validator = new ERC20SessionKeyValidator();
-        mockFallback = new MockFallback();
+        fb = new SimpleFallback();
         erc20 = new TestERC20();
         erc20Action = new ERC20Actions();
         (sessionKeyAddr, sessionKeyPrivate) = makeAddrAndKey("session_key");
@@ -56,7 +56,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC721Actions.transferERC721Action.selector,
+            IERC20.transferFrom.selector,
             uint256(100),
             uint48(block.timestamp + 1),
             uint48(block.timestamp + 1 days)
@@ -73,7 +73,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC721Actions.transferERC721Action.selector,
+            IERC20.transferFrom.selector,
             uint256(100),
             uint48(block.timestamp + 1),
             uint48(block.timestamp + 1 days)
@@ -94,7 +94,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC721Actions.transferERC721Action.selector,
+            IERC20.transferFrom.selector,
             uint256(100),
             uint48(block.timestamp + 1),
             uint48(block.timestamp + 1 days)
@@ -107,7 +107,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory newSessionData = abi.encodePacked(
             sessionKey1Addr,
             address(erc20),
-            ERC721Actions.transferERC721Action.selector,
+            IERC20.transferFrom.selector,
             uint256(2),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
@@ -124,7 +124,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC721Actions.transferERC721Action.selector,
+            IERC20.transferFrom.selector,
             uint256(100),
             uint48(block.timestamp + 1),
             uint48(block.timestamp + 1 days)
@@ -142,7 +142,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData1 = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC721Actions.transferERC721Action.selector,
+            IERC20.transferFrom.selector,
             uint256(100),
             uint48(block.timestamp + 1),
             uint48(block.timestamp + 1 days)
@@ -150,7 +150,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData2 = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC721Actions.transferERC721Action.selector,
+            IERC20.transferFrom.selector,
             uint256(2),
             uint48(block.timestamp + 2 days),
             uint48(block.timestamp + 3 days)
@@ -168,7 +168,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC721Actions.transferERC721Action.selector,
+            IERC20.transferFrom.selector,
             uint256(100),
             validAfter,
             validUntil
@@ -178,34 +178,32 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         ERC20SessionKeyValidator.SessionData memory data = validator
             .getSessionKeyData(sessionKeyAddr);
         assertEq(data.token, address(erc20));
-        assertEq(
-            data.funcSelector,
-            ERC721Actions.transferERC721Action.selector
-        );
+        assertEq(data.funcSelector, IERC20.transferFrom.selector);
         assertEq(data.validAfter, validAfter);
         assertEq(data.validUntil, validUntil);
     }
 
     function test_pass_validateUserOp() public {
-        console2.log("bob:", address(bob));
-
         mew = setupMEWWithSessionKeys();
         vm.deal(address(mew), 1 ether);
         vm.startPrank(address(mew));
 
         erc20.mint(address(mew), 10 ether);
         assertEq(erc20.balanceOf(address(mew)), 10 ether);
-        erc20.approve(address(erc20Action), 5 ether);
+        // erc20.approve(address(erc20Action), 5 ether);
 
-        address[] memory allowedCallers = new address[](3);
+        address[] memory allowedCallers = new address[](2);
         allowedCallers[0] = address(entrypoint);
+        allowedCallers[1] = address(mew);
+
+        console2.log("ENTRYPOINT:", address(entrypoint));
 
         mew.installModule(
             MODULE_TYPE_FALLBACK,
-            address(erc20Action),
+            address(fb),
             abi.encode(
-                ERC20Actions.transferERC20Action.selector,
                 CALLTYPE_SINGLE,
+                SimpleFallback.performFallbackCall.selector,
                 allowedCallers,
                 ""
             )
@@ -215,7 +213,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             uint256(5 ether),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
@@ -223,7 +221,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         sessionKeyValidator.enableSessionKey(sessionData);
         // Construct user op data
         bytes memory data = abi.encodeWithSelector(
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             address(erc20),
             uint256(5 ether),
             address(bob)
@@ -266,8 +264,8 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             MODULE_TYPE_FALLBACK,
             address(erc20Action),
             abi.encode(
-                ERC20Actions.transferERC20Action.selector,
                 CALLTYPE_SINGLE,
+                ERC20Actions.invalidERC20Action.selector,
                 allowedCallers,
                 ""
             )
@@ -277,7 +275,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             uint256(5 ether),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
@@ -286,7 +284,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         sessionKeyValidator.enableSessionKey(sessionData);
         // Construct user op data
         bytes memory data = abi.encodeWithSelector(
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             address(erc20),
             uint256(5 ether),
             address(bob)
@@ -325,7 +323,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC20Actions.invalidERC20Action.selector,
+            IERC20.transferFrom.selector,
             uint256(5 ether),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
@@ -333,7 +331,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         sessionKeyValidator.enableSessionKey(sessionData);
         // Construct invalid selector user op data
         bytes memory data = abi.encodeWithSelector(
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             address(erc20),
             uint256(5 ether),
             address(bob)
@@ -370,7 +368,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             uint256(1 ether),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
@@ -378,7 +376,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         sessionKeyValidator.enableSessionKey(sessionData);
         // Construct invalid selector user op data
         bytes memory data = abi.encodeWithSelector(
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             address(erc20),
             uint256(2 ether),
             address(bob)
@@ -419,6 +417,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
 
         address[] memory allowedCallers = new address[](3);
         allowedCallers[0] = address(entrypoint);
+        allowedCallers[0] = address(mew);
 
         console2.logBytes4(erc20.transferFrom.selector);
         console2.logBytes4(ERC20Actions.transferERC20Action.selector);
@@ -427,8 +426,8 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             MODULE_TYPE_FALLBACK,
             address(erc20Action),
             abi.encode(
-                ERC20Actions.transferERC20Action.selector,
                 CALLTYPE_SINGLE,
+                ERC20Actions.invalidERC20Action.selector,
                 allowedCallers,
                 ""
             )
@@ -437,7 +436,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             uint256(1 ether),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
@@ -445,7 +444,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         sessionKeyValidator.enableSessionKey(sessionData);
         // Construct invalid selector user op data
         bytes memory data = abi.encodeWithSelector(
-            ERC20Actions.transferERC20Action.selector,
+            IERC20.transferFrom.selector,
             address(erc20),
             uint256(1 ether),
             address(bob)
