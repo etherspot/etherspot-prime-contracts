@@ -19,7 +19,13 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
     error ERC20SKV_UnsuportedToken();
     error ERC20SKV_UnsupportedSelector(bytes4 selectorUsed);
     error ERC20SKV_SessionKeySpendLimitExceeded();
+    error ERC20SKV_ExecutorSpendCapExceeded();
     error ERC20SKV_InsufficientApprovalAmount();
+    event ERC20SKV_ExecutorSpendCapReduced(uint256 amount, uint256 newCap);
+    event ERC20SKV_SessionKeySpentLimitReduced(
+        uint256 amount,
+        uint256 newLimit
+    );
     error NotImplemented();
 
     event SessionKeyEnabled(address sessionKey, address wallet);
@@ -28,7 +34,8 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
         public walletSessionKeys;
     mapping(address sessionKey => mapping(address wallet => SessionData))
         public sessionData;
-    mapping(address wallet => address sessionKey) /* transient */
+    mapping(address wallet => uint256 spendingCap) public executorSpendCap;
+    mapping(address wallet => address sessionKey) /*transient*/
         public tmpSession;
 
     struct SessionData {
@@ -90,33 +97,36 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
     ) public returns (bool valid) {
         bytes calldata callData = userOp.callData;
         console2.logBytes(callData);
-        bytes4 methodSig;
-        address targetContract;
-        uint256 amount;
-        address recipient;
-        assembly {
-            methodSig := calldataload(callData.offset)
-            targetContract := calldataload(add(callData.offset, 0x04))
-            amount := calldataload(add(callData.offset, 0x24))
-            recipient := calldataload(add(callData.offset, 0x44))
-        }
-        console2.logBytes4(methodSig);
-        console2.log("target contract:", targetContract);
+        (
+            bytes4 selector,
+            address target,
+            address to,
+            address from,
+            uint256 amount
+        ) = _digest(callData);
+
+        console2.logBytes4(selector);
+        console2.log("target contract:", target);
+        console2.log("to:", to);
+        console2.log("from:", from);
         console2.log("amount:", amount);
-        console2.log("recipient:", recipient);
 
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
         if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
             revert ERC20SKV_InvalidSessionKey();
-        if (targetContract != sd.token) revert ERC20SKV_UnsuportedToken();
-        if (methodSig != sd.funcSelector)
-            revert ERC20SKV_UnsupportedSelector(methodSig);
+        if (target != sd.token) revert ERC20SKV_UnsuportedToken();
+        if (selector != sd.funcSelector)
+            revert ERC20SKV_UnsupportedSelector(selector);
         if (amount > sd.spendingLimit)
             revert ERC20SKV_SessionKeySpendLimitExceeded();
         if (checkSessionKeyPaused(_sessionKey))
             revert ERC20SKV_SessionPaused(_sessionKey);
-        // TODO: move to Hook for _postCheck decrease.
-        // sd.spendingLimit = sd.spendingLimit - amount;
+        console2.log("spendLimit pre adj:", sd.spendingLimit);
+        console2.log("amount to reduce spendLimit by:", amount);
+        sd.spendingLimit = sd.spendingLimit - amount;
+        console2.log("spendLimit post adj:", sd.spendingLimit);
+        emit ERC20SKV_SessionKeySpentLimitReduced(amount, sd.spendingLimit);
+
         return true;
     }
 
@@ -160,7 +170,12 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
     }
 
     function onInstall(bytes calldata data) external override {
-        // Initialize
+        if (data.length <= 68) return;
+        uint256 offset = 4;
+        offset += 64;
+        uint256 execSpendCap = abi.decode(data[offset:], (uint256));
+        executorSpendCap[msg.sender] = execSpendCap;
+        // TODO: add event
     }
 
     function onUninstall(bytes calldata data) external override {
@@ -231,29 +246,48 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
         // console2.log("value:", value);
         // console2.logBytes(callData);
         bytes calldata callData = hookData[52:];
-        bytes4 functionSelector;
-        address sender;
-        address receiver;
+        console2.log("HOOK DATA");
+        console2.logBytes(callData);
+
+        bytes4 selector;
+        address from;
+        address to;
         uint256 amount;
         assembly {
-            functionSelector := calldataload(callData.offset)
-            sender := calldataload(add(callData.offset, 0x04))
-            receiver := calldataload(add(callData.offset, 0x24))
+            selector := calldataload(callData.offset)
+            from := calldataload(add(callData.offset, 0x04))
+            to := calldataload(add(callData.offset, 0x24))
             amount := calldataload(add(callData.offset, 0x44))
         }
 
-        console2.logBytes4(functionSelector);
-        console2.log("sender:", sender);
-        console2.log("receiver:", receiver);
+        console2.logBytes4(selector);
+        console2.log("to:", to);
+        console2.log("from:", from);
         console2.log("amount:", amount);
         // address sender = abi.decode(hookData, (address));
-        address sk = tmpSession[sender];
+        address sk = tmpSession[from];
         console2.log("session key addr:", sk);
-        SessionData storage sd = sessionData[sk][sender];
-        console2.log("spendLimit pre adj:", sd.spendingLimit);
-        console2.log("amount to reduce spendLimit by:", amount);
-        sd.spendingLimit = sd.spendingLimit - amount;
-        console2.log("spendLimit post adj:", sd.spendingLimit);
+        if (sk == address(0)) {
+            console2.log("sk is address(0)");
+            console2.log("executorSpendCap is", executorSpendCap[from]);
+            if (amount > executorSpendCap[from]) {
+                revert ERC20SKV_ExecutorSpendCapExceeded();
+            } else {
+                executorSpendCap[from] = executorSpendCap[from] - amount;
+                console2.log("executorSpendCap is", executorSpendCap[from]);
+                emit ERC20SKV_ExecutorSpendCapReduced(
+                    amount,
+                    executorSpendCap[from]
+                );
+            }
+            // } else {
+            //     SessionData storage sd = sessionData[sk][from];
+            //     console2.log("spendLimit pre adj:", sd.spendingLimit);
+            //     console2.log("amount to reduce spendLimit by:", amount);
+            //     sd.spendingLimit = sd.spendingLimit - amount;
+            //     console2.log("spendLimit post adj:", sd.spendingLimit);
+            //     emit ERC20SKV_SessionKeySpentLimitReduced(amount, sd.spendingLimit);
+        }
         return true;
     }
 
@@ -268,5 +302,49 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
             }
         }
         return false;
+    }
+
+    function _digest(
+        bytes calldata _data
+    )
+        internal
+        view
+        returns (
+            bytes4 selector,
+            address targetContract,
+            address to,
+            address from,
+            uint256 amount
+        )
+    {
+        bytes4 functionSelector;
+        assembly {
+            functionSelector := calldataload(_data.offset)
+        }
+        if (functionSelector == IERC20.approve.selector) {
+            assembly {
+                targetContract := calldataload(add(_data.offset, 0x04))
+                to := calldataload(add(_data.offset, 0x24))
+                amount := calldataload(add(_data.offset, 0x44))
+            }
+            return (functionSelector, targetContract, address(0), to, amount);
+        } else if (functionSelector == IERC20.transfer.selector) {
+            assembly {
+                targetContract := calldataload(add(_data.offset, 0x04))
+                to := calldataload(add(_data.offset, 0x24))
+                amount := calldataload(add(_data.offset, 0x44))
+            }
+            return (functionSelector, targetContract, to, address(0), amount);
+        } else if (functionSelector == IERC20.transferFrom.selector) {
+            assembly {
+                targetContract := calldataload(add(_data.offset, 0x04))
+                from := calldataload(add(_data.offset, 0x24))
+                to := calldataload(add(_data.offset, 0x44))
+                amount := calldataload(add(_data.offset, 0x64))
+            }
+            return (functionSelector, targetContract, to, from, amount);
+        } else {
+            revert ERC20SKV_UnsupportedSelector(functionSelector);
+        }
     }
 }

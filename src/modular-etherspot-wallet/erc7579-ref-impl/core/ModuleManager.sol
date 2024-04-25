@@ -9,6 +9,8 @@ import "forge-std/interfaces/IERC165.sol";
 import "./Receiver.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
+import "forge-std/console2.sol";
+
 /**
  * @title ModuleManager
  * @author zeroknots.eth | rhinestone.wtf
@@ -244,6 +246,7 @@ abstract contract ModuleManager is AccountBase, Receiver {
             calltype,
             allowedCallers
         );
+        console2.log("ModuleManager >> allowedCallers[0]:", allowedCallers[0]);
 
         IFallback(handler).onInstall(initData);
     }

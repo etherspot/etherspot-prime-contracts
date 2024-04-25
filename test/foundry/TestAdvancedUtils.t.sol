@@ -37,6 +37,8 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     address owner1;
     uint256 owner1Key;
 
+    uint256 constant EXEC_SPEND_CAP = 11 ether;
+
     function setUp() public virtual {
         // Set up EntryPoint
         etchEntrypoint();
@@ -237,7 +239,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         );
         BootstrapConfig memory hook = _makeBootstrapConfig(
             address(sessionKeyValidator),
-            ""
+            abi.encode(EXEC_SPEND_CAP)
         );
         BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
