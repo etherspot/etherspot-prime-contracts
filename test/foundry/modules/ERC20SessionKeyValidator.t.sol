@@ -476,22 +476,57 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         );
     }
 
-    function test_checkHook_test() public {
+    function test_hook_batchCall() public {
         mew = setupMEWWithSessionKeys();
         vm.startPrank(address(mew));
         erc20.mint(address(mew), 10 ether);
         assertEq(erc20.balanceOf(address(mew)), 10 ether);
-        erc20.approve(address(mew), 3 ether);
-
-        bytes memory sessionData = abi.encodePacked(
-            sessionKeyAddr,
-            address(erc20),
-            IERC20.transferFrom.selector,
-            uint256(3 ether),
-            uint48(block.timestamp),
-            uint48(block.timestamp + 1 days)
+        erc20.approve(address(mew), 6 ether);
+        console2.log(
+            "mew allowance:",
+            erc20.allowance(address(mew), address(mew))
         );
-        sessionKeyValidator.enableSessionKey(sessionData);
+        console2.log("mew balance:", erc20.balanceOf(address(mew)));
+
+        Execution[] memory execs = new Execution[](3);
+        execs[0].target = address(erc20);
+        execs[0].value = 0;
+        execs[0].callData = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            uint256(2 ether)
+        );
+        execs[1].target = address(erc20);
+        execs[1].value = 0;
+        execs[1].callData = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            uint256(4 ether)
+        );
+        execs[2].target = address(erc20);
+        execs[2].value = 0;
+        execs[2].callData = abi.encodeWithSelector(
+            IERC20.transfer.selector,
+            address(bob),
+            uint256(1 ether)
+        );
+
+        defaultExecutor.execBatch(IERC7579Account(mew), execs);
+        console2.log(
+            "mew allowance:",
+            erc20.allowance(address(mew), address(mew))
+        );
+        console2.log("mew balance:", erc20.balanceOf(address(mew)));
+    }
+
+    function test_hook_singleCall() public {
+        mew = setupMEWWithSessionKeys();
+        vm.startPrank(address(mew));
+        erc20.mint(address(mew), 2 ether);
+        assertEq(erc20.balanceOf(address(mew)), 2 ether);
+        erc20.approve(address(mew), 2 ether);
 
         defaultExecutor.executeViaAccount(
             IERC7579Account(mew),
@@ -501,7 +536,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
                 IERC20.transferFrom.selector,
                 address(mew),
                 address(bob),
-                uint256(3 ether)
+                uint256(2 ether)
             )
         );
     }

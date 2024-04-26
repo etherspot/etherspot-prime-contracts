@@ -37,7 +37,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     address owner1;
     uint256 owner1Key;
 
-    uint256 constant EXEC_SPEND_CAP = 11 ether;
+    uint256 constant EXEC_SPEND_CAP = 10 ether;
 
     function setUp() public virtual {
         // Set up EntryPoint
