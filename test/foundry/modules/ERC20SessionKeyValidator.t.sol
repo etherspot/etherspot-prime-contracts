@@ -481,21 +481,20 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         vm.startPrank(address(mew));
         erc20.mint(address(mew), 10 ether);
         assertEq(erc20.balanceOf(address(mew)), 10 ether);
-        erc20.approve(address(mew), 6 ether);
+        // erc20.approve(address(mew), 6 ether);
         console2.log(
             "mew allowance:",
             erc20.allowance(address(mew), address(mew))
         );
         console2.log("mew balance:", erc20.balanceOf(address(mew)));
 
-        Execution[] memory execs = new Execution[](3);
+        Execution[] memory execs = new Execution[](4);
         execs[0].target = address(erc20);
         execs[0].value = 0;
         execs[0].callData = abi.encodeWithSelector(
-            IERC20.transferFrom.selector,
+            IERC20.approve.selector,
             address(mew),
-            address(bob),
-            uint256(2 ether)
+            uint256(6 ether)
         );
         execs[1].target = address(erc20);
         execs[1].value = 0;
@@ -503,11 +502,19 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             IERC20.transferFrom.selector,
             address(mew),
             address(bob),
-            uint256(4 ether)
+            uint256(2 ether)
         );
         execs[2].target = address(erc20);
         execs[2].value = 0;
         execs[2].callData = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            uint256(4 ether)
+        );
+        execs[3].target = address(erc20);
+        execs[3].value = 0;
+        execs[3].callData = abi.encodeWithSelector(
             IERC20.transfer.selector,
             address(bob),
             uint256(1 ether)

@@ -222,14 +222,17 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
             Execution[] calldata executions = executionCallData.decodeBatch();
             for (uint256 i; i < executions.length; i++) {
                 bytes calldata d = executions[i].callData;
-                uint256 a;
-                assembly {
-                    // Calculate the offset of the last 32 bytes
-                    let offset := sub(d.length, 0x20)
-                    // Load the last 32 bytes into a
-                    a := calldataload(add(d.offset, offset))
+                bytes4 selector = bytes4(d[0:4]);
+                if (selector != IERC20.approve.selector) {
+                    uint256 a;
+                    assembly {
+                        // Calculate the offset of the last 32 bytes
+                        let offset := sub(d.length, 0x20)
+                        // Load the last 32 bytes into a
+                        a := calldataload(add(d.offset, offset))
+                    }
+                    amt = amt + a;
                 }
-                amt = amt + a;
                 console2.log("Amount:", amt);
             }
         } else if (callType == CALLTYPE_SINGLE) {
@@ -240,22 +243,28 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
                 bytes calldata callData
             ) = executionCallData.decodeSingle();
             console2.logBytes(callData);
-            uint256 a;
-            assembly {
-                let offset := sub(callData.length, 0x20)
-                a := calldataload(add(callData.offset, offset))
+            bytes4 selector = bytes4(callData[0:4]);
+            if (selector != IERC20.approve.selector) {
+                uint256 a;
+                assembly {
+                    let offset := sub(callData.length, 0x20)
+                    a := calldataload(add(callData.offset, offset))
+                }
+                console2.log(a);
+                amt = amt + a;
             }
-            console2.log(a);
-            amt = amt + a;
             console2.log("Amount:", amt);
         } else if (callType == CALLTYPE_DELEGATECALL) {
             console2.log("DELEGATE CALL");
-            uint256 a;
-            assembly {
-                let offset := sub(executionCallData.length, 0x20)
-                a := calldataload(add(executionCallData.offset, offset))
+            bytes4 selector = bytes4(executionCallData[0:4]);
+            if (selector != IERC20.approve.selector) {
+                uint256 a;
+                assembly {
+                    let offset := sub(executionCallData.length, 0x20)
+                    a := calldataload(add(executionCallData.offset, offset))
+                }
+                amt = amt + a;
             }
-            amt = amt + a;
             console2.log("Amount:", amt);
         }
         return amt;
@@ -272,7 +281,7 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
             executorSpendCap[msg.sender]
         );
         console2.log(
-            "Executo spend cap after:",
+            "Executor spend cap after:",
             executorSpendCap[msg.sender] - amt
         );
         executorSpendCap[msg.sender] = executorSpendCap[msg.sender] - amt;
@@ -283,7 +292,7 @@ contract ERC20SessionKeyValidator is IValidator, IHook {
         return true;
     }
 
-    function _validateSelector(bytes4 _selector) internal view returns (bool) {
+    function _validateSelector(bytes4 _selector) internal pure returns (bool) {
         bytes4[] memory allowedSigs = new bytes4[](3);
         allowedSigs[0] = IERC20.approve.selector;
         allowedSigs[1] = IERC20.transfer.selector;
