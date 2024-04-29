@@ -41,8 +41,8 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     arbitrumSepolia: process.env.ARBISCAN_API_KEY!,
     baseSepolia: process.env.BASESCAN_API_KEY!,
     ancient8TestnetV2: process.env.BASESCAN_API_KEY!, // works with same key
-    mantleSepolia: process.env.BASESCAN_API_KEY!, // works with same key
     amoy: process.env.POLYSCAN_API_KEY!,
+    mantleSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
   },
   customChains: [
     {
@@ -237,7 +237,7 @@ const etherscan: HardhatUserConfig['etherscan'] = {
         browserURL: 'https://scan.ancient8.gg/',
       },
     },
-    }
+    {
       network: 'amoy',
       chainId: 80002,
       urls: {
