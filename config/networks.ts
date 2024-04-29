@@ -213,6 +213,11 @@ const networks: HardhatUserConfig['networks'] = {
     url: 'https://rpcv2-testnet.ancient8.gg/',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
+  ancient8: {
+    chainId: 888888888,
+    url: 'https://rpc.ancient8.gg',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
   amoy: {
     chainId: 80002,
     url: 'https://rpc-amoy.polygon.technology',

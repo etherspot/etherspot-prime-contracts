@@ -18,6 +18,7 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     linea: process.env.LINEASCAN_API_KEY!,
     flare: process.env.FLARESCAN_API_KEY!,
     scroll: process.env.SCROLLSCAN_API_KEY!,
+    ancient8: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
     ////////////////////////////////////
     goerli: process.env.ETHERSCAN_API_KEY!,
     sepolia: process.env.ETHERSCAN_API_KEY!,
@@ -229,6 +230,14 @@ const etherscan: HardhatUserConfig['etherscan'] = {
       },
     },
     {
+      network: 'ancient8',
+      chainId: 888888888,
+      urls: {
+        apiURL: 'https://scan.ancient8.gg/api',
+        browserURL: 'https://scan.ancient8.gg/',
+      },
+    },
+    }
       network: 'amoy',
       chainId: 80002,
       urls: {
