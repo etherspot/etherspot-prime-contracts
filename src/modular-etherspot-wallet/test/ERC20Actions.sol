@@ -5,13 +5,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IFallback} from "../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 
 contract ERC20Actions is IFallback {
-    function onInstall(bytes calldata data) external override {
-        // Initialize
-    }
+    function onInstall(bytes calldata data) external override {}
 
-    function onUninstall(bytes calldata data) external override {
-        // Clean up
-    }
+    function onUninstall(bytes calldata data) external override {}
     function isModuleType(
         uint256 moduleTypeId
     ) external view override returns (bool) {}
@@ -19,8 +15,8 @@ contract ERC20Actions is IFallback {
     function isInitialized(address _mew) external view returns (bool) {}
     function transferERC20Action(
         address _token,
-        uint256 _amount,
-        address _to
+        address _to,
+        uint256 _amount
     ) external {
         IERC20(_token).transferFrom(msg.sender, _to, _amount);
     }
@@ -28,21 +24,4 @@ contract ERC20Actions is IFallback {
     function invalidERC20Action() public pure returns (uint256) {
         return 0;
     }
-
-    // fallback() external payable {
-    //     address target;
-    //     assembly {
-    //         target := sload(address())
-    //         calldatacopy(0, 0, calldatasize())
-    //         let result := delegatecall(gas(), target, 0, calldatasize(), 0, 0)
-    //         returndatacopy(0, 0, returndatasize())
-    //         switch result
-    //         case 0 {
-    //             revert(0, returndatasize())
-    //         }
-    //         default {
-    //             return(0, returndatasize())
-    //         }
-    //     }
-    // }
 }
