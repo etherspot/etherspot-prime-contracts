@@ -237,12 +237,28 @@ const etherscan: HardhatUserConfig['etherscan'] = {
         browserURL: 'https://scan.ancient8.gg/',
       },
     },
-    }
+    {
       network: 'amoy',
       chainId: 80002,
       urls: {
         apiURL: 'https://api-amoy.polygonscan.com/api',
         browserURL: 'https://amoy.polygonscan.com/',
+      },
+    },
+    {
+      network: 'rootstock',
+      chainId: 30,
+      urls: {
+        apiURL: 'https://rootstock.blockscout.com/api',
+        browserURL: 'https://rootstock.blockscout.com/',
+      },
+    },
+    {
+      network: 'rootstockTestnet',
+      chainId: 31,
+      urls: {
+        apiURL: 'https://rootstock-testnet.blockscout.com/api',
+        browserURL: 'https://rootstock-testnet.blockscout.com/',
       },
     },
   ],
