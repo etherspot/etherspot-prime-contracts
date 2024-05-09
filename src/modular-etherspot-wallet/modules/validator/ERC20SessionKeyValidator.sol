@@ -12,7 +12,7 @@ import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
 
-import "forge-std/console2.sol";
+// import "forge-std/console2.sol";
 
 contract ERC20SessionKeyValidator is IValidator {
     using ModeLib for ModeCode;
@@ -102,7 +102,7 @@ contract ERC20SessionKeyValidator is IValidator {
         PackedUserOperation calldata userOp
     ) public returns (bool valid) {
         bytes calldata callData = userOp.callData;
-        console2.logBytes(callData);
+        // console2.logBytes(callData);
         (
             bytes4 selector,
             address target,
@@ -111,33 +111,33 @@ contract ERC20SessionKeyValidator is IValidator {
             uint256 amount
         ) = _digest(callData);
 
-        console2.logBytes4(selector);
-        console2.log("target contract:", target);
-        console2.log("to:", to);
-        console2.log("from:", from);
-        console2.log("amount:", amount);
+        // console2.logBytes4(selector);
+        // console2.log("target contract:", target);
+        // console2.log("to:", to);
+        // console2.log("from:", from);
+        // console2.log("amount:", amount);
 
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
         if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
             revert ERC20SKV_InvalidSessionKey();
         if (target != sd.token) revert ERC20SKV_UnsuportedToken();
-        console2.logBytes4(sd.interfaceId);
+        // console2.logBytes4(sd.interfaceId);
 
         if (IERC165(target).supportsInterface(sd.interfaceId) == false)
             revert ERC20SKV_UnsupportedInterface();
-        console2.logBytes4(sd.funcSelector);
-        console2.logBytes4(selector);
+        // console2.logBytes4(sd.funcSelector);
+        // console2.logBytes4(selector);
         if (selector != sd.funcSelector)
             revert ERC20SKV_UnsupportedSelector(selector);
-        console2.log("amount:", amount);
-        console2.log("spendingLimit:", sd.spendingLimit);
+        // console2.log("amount:", amount);
+        // console2.log("spendingLimit:", sd.spendingLimit);
         if (amount > sd.spendingLimit)
             revert ERC20SKV_SessionKeySpendLimitExceeded();
         if (checkSessionKeyPaused(_sessionKey))
             revert ERC20SKV_SessionPaused(_sessionKey);
         sd.spendingLimit = sd.spendingLimit - amount;
         emit ERC20SKV_SessionKeySpentLimitReduced(amount, sd.spendingLimit);
-        console2.log("VALIDATION OF SESSION KEY PARAMS PASSED!");
+        // console2.log("VALIDATION OF SESSION KEY PARAMS PASSED!");
         return true;
     }
 
@@ -233,9 +233,9 @@ contract ERC20SessionKeyValidator is IValidator {
                 to := calldataload(add(_data.offset, 0x24))
                 amount := calldataload(add(_data.offset, 0x44))
             }
-            console2.log("targetContract:", targetContract);
-            console2.log("to:", to);
-            console2.log("amount:", amount);
+            // console2.log("targetContract:", targetContract);
+            // console2.log("to:", to);
+            // console2.log("amount:", amount);
             return (functionSelector, targetContract, to, address(0), amount);
         } else if (functionSelector == IERC20.transferFrom.selector) {
             assembly {
@@ -244,10 +244,10 @@ contract ERC20SessionKeyValidator is IValidator {
                 to := calldataload(add(_data.offset, 0x44))
                 amount := calldataload(add(_data.offset, 0x64))
             }
-            console2.log("targetContract:", targetContract);
-            console2.log("to:", to);
-            console2.log("from:", from);
-            console2.log("amount:", amount);
+            // console2.log("targetContract:", targetContract);
+            // console2.log("to:", to);
+            // console2.log("from:", from);
+            // console2.log("amount:", amount);
             return (functionSelector, targetContract, to, from, amount);
         } else {
             revert ERC20SKV_UnsupportedSelector(functionSelector);
