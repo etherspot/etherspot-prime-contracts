@@ -6,13 +6,12 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ERC20Actions} from "../../test/ERC20Actions.sol";
 import {IValidator, MODULE_TYPE_VALIDATOR, VALIDATION_FAILED} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {IERC7579Account} from "../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
-
-// import "forge-std/console2.sol";
 
 contract ERC20SessionKeyValidator is IValidator {
     using ModeLib for ModeCode;
@@ -26,13 +25,8 @@ contract ERC20SessionKeyValidator is IValidator {
     error ERC20SKV_UnsupportedSelector(bytes4 selectorUsed);
     error ERC20SKV_UnsupportedInterface();
     error ERC20SKV_SessionKeySpendLimitExceeded();
-    error ERC20SKV_ExceedsExecutorSpendCap(uint256 total, uint256 spendCap);
     error ERC20SKV_InsufficientApprovalAmount();
-    event ERC20SKV_ExecutorSpendCapReduced(uint256 amount, uint256 newCap);
-    event ERC20SKV_SessionKeySpentLimitReduced(
-        uint256 amount,
-        uint256 newLimit
-    );
+
     error NotImplemented();
 
     mapping(address wallet => address[] assocSessionKeys)
@@ -58,8 +52,6 @@ contract ERC20SessionKeyValidator is IValidator {
         uint256 spendingLimit = uint256(bytes32(_sessionData[48:80]));
         uint48 validAfter = uint48(bytes6(_sessionData[80:86]));
         uint48 validUntil = uint48(bytes6(_sessionData[86:92]));
-        if (!_validateSelector(funcSelector))
-            revert ERC20SKV_UnsupportedSelector(funcSelector);
         sessionData[sessionKey][msg.sender] = SessionData(
             token,
             interfaceId,
@@ -102,7 +94,6 @@ contract ERC20SessionKeyValidator is IValidator {
         PackedUserOperation calldata userOp
     ) public returns (bool valid) {
         bytes calldata callData = userOp.callData;
-        // console2.logBytes(callData);
         (
             bytes4 selector,
             address target,
@@ -111,33 +102,18 @@ contract ERC20SessionKeyValidator is IValidator {
             uint256 amount
         ) = _digest(callData);
 
-        // console2.logBytes4(selector);
-        // console2.log("target contract:", target);
-        // console2.log("to:", to);
-        // console2.log("from:", from);
-        // console2.log("amount:", amount);
-
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
         if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
             revert ERC20SKV_InvalidSessionKey();
         if (target != sd.token) revert ERC20SKV_UnsuportedToken();
-        // console2.logBytes4(sd.interfaceId);
-
         if (IERC165(target).supportsInterface(sd.interfaceId) == false)
             revert ERC20SKV_UnsupportedInterface();
-        // console2.logBytes4(sd.funcSelector);
-        // console2.logBytes4(selector);
         if (selector != sd.funcSelector)
             revert ERC20SKV_UnsupportedSelector(selector);
-        // console2.log("amount:", amount);
-        // console2.log("spendingLimit:", sd.spendingLimit);
         if (amount > sd.spendingLimit)
             revert ERC20SKV_SessionKeySpendLimitExceeded();
         if (checkSessionKeyPaused(_sessionKey))
             revert ERC20SKV_SessionPaused(_sessionKey);
-        sd.spendingLimit = sd.spendingLimit - amount;
-        emit ERC20SKV_SessionKeySpentLimitReduced(amount, sd.spendingLimit);
-        // console2.log("VALIDATION OF SESSION KEY PARAMS PASSED!");
         return true;
     }
 
@@ -175,9 +151,7 @@ contract ERC20SessionKeyValidator is IValidator {
 
     function onInstall(bytes calldata data) external override {}
 
-    function onUninstall(bytes calldata data) external override {
-        // Clean up
-    }
+    function onUninstall(bytes calldata data) external override {}
 
     function isValidSignatureWithSender(
         address sender,
@@ -189,20 +163,6 @@ contract ERC20SessionKeyValidator is IValidator {
 
     function isInitialized(address smartAccount) external view returns (bool) {
         revert NotImplemented();
-    }
-
-    function _validateSelector(bytes4 _selector) internal pure returns (bool) {
-        bytes4[] memory allowedSigs = new bytes4[](4);
-        allowedSigs[0] = IERC20.approve.selector;
-        allowedSigs[1] = IERC20.transfer.selector;
-        allowedSigs[2] = IERC20.transferFrom.selector;
-        allowedSigs[3] = ERC20Actions.transferERC20Action.selector;
-        for (uint256 i; i < allowedSigs.length; i++) {
-            if (_selector == allowedSigs[i]) {
-                return true;
-            }
-        }
-        return false;
     }
 
     function _digest(
@@ -233,9 +193,6 @@ contract ERC20SessionKeyValidator is IValidator {
                 to := calldataload(add(_data.offset, 0x24))
                 amount := calldataload(add(_data.offset, 0x44))
             }
-            // console2.log("targetContract:", targetContract);
-            // console2.log("to:", to);
-            // console2.log("amount:", amount);
             return (functionSelector, targetContract, to, address(0), amount);
         } else if (functionSelector == IERC20.transferFrom.selector) {
             assembly {
@@ -244,10 +201,6 @@ contract ERC20SessionKeyValidator is IValidator {
                 to := calldataload(add(_data.offset, 0x44))
                 amount := calldataload(add(_data.offset, 0x64))
             }
-            // console2.log("targetContract:", targetContract);
-            // console2.log("to:", to);
-            // console2.log("from:", from);
-            // console2.log("amount:", amount);
             return (functionSelector, targetContract, to, from, amount);
         } else {
             revert ERC20SKV_UnsupportedSelector(functionSelector);

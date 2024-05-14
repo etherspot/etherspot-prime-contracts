@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import "../erc7579-ref-impl/interfaces/IERC7579Account.sol";
-import "../erc7579-ref-impl/interfaces/IERC7579Module.sol";
-import "../erc7579-ref-impl/libs/ModeLib.sol";
-import "../erc7579-ref-impl/libs/ExecutionLib.sol";
-import {ModularEtherspotWallet} from "../wallet/ModularEtherspotWallet.sol";
+import "../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
+import "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import "../../erc7579-ref-impl/libs/ModeLib.sol";
+import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
+import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {EIP712} from "solady/src/utils/EIP712.sol";
 
@@ -13,7 +13,8 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
     using ExecutionLib for bytes;
     using ECDSA for bytes32;
 
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH = 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
+    bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
+        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
     string constant NAME = "MultipleOwnerECDSAValidator";
     string constant VERSION = "1.0.0";
 
@@ -42,7 +43,6 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
     ) external pure override returns (bool) {
         return typeID == MODULE_TYPE_VALIDATOR;
     }
-
 
     function validateUserOp(
         PackedUserOperation calldata userOp,
@@ -100,10 +100,24 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
 
         // Construct the domain separator with name, version, chainId, and proxy address.
         bytes32 typeHash = EIP712_DOMAIN_TYPEHASH;
-        return keccak256(abi.encode(typeHash, nameHash, versionHash, block.chainid, proxyAddress));
+        return
+            keccak256(
+                abi.encode(
+                    typeHash,
+                    nameHash,
+                    versionHash,
+                    block.chainid,
+                    proxyAddress
+                )
+            );
     }
 
-        function _domainNameAndVersion() internal pure override returns (string memory, string memory) {
+    function _domainNameAndVersion()
+        internal
+        pure
+        override
+        returns (string memory, string memory)
+    {
         return (NAME, VERSION);
     }
 }

@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import "forge-std/console2.sol";
 import "../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import "../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
-import "../src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol";
+import "../src/modular-etherspot-wallet/modules/validator/MultipleOwnerECDSAValidator.sol";
 import "../src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol";
 
 /**

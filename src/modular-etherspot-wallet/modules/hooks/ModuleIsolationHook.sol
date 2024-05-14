@@ -6,10 +6,10 @@ pragma solidity ^0.8.13;
 /// @notice Custom hook to prevent modules from installing/uninstalling other modules
 /// @dev Implements preCheck hook to block restricted function calls
 
-import {ModularEtherspotWallet} from "../wallet/ModularEtherspotWallet.sol";
-import "../erc7579-ref-impl/libs/ModeLib.sol";
-import "../erc7579-ref-impl/libs/ExecutionLib.sol";
-import "../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
+import "../../erc7579-ref-impl/libs/ModeLib.sol";
+import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
+import "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 
 contract ModuleIsolationHook is IHook {
     using ModeLib for ModeCode;

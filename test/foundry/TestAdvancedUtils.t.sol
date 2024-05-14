@@ -4,7 +4,7 @@ pragma solidity ^0.8.23;
 import "forge-std/Test.sol";
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {ModularEtherspotWallet} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
-import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol";
+import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/modules/validator/MultipleOwnerECDSAValidator.sol";
 import {ERC20SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validator/ERC20SessionKeyValidator.sol";
 import "../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import {ModularEtherspotWalletFactory} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";

@@ -11,7 +11,7 @@ import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 import {ModularEtherspotWallet} from "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {ModularEtherspotWalletFactory} from "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
-import {MultipleOwnerECDSAValidator} from "../../../src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol";
+import {MultipleOwnerECDSAValidator} from "../../../src/modular-etherspot-wallet/modules/validator/MultipleOwnerECDSAValidator.sol";
 import "../TestAdvancedUtils.t.sol";
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 
