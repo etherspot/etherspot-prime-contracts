@@ -18,6 +18,7 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     linea: process.env.LINEASCAN_API_KEY!,
     flare: process.env.FLARESCAN_API_KEY!,
     scroll: process.env.SCROLLSCAN_API_KEY!,
+    ancient8: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
     ////////////////////////////////////
     goerli: process.env.ETHERSCAN_API_KEY!,
     sepolia: process.env.ETHERSCAN_API_KEY!,
@@ -40,7 +41,8 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     arbitrumSepolia: process.env.ARBISCAN_API_KEY!,
     baseSepolia: process.env.BASESCAN_API_KEY!,
     ancient8TestnetV2: process.env.BASESCAN_API_KEY!, // works with same key
-    mantleSepolia: process.env.BASESCAN_API_KEY!, // works with same key
+    amoy: process.env.POLYSCAN_API_KEY!,
+    mantleSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
   },
   customChains: [
     {
@@ -225,6 +227,38 @@ const etherscan: HardhatUserConfig['etherscan'] = {
       urls: {
         apiURL: 'https://explorer.sepolia.mantle.xyz/api',
         browserURL: 'https://explorer.sepolia.mantle.xyz/',
+      },
+    },
+    {
+      network: 'ancient8',
+      chainId: 888888888,
+      urls: {
+        apiURL: 'https://scan.ancient8.gg/api',
+        browserURL: 'https://scan.ancient8.gg/',
+      },
+    },
+    {
+      network: 'amoy',
+      chainId: 80002,
+      urls: {
+        apiURL: 'https://api-amoy.polygonscan.com/api',
+        browserURL: 'https://amoy.polygonscan.com/',
+      },
+    },
+    {
+      network: 'rootstock',
+      chainId: 30,
+      urls: {
+        apiURL: 'https://rootstock.blockscout.com/api',
+        browserURL: 'https://rootstock.blockscout.com/',
+      },
+    },
+    {
+      network: 'rootstockTestnet',
+      chainId: 31,
+      urls: {
+        apiURL: 'https://rootstock-testnet.blockscout.com/api',
+        browserURL: 'https://rootstock-testnet.blockscout.com/',
       },
     },
   ],
