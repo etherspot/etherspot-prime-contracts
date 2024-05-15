@@ -13,7 +13,8 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
     using ExecutionLib for bytes;
     using ECDSA for bytes32;
 
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH = 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
+    bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
+        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
     string constant NAME = "MultipleOwnerECDSAValidator";
     string constant VERSION = "1.0.0";
 
@@ -43,13 +44,19 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
         return typeID == MODULE_TYPE_VALIDATOR;
     }
 
-
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        bytes32 hash = userOpHash.toEthSignedMessageHash();
-        address signer = hash.recover(userOp.signature);
+        bytes32 domainSeparator = _domainSeparator();
+        bytes32 signedMessageHash = keccak256(
+            abi.encodePacked("\x19\x01", domainSeparator, userOpHash)
+        );
+        bytes32 ethHash = ECDSA.toEthSignedMessageHash(signedMessageHash);
+        address signer = ECDSA.recover(ethHash, userOp.signature);
+
+        // bytes32 hash = userOpHash.toEthSignedMessageHash();
+        // address signer = hash.recover(userOp.signature);
         if (
             signer == address(0) ||
             !ModularEtherspotWallet(payable(msg.sender)).isOwner(signer)
@@ -100,10 +107,24 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
 
         // Construct the domain separator with name, version, chainId, and proxy address.
         bytes32 typeHash = EIP712_DOMAIN_TYPEHASH;
-        return keccak256(abi.encode(typeHash, nameHash, versionHash, block.chainid, proxyAddress));
+        return
+            keccak256(
+                abi.encode(
+                    typeHash,
+                    nameHash,
+                    versionHash,
+                    block.chainid,
+                    proxyAddress
+                )
+            );
     }
 
-        function _domainNameAndVersion() internal pure override returns (string memory, string memory) {
+    function _domainNameAndVersion()
+        internal
+        pure
+        override
+        returns (string memory, string memory)
+    {
         return (NAME, VERSION);
     }
 }
