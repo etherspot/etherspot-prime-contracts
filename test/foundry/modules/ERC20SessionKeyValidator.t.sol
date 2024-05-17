@@ -78,6 +78,24 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     /*                    TESTS                  */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
+    function test_installModule() public {
+        mew = setupMEW();
+        vm.startPrank(owner1);
+        // install another validator module for total of 3
+        Execution[] memory batchCall1 = new Execution[](1);
+        batchCall1[0].target = address(mew);
+        batchCall1[0].value = 0;
+        batchCall1[0].callData = abi.encodeWithSelector(
+            ModularEtherspotWallet.installModule.selector,
+            uint256(1),
+            address(sessionKeyValidator),
+            hex""
+        );
+        defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
+        // should be 3 validator modules installed
+        assertTrue(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
+    }
+
     function test_uninstallModule() public {
         mew = setupMEWWithSessionKeys();
         vm.startPrank(owner1);
