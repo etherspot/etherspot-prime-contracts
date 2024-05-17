@@ -11,8 +11,6 @@ import {ModuleManager} from "../erc7579-ref-impl/core/ModuleManager.sol";
 import {HookManager} from "../erc7579-ref-impl/core/HookManager.sol";
 import {AccessController} from "../access/AccessController.sol";
 
-import "forge-std/console2.sol";
-
 contract ModularEtherspotWallet is
     AccessController,
     IModularEtherspotWallet,

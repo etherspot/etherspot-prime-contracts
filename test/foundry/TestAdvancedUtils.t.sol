@@ -3,9 +3,6 @@ pragma solidity ^0.8.23;
 
 import "forge-std/Test.sol";
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
-import {ModularEtherspotWallet} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
-import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/modules/validator/MultipleOwnerECDSAValidator.sol";
-import {ERC20SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validator/ERC20SessionKeyValidator.sol";
 import "../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import {ModularEtherspotWalletFactory} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
 import {BootstrapUtil, BootstrapConfig} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.sol";
@@ -16,8 +13,11 @@ import {MockFallback} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/
 import {ExecutionLib} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ModeLib, ModeCode, CallType, ExecType, ModeSelector, ModePayload, CALLTYPE_STATIC} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
 import {PackedUserOperation} from "../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
-
 import "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
+
+import {ModularEtherspotWallet} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
+import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator.sol";
+import {ERC20SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol";
 
 contract TestAdvancedUtils is BootstrapUtil, Test {
     // singletons
@@ -237,10 +237,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
             address(defaultExecutor),
             ""
         );
-        BootstrapConfig memory hook = _makeBootstrapConfig(
-            address(sessionKeyValidator),
-            abi.encode(EXEC_SPEND_CAP)
-        );
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
         BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
             ""

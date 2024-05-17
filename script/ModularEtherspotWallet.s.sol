@@ -3,12 +3,11 @@ pragma solidity ^0.8.21;
 
 import "forge-std/Script.sol";
 import "forge-std/console2.sol";
-import "../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
-import "../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
-import "../src/modular-etherspot-wallet/modules/validator/MultipleOwnerECDSAValidator.sol";
-import "../src/modular-etherspot-wallet/modules/validator/ERC20SessionKeyValidator.sol";
-
-import "../src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol";
+import {ModularEtherspotWallet} from "../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
+import {ModularEtherspotWalletFactory} from "../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
+import {MultipleOwnerECDSAValidator} from "../src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator.sol";
+import {ERC20SessionKeyValidator} from "../src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol";
+import {Bootstrap} from "../src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol";
 
 /**
  * @author Etherspot.
