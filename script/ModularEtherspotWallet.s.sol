@@ -3,10 +3,11 @@ pragma solidity ^0.8.21;
 
 import "forge-std/Script.sol";
 import "forge-std/console2.sol";
-import "../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
-import "../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
-import "../src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol";
-import "../src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol";
+import {ModularEtherspotWallet} from "../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
+import {ModularEtherspotWalletFactory} from "../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
+import {MultipleOwnerECDSAValidator} from "../src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator.sol";
+import {ERC20SessionKeyValidator} from "../src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol";
+import {Bootstrap} from "../src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol";
 
 /**
  * @author Etherspot.
@@ -54,14 +55,26 @@ contract ModularEtherspotWalletScript is Script {
 
         // Multiple Owner ECDSA Validator
         console2.log("Deploying MultipleOwnerECDSAValidator...");
-        MultipleOwnerECDSAValidator validator = new MultipleOwnerECDSAValidator{
-            salt: SALT
-        }();
+        MultipleOwnerECDSAValidator multipleOwnerECDSAValidator = new MultipleOwnerECDSAValidator{
+                salt: SALT
+            }();
         console2.log(
             "MultipleOwnerECDSAValidator deployed at address",
-            address(validator)
+            address(multipleOwnerECDSAValidator)
         );
-        // bytes memory valCode = address(validator).code;
+        // bytes memory valCode = address(multipleOwnerECDSAValidator).code;
+        // console2.logBytes(valCode);
+
+        // ERC20 Session Key Validator
+        console2.log("Deploying ERC20SessionKeyValidator...");
+        ERC20SessionKeyValidator erc20SessionKeyValidator = new ERC20SessionKeyValidator{
+                salt: SALT
+            }();
+        console2.log(
+            "ERC20SessionKeyValidator deployed at address",
+            address(erc20SessionKeyValidator)
+        );
+        // bytes memory valCode = address(erc20SessionKeyValidator).code;
         // console2.logBytes(valCode);
 
         console2.log("Finished deployment sequence!");

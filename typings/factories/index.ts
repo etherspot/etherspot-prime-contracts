@@ -3,6 +3,7 @@
 /* eslint-disable */
 export * as openzeppelin from "./@openzeppelin";
 export * as accountAbstraction from "./account-abstraction";
+export * as dsTest from "./ds-test";
 export * as forgeStd from "./forge-std";
 export * as solady from "./solady";
 export * as src from "./src";

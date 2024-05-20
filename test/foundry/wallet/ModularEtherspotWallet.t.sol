@@ -2,6 +2,7 @@
 pragma solidity ^0.8.21;
 
 import "forge-std/Test.sol";
+import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {MockValidator} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockValidator.sol";
 import {MockExecutor} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockExecutor.sol";
 import {MockTarget} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockTarget.sol";
@@ -11,9 +12,8 @@ import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/Bootstrap.t.
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 import {ModularEtherspotWallet} from "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {ModularEtherspotWalletFactory} from "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory.sol";
-import {MultipleOwnerECDSAValidator} from "../../../src/modular-etherspot-wallet/modules/MultipleOwnerECDSAValidator.sol";
+import {MultipleOwnerECDSAValidator} from "../../../src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator.sol";
 import "../TestAdvancedUtils.t.sol";
-import {ECDSA} from "solady/src/utils/ECDSA.sol";
 
 contract ModularEtherspotWalletTest is TestAdvancedUtils {
     bytes32 immutable SALT = bytes32("TestSALT");
@@ -113,7 +113,6 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         );
         // Get the account, initcode and nonce
         (address account, bytes memory initCode) = getMEWAndInitCode();
-        // uint256 nonce = getNonce(account);
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -190,7 +189,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
 
         // Get the account, initcode and nonce
         (address account, bytes memory initCode) = getMEWAndInitCode();
-        uint256 nonce = getNonce(account);
+        uint256 nonce = getNonce(account, address(ecdsaValidator));
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -305,7 +304,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
 
         // Get the account, initcode and nonce
         (address account, bytes memory initCode) = getMEWAndInitCode();
-        uint256 nonce = getNonce(account);
+        uint256 nonce = getNonce(account, address(ecdsaValidator));
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -393,7 +392,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         );
         // Get the account and nonce
         mewAccount = setupMEW();
-        uint256 nonce = getNonce(address(mewAccount));
+        uint256 nonce = getNonce(address(mewAccount), address(ecdsaValidator));
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -456,7 +455,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         );
         // Get the account and nonce
         mewAccount = setupMEW();
-        uint256 nonce = getNonce(address(mewAccount));
+        uint256 nonce = getNonce(address(mewAccount), address(ecdsaValidator));
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
@@ -955,7 +954,6 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
     }
 
     function test_fail_discardCurrentProposal_ProposalTimelocked() public {
-        console2.logBytes32(keccak256("fallbackmanager.storage.mew"));
         mewAccount = setupMEW();
         vm.startPrank(owner1);
         mewAccount.addGuardian(guardian1);
@@ -966,5 +964,24 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         mewAccount.guardianPropose(owner2);
         vm.expectRevert(ProposalTimelocked.selector);
         mewAccount.discardCurrentProposal();
+    }
+
+    function test_uninstallModule() public {
+        mew = setupMEW();
+        vm.startPrank(address(mewAccount));
+        assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
+
+        Execution[] memory batchCalls = new Execution[](1);
+        batchCalls[0].target = address(mew);
+        batchCalls[0].value = 0;
+        batchCalls[0].callData = abi.encodeWithSelector(
+            ModularEtherspotWallet.uninstallModule.selector,
+            uint256(1),
+            address(ecdsaValidator),
+            abi.encode(address(0x1), hex"")
+        );
+        defaultExecutor.execBatch(IERC7579Account(mew), batchCalls);
+        assertFalse(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
+        vm.stopPrank();
     }
 }
