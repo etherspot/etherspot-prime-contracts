@@ -17,6 +17,19 @@
 | onInstall         | 22812           | 22812 | 22812  | 22812 | 48      |
 | validateUserOp    | 6568            | 7176  | 7244   | 7515  | 6       |
 
+| ERC20SessionKeyValidator.sol    |                 |        |        |        |         |
+|---------------------------------|-----------------|--------|--------|--------|---------|
+| Deployment Cost                 | Deployment Size |        |        |        |         |
+| 1297006                         | 6014            |        |        |        |         |
+| Function Name                   | min             | avg    | median | max    | # calls |
+| checkSessionKeyPaused           | 744             | 744    | 744    | 744    | 2       |
+| disableSessionKey               | 30926           | 30926  | 30926  | 30926  | 2       |
+| enableSessionKey                | 67518           | 132245 | 138694 | 138754 | 11      |
+| getAssociatedSessionKeys        | 1309            | 1309   | 1309   | 1309   | 1       |
+| getSessionKeyData               | 1609            | 1609   | 1609   | 1609   | 7       |
+| rotateSessionKey                | 124571          | 124571 | 124571 | 124571 | 1       |
+| toggleSessionKeyPause           | 27002           | 27002  | 27002  | 27002  | 1       |
+
 | ModularEtherspotWallet.sol |                 |        |        |        |         |
 |----------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost            | Deployment Size |        |        |        |         |

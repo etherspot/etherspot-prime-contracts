@@ -172,9 +172,9 @@ contract ModularEtherspotWallet is
             _installValidator(module, initData);
         else if (moduleTypeId == MODULE_TYPE_EXECUTOR)
             _installExecutor(module, initData);
-        else if (moduleTypeId == MODULE_TYPE_FALLBACK)
+        else if (moduleTypeId == MODULE_TYPE_FALLBACK) {
             _installFallbackHandler(module, initData);
-        else if (moduleTypeId == MODULE_TYPE_HOOK)
+        } else if (moduleTypeId == MODULE_TYPE_HOOK)
             _installHook(module, initData);
         else revert UnsupportedModuleType(moduleTypeId);
         emit ModuleInstalled(moduleTypeId, module);

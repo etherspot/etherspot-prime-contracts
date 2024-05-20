@@ -3,7 +3,7 @@ import '@nomicfoundation/hardhat-toolbox';
 import '@nomicfoundation/hardhat-foundry';
 import '@openzeppelin/hardhat-upgrades';
 import 'hardhat-deploy';
-import 'hardhat-exposed';
+// import 'hardhat-exposed';
 import { compilers, networks, etherscan } from './config';
 
 const config: HardhatUserConfig = {
