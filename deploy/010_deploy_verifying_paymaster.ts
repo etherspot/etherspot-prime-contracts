@@ -12,7 +12,7 @@ const deployVerifyingPaymaster: DeployFunction = async function (
   console.log('starting deployment of verifying paymaster...');
 
   const entrypoint = '0x0000000071727De22E5E9d8BAf0edAc6f37da032';
-  const verifyingSigner = '0x09FD4F6088f2025427AB1e89257A44747081Ed59';
+  const verifyingSigner = '';
   const ret = await deploy('VerifyingPaymaster', {
     from,
     args: [entrypoint, verifyingSigner],

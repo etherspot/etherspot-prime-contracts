@@ -4,9 +4,9 @@ import { DeployFunction } from 'hardhat-deploy/types';
 const verifyVerifyingPaymaster: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
 ) {
-  const PAYMASTER_ADDRESS = '0x810FA4C915015b703db0878CF2B9344bEB254a40'; // Add deployed paymaster address to verify
+  const PAYMASTER_ADDRESS = ''; // Add deployed paymaster address to verify
   const ENTRY_POINT_ADDRESS = '0x0000000071727De22E5E9d8BAf0edAc6f37da032';
-  const VERIFYING_SIGNER_ADDRESS = '0x09FD4F6088f2025427AB1e89257A44747081Ed59';
+  const VERIFYING_SIGNER_ADDRESS = '';
 
   console.log('starting verification...');
 
