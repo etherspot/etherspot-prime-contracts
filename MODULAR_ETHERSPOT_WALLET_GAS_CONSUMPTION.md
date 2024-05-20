@@ -30,30 +30,36 @@
 | rotateSessionKey                | 124571          | 124571 | 124571 | 124571 | 1       |
 | toggleSessionKeyPause           | 27002           | 27002  | 27002  | 27002  | 1       |
 
-| ModularEtherspotWallet.sol |                 |        |        |        |         |
-|----------------------------|-----------------|--------|--------|--------|---------|
-| Deployment Cost            | Deployment Size |        |        |        |         |
-| 3225771                    | 16143           |        |        |        |         |
-| Function Name              | min             | avg    | median | max    | # calls |
-| addGuardian                | 710             | 34332  | 27008  | 48908  | 67      |
-| addOwner                   | 710             | 16945  | 27002  | 27002  | 10      |
-| changeProposalTimelock     | 2636            | 12662  | 12662  | 22689  | 2       |
-| discardCurrentProposal     | 3179            | 4539   | 4732   | 5571   | 5       |
-| execute                    | 28878           | 35650  | 28878  | 64160  | 7       |
-| executeFromExecutor        | 3511            | 16089  | 5152   | 39605  | 3       |
-| getProposal                | 384             | 1807   | 1992   | 2495   | 6       |
-| guardianCosign             | 1356            | 21726  | 14940  | 45916  | 8       |
-| guardianCount              | 407             | 407    | 407    | 407    | 2       |
-| guardianPropose            | 759             | 100762 | 142892 | 142892 | 20      |
-| initializeAccount          | 145306          | 173487 | 175292 | 175292 | 54      |
-| isGuardian                 | 624             | 1024   | 624    | 2624   | 5       |
-| isOwner                    | 601             | 851    | 601    | 2601   | 16      |
-| ownerCount                 | 386             | 386    | 386    | 386    | 2       |
-| proposalId                 | 407             | 407    | 407    | 407    | 1       |
-| proposalTimelock           | 406             | 406    | 406    | 406    | 1       |
-| removeGuardian             | 2264            | 2596   | 2666   | 2894   | 5       |
-| removeOwner                | 1018            | 2363   | 2510   | 2895   | 6       |
-| validateUserOp             | 39084           | 39533  | 39722  | 39723  | 8       |
+| ModularEtherspotWallet.sol      |                 |        |        |        |         |
+|---------------------------------|-----------------|--------|--------|--------|---------|
+| Deployment Cost                 | Deployment Size |        |        |        |         |
+| 3638796                         | 16660           |        |        |        |         |
+| Function Name                   | min             | avg    | median | max    | # calls |
+| addGuardian                     | 2666            | 53902  | 38154  | 82311  | 67      |
+| addOwner                        | 2666            | 21847  | 33824  | 33824  | 10      |
+| changeProposalTimelock          | 2569            | 13595  | 13595  | 24622  | 2       |
+| discardCurrentProposal          | 4754            | 13426  | 13849  | 18574  | 5       |
+| execute                         | 28900           | 35672  | 28900  | 64182  | 7       |
+| executeFromExecutor             | 14852           | 34298  | 31885  | 62932  | 7       |
+| getProposal                     | 406             | 1829   | 2014   | 2517   | 6       |
+| getValidatorPaginated           | 2154            | 2462   | 2462   | 2771   | 2       |
+| guardianCosign                  | 2489            | 37991  | 30750  | 75300  | 8       |
+| guardianCount                   | 407             | 407    | 407    | 407    | 2       |
+| guardianPropose                 | 2619            | 104797 | 146827 | 146827 | 20      |
+| initializeAccount               | 22129           | 157242 | 152821 | 225206 | 317     |
+| installModule                   | 33403           | 70212  | 70214  | 107018 | 4       |
+| isGuardian                      | 624             | 1024   | 624    | 2624   | 5       |
+| isModuleInstalled               | 1184            | 1184   | 1184   | 1184   | 9       |
+| isOwner                         | 601             | 976    | 601    | 2601   | 16      |
+| ownerCount                      | 386             | 386    | 386    | 386    | 2       |
+| proposalId                      | 407             | 407    | 407    | 407    | 1       |
+| proposalTimelock                | 340             | 340    | 340    | 340    | 1       |
+| removeGuardian                  | 2688            | 10014  | 4916   | 18775  | 5       |
+| removeOwner                     | 2667            | 7426   | 4956   | 14542  | 6       |
+| transferERC20Action             | 47042           | 47042  | 47042  | 47042  | 1       |
+| uninstallModule                 | 22368           | 23465  | 23465  | 24563  | 2       |
+| validateUserOp                  | 15567           | 37311  | 40493  | 53590  | 12      |
+
 
 | ModularEtherspotWalletFactory.sol |     |        |        |        |         |
 |-----------------------|-----------------|--------|--------|--------|---------|
