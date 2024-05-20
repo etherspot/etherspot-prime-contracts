@@ -117,7 +117,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
         userOp.sender = address(account);
-        userOp.nonce = getNonce(address(mew));
+        userOp.nonce = getNonce(address(mew), address(ecdsaValidator));
         userOp.initCode = initCode;
         userOp.callData = userOpCalldata;
 
