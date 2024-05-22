@@ -33,6 +33,8 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     /*                    ERRORS                 */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
+    error ERC20SKV_ModuleAlreadyInstalled();
+    error ERC20SKV_ModuleNotInstalled();
     error ERC20SKV_InvalidSessionKey();
     error ERC20SKV_SessionKeyDoesNotExist(address session);
     error ERC20SKV_SessionPaused(address sessionKey);
@@ -124,8 +126,12 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
         ) = _digest(callData);
 
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
-        if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
-            revert ERC20SKV_InvalidSessionKey();
+        if (
+            sd.validUntil == 0 ||
+            sd.validUntil < block.timestamp ||
+            sd.validAfter == 0 ||
+            sd.validAfter > block.timestamp
+        ) revert ERC20SKV_InvalidSessionKey();
         if (target != sd.token) revert ERC20SKV_UnsuportedToken();
         if (IERC165(target).supportsInterface(sd.interfaceId) == false)
             revert ERC20SKV_UnsupportedInterface();
@@ -182,15 +188,20 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
 
     // @inheritdoc IERC20SessionKeyValidator
     function onInstall(bytes calldata data) external override {
+        if (initialized[msg.sender] == true)
+            revert ERC20SKV_ModuleAlreadyInstalled();
         initialized[msg.sender] = true;
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function onUninstall(bytes calldata data) external override {
+        if (initialized[msg.sender] == false)
+            revert ERC20SKV_ModuleNotInstalled();
         address[] memory sessionKeys = getAssociatedSessionKeys();
         for (uint256 i; i < sessionKeys.length; i++) {
             delete sessionData[sessionKeys[i]][msg.sender];
         }
+        delete walletSessionKeys[msg.sender];
         initialized[msg.sender] = false;
     }
 
@@ -205,7 +216,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
 
     // @inheritdoc IERC20SessionKeyValidator
     function isInitialized(address smartAccount) external view returns (bool) {
-        revert NotImplemented();
+        return initialized[smartAccount];
     }
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/

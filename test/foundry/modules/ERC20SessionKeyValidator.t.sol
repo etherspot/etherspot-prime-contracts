@@ -98,7 +98,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
 
     function test_uninstallModule() public {
         mew = setupMEWWithSessionKeys();
-        vm.startPrank(owner1);
+        vm.startPrank(address(mew));
         // install another validator module for total of 3
         Execution[] memory batchCall1 = new Execution[](1);
         batchCall1[0].target = address(mew);
@@ -114,6 +114,18 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
         assertTrue(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
         assertTrue(mew.isModuleInstalled(1, address(defaultValidator), ""));
+        // check associated session keys == 1
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(erc20),
+            type(IERC20).interfaceId,
+            IERC20.transferFrom.selector,
+            uint256(100),
+            uint48(block.timestamp + 1),
+            uint48(block.timestamp + 1 days)
+        );
+        sessionKeyValidator.enableSessionKey(sessionData);
+        assertEq(sessionKeyValidator.getAssociatedSessionKeys().length, 1);
         // get previous validator to pass into uninstall
         // required for linked list
         address prevValidator = _getPrevValidator(address(sessionKeyValidator));
@@ -132,6 +144,8 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
         assertFalse(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
         assertTrue(mew.isModuleInstalled(1, address(defaultValidator), ""));
+        assertFalse(sessionKeyValidator.isInitialized(address(mew)));
+        assertEq(sessionKeyValidator.getAssociatedSessionKeys().length, 0);
         vm.stopPrank();
     }
 
