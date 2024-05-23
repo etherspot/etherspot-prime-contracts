@@ -66,14 +66,14 @@ contract ModularEtherspotWalletScript is Script {
         // console2.logBytes(valCode);
 
         // ERC20 Session Key Validator
-        console2.log("Deploying ERC20SessionKeyValidator...");
-        ERC20SessionKeyValidator erc20SessionKeyValidator = new ERC20SessionKeyValidator{
-                salt: SALT
-            }();
-        console2.log(
-            "ERC20SessionKeyValidator deployed at address",
-            address(erc20SessionKeyValidator)
-        );
+        // console2.log("Deploying ERC20SessionKeyValidator...");
+        // ERC20SessionKeyValidator erc20SessionKeyValidator = new ERC20SessionKeyValidator{
+        //         salt: SALT
+        //     }();
+        // console2.log(
+        //     "ERC20SessionKeyValidator deployed at address",
+        //     address(erc20SessionKeyValidator)
+        // );
         // bytes memory valCode = address(erc20SessionKeyValidator).code;
         // console2.logBytes(valCode);
 
