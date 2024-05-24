@@ -49,8 +49,15 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        bytes32 hash = userOpHash.toEthSignedMessageHash();
-        address signer = hash.recover(userOp.signature);
+        bytes32 domainSeparator = _domainSeparator();
+        bytes32 signedMessageHash = keccak256(
+            abi.encodePacked("\x19\x01", domainSeparator, userOpHash)
+        );
+        bytes32 ethHash = ECDSA.toEthSignedMessageHash(signedMessageHash);
+        address signer = ECDSA.recover(ethHash, userOp.signature);
+
+        // bytes32 hash = userOpHash.toEthSignedMessageHash();
+        // address signer = hash.recover(userOp.signature);
         if (
             signer == address(0) ||
             !ModularEtherspotWallet(payable(msg.sender)).isOwner(signer)

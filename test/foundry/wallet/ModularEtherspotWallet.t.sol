@@ -17,6 +17,8 @@ import "../TestAdvancedUtils.t.sol";
 
 contract ModularEtherspotWalletTest is TestAdvancedUtils {
     bytes32 immutable SALT = bytes32("TestSALT");
+    bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
+        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
     ModularEtherspotWallet mew;
     MockDelegateTarget delegateTarget;
 
@@ -111,19 +113,35 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         );
         // Get the account, initcode and nonce
         (address account, bytes memory initCode) = getMEWAndInitCode();
-        uint256 nonce = getNonce(account, address(ecdsaValidator));
 
         // Create the userOp and add the data
         PackedUserOperation memory userOp = getDefaultUserOp();
         userOp.sender = address(account);
-        userOp.nonce = nonce;
+        userOp.nonce = getNonce(address(mew), address(ecdsaValidator));
         userOp.initCode = initCode;
         userOp.callData = userOpCalldata;
 
         bytes32 hash = entrypoint.getUserOpHash(userOp);
+
+        // EIP712
+        bytes32 nameHash = keccak256(bytes("MultipleOwnerECDSAValidator"));
+        bytes32 versionHash = keccak256(bytes("1.0.0"));
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                nameHash,
+                versionHash,
+                block.chainid,
+                address(ecdsaValidator)
+            )
+        );
+        bytes32 signedMessageHash = keccak256(
+            abi.encodePacked("\x19\x01", domainSeparator, hash)
+        );
+
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             owner1Key,
-            ECDSA.toEthSignedMessageHash(hash)
+            ECDSA.toEthSignedMessageHash(signedMessageHash)
         );
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -181,14 +199,32 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         userOp.callData = userOpCalldata;
 
         bytes32 hash = entrypoint.getUserOpHash(userOp);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            owner1Key,
-            ECDSA.toEthSignedMessageHash(hash)
-        );
-        bytes memory signature = abi.encodePacked(r, s, v);
 
-        userOp.signature = signature;
+        // EIP712
+        {
+            bytes32 nameHash = keccak256(bytes("MultipleOwnerECDSAValidator"));
+            bytes32 versionHash = keccak256(bytes("1.0.0"));
+            bytes32 domainSeparator = keccak256(
+                abi.encode(
+                    EIP712_DOMAIN_TYPEHASH,
+                    nameHash,
+                    versionHash,
+                    block.chainid,
+                    address(ecdsaValidator)
+                )
+            );
+            bytes32 signedMessageHash = keccak256(
+                abi.encodePacked("\x19\x01", domainSeparator, hash)
+            );
 
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+                owner1Key,
+                ECDSA.toEthSignedMessageHash(signedMessageHash)
+            );
+            bytes memory signature = abi.encodePacked(r, s, v);
+
+            userOp.signature = signature;
+        }
         // Create userOps array
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
@@ -278,14 +314,31 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         userOp.callData = userOpCalldata;
 
         bytes32 hash = entrypoint.getUserOpHash(userOp);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            owner1Key,
-            ECDSA.toEthSignedMessageHash(hash)
-        );
-        bytes memory signature = abi.encodePacked(r, s, v);
+        {
+            // EIP712
+            bytes32 nameHash = keccak256(bytes("MultipleOwnerECDSAValidator"));
+            bytes32 versionHash = keccak256(bytes("1.0.0"));
+            bytes32 domainSeparator = keccak256(
+                abi.encode(
+                    EIP712_DOMAIN_TYPEHASH,
+                    nameHash,
+                    versionHash,
+                    block.chainid,
+                    address(ecdsaValidator)
+                )
+            );
+            bytes32 signedMessageHash = keccak256(
+                abi.encodePacked("\x19\x01", domainSeparator, hash)
+            );
 
-        userOp.signature = signature;
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+                owner1Key,
+                ECDSA.toEthSignedMessageHash(signedMessageHash)
+            );
+            bytes memory signature = abi.encodePacked(r, s, v);
 
+            userOp.signature = signature;
+        }
         // Create userOps array
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
@@ -351,9 +404,25 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         mewAccount.addOwner(owner2);
 
         bytes32 hash = entrypoint.getUserOpHash(userOp);
+        // EIP712
+        bytes32 nameHash = keccak256(bytes("MultipleOwnerECDSAValidator"));
+        bytes32 versionHash = keccak256(bytes("1.0.0"));
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                nameHash,
+                versionHash,
+                block.chainid,
+                address(ecdsaValidator)
+            )
+        );
+        bytes32 signedMessageHash = keccak256(
+            abi.encodePacked("\x19\x01", domainSeparator, hash)
+        );
+
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             owner2Key,
-            ECDSA.toEthSignedMessageHash(hash)
+            ECDSA.toEthSignedMessageHash(signedMessageHash)
         );
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -395,9 +464,25 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         userOp.callData = userOpCalldata;
 
         bytes32 hash = entrypoint.getUserOpHash(userOp);
+        // EIP712
+        bytes32 nameHash = keccak256(bytes("MultipleOwnerECDSAValidator"));
+        bytes32 versionHash = keccak256(bytes("1.0.0"));
+        bytes32 domainSeparator = keccak256(
+            abi.encode(
+                EIP712_DOMAIN_TYPEHASH,
+                nameHash,
+                versionHash,
+                block.chainid,
+                address(ecdsaValidator)
+            )
+        );
+        bytes32 signedMessageHash = keccak256(
+            abi.encodePacked("\x19\x01", domainSeparator, hash)
+        );
+
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             badActorKey,
-            ECDSA.toEthSignedMessageHash(hash)
+            ECDSA.toEthSignedMessageHash(signedMessageHash)
         );
         bytes memory signature = abi.encodePacked(r, s, v);
 
