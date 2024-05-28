@@ -39,4 +39,19 @@ library ArrayLib {
             }
         }
     }
+
+    function _removeElement(
+        address[] memory _data,
+        address _element
+    ) internal pure returns (address[] memory) {
+        address[] memory newData = new address[](_data.length - 1);
+        uint256 j;
+        for (uint256 i; i < _data.length; i++) {
+            if (_data[i] != _element) {
+                newData[j] = _data[i];
+                j++;
+            }
+        }
+        return newData;
+    }
 }
