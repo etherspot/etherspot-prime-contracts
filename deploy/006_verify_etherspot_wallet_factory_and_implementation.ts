@@ -16,14 +16,16 @@ const verifyWalletFactoryAndImplementation: DeployFunction = async function (
   console.log('verifying wallet factory...');
   await hre.run('verify:verify', {
     address: WALLET_FACTORY_ADDRESS,
-    contract: 'src/wallet/EtherspotWalletFactory.sol:EtherspotWalletFactory',
+    contract:
+      'src/etherspot-wallet-v1/wallet/EtherspotWalletFactory.sol:EtherspotWalletFactory',
     constructorArguments: [from],
   });
 
   console.log('verifying wallet implementation...');
   await hre.run('verify:verify', {
     address: WALLET_IMPLEMENTATION_ADDRESS,
-    contract: 'src/wallet/EtherspotWallet.sol:EtherspotWallet',
+    contract:
+      'src/etherspot-wallet-v1/wallet/EtherspotWallet.sol:EtherspotWallet',
     constructorArguments: [ENTRYPOINT_ADDRESS, WALLET_FACTORY_ADDRESS],
   });
 
