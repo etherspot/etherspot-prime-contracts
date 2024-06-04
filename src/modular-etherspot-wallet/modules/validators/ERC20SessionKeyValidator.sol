@@ -10,10 +10,9 @@ import {PackedUserOperation} from "../../../../account-abstraction/contracts/int
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
-
-import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
 import {IERC20SessionKeyValidator} from "../../interfaces/IERC20SessionKeyValidator.sol";
 import {ERC20Actions} from "../executors/ERC20Actions.sol";
+import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
 contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     using ModeLib for ModeCode;
@@ -33,14 +32,21 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     /*                    ERRORS                 */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
+    error ERC20SKV_ModuleAlreadyInstalled();
+    error ERC20SKV_ModuleNotInstalled();
     error ERC20SKV_InvalidSessionKey();
+    error ERC20SKV_InvalidToken();
+    error ERC20SKV_InvalidInterfaceId();
+    error ERC20SKV_InvalidFunctionSelector();
+    error ERC20SKV_InvalidSpendingLimit();
+    error ERC20SKV_InvalidDuration(uint256 validAfter, uint256 validUntil);
+    error ERC20SKV_SessionKeyAlreadyExists(address sessionKey);
     error ERC20SKV_SessionKeyDoesNotExist(address session);
     error ERC20SKV_SessionPaused(address sessionKey);
     error ERC20SKV_UnsuportedToken();
-    error ERC20SKV_UnsupportedSelector(bytes4 selectorUsed);
     error ERC20SKV_UnsupportedInterface();
+    error ERC20SKV_UnsupportedSelector(bytes4 selectorUsed);
     error ERC20SKV_SessionKeySpendLimitExceeded();
-    error ERC20SKV_InsufficientApprovalAmount();
     error NotImplemented();
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
@@ -60,12 +66,24 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     // @inheritdoc IERC20SessionKeyValidator
     function enableSessionKey(bytes calldata _sessionData) public {
         address sessionKey = address(bytes20(_sessionData[0:20]));
+        if (sessionKey == address(0)) revert ERC20SKV_InvalidSessionKey();
+        if (
+            sessionData[sessionKey][msg.sender].validUntil != 0 &&
+            ArrayLib._contains(getAssociatedSessionKeys(), sessionKey)
+        ) revert ERC20SKV_SessionKeyAlreadyExists(sessionKey);
         address token = address(bytes20(_sessionData[20:40]));
+        if (token == address(0)) revert ERC20SKV_InvalidToken();
         bytes4 interfaceId = bytes4(_sessionData[40:44]);
+        if (interfaceId == bytes4(0)) revert ERC20SKV_InvalidInterfaceId();
         bytes4 funcSelector = bytes4(_sessionData[44:48]);
+        if (funcSelector == bytes4(0))
+            revert ERC20SKV_InvalidFunctionSelector();
         uint256 spendingLimit = uint256(bytes32(_sessionData[48:80]));
+        if (spendingLimit == 0) revert ERC20SKV_InvalidSpendingLimit();
         uint48 validAfter = uint48(bytes6(_sessionData[80:86]));
         uint48 validUntil = uint48(bytes6(_sessionData[86:92]));
+        if (validUntil <= validAfter || validUntil == 0 || validAfter == 0)
+            revert ERC20SKV_InvalidDuration(validAfter, validUntil);
         sessionData[sessionKey][msg.sender] = SessionData(
             token,
             interfaceId,
@@ -84,6 +102,10 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
         if (sessionData[_session][msg.sender].validUntil == 0)
             revert ERC20SKV_SessionKeyDoesNotExist(_session);
         delete sessionData[_session][msg.sender];
+        walletSessionKeys[msg.sender] = ArrayLib._removeElement(
+            getAssociatedSessionKeys(),
+            _session
+        );
         emit ERC20SKV_SessionKeyDisabled(_session, msg.sender);
     }
 
@@ -98,14 +120,20 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
 
     // @inheritdoc IERC20SessionKeyValidator
     function toggleSessionKeyPause(address _sessionKey) external {
-        SessionData storage sd = sessionData[_sessionKey][msg.sender];
-        sd.paused = !sd.paused;
+        SessionData memory sd = sessionData[_sessionKey][msg.sender];
+        if (sd.paused) {
+            sessionData[_sessionKey][msg.sender].paused = false;
+            emit ERC20SKV_SessionKeyUnpaused(_sessionKey, msg.sender);
+        } else {
+            sessionData[_sessionKey][msg.sender].paused = true;
+            emit ERC20SKV_SessionKeyPaused(_sessionKey, msg.sender);
+        }
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function checkSessionKeyPaused(
         address _sessionKey
-    ) public view returns (bool paused) {
+    ) public view returns (bool) {
         return sessionData[_sessionKey][msg.sender].paused;
     }
 
@@ -113,7 +141,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     function validateSessionKeyParams(
         address _sessionKey,
         PackedUserOperation calldata userOp
-    ) public returns (bool valid) {
+    ) public returns (bool) {
         bytes calldata callData = userOp.callData;
         (
             bytes4 selector,
@@ -123,9 +151,13 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
             uint256 amount
         ) = _digest(callData);
 
-        SessionData storage sd = sessionData[_sessionKey][msg.sender];
-        if (sd.validUntil == 0 || sd.validUntil < block.timestamp)
-            revert ERC20SKV_InvalidSessionKey();
+        SessionData memory sd = sessionData[_sessionKey][msg.sender];
+        if (
+            sd.validUntil == 0 ||
+            sd.validUntil < block.timestamp ||
+            sd.validAfter == 0 ||
+            sd.validAfter > block.timestamp
+        ) revert ERC20SKV_InvalidSessionKey();
         if (target != sd.token) revert ERC20SKV_UnsuportedToken();
         if (IERC165(target).supportsInterface(sd.interfaceId) == false)
             revert ERC20SKV_UnsupportedInterface();
@@ -139,18 +171,14 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     }
 
     // @inheritdoc IERC20SessionKeyValidator
-    function getAssociatedSessionKeys()
-        public
-        view
-        returns (address[] memory keys)
-    {
+    function getAssociatedSessionKeys() public view returns (address[] memory) {
         return walletSessionKeys[msg.sender];
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function getSessionKeyData(
         address _sessionKey
-    ) public view returns (SessionData memory data) {
+    ) public view returns (SessionData memory) {
         return sessionData[_sessionKey][msg.sender];
     }
 
@@ -158,7 +186,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
-    ) external override returns (uint256 validationData) {
+    ) external override returns (uint256) {
         // EIP712
         bytes32 domainSeparator = _domainSeparator();
         bytes32 signedMessageHash = keccak256(
@@ -169,7 +197,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
 
         if (!validateSessionKeyParams(sessionKeySigner, userOp))
             return VALIDATION_FAILED;
-        SessionData storage sd = sessionData[sessionKeySigner][msg.sender];
+        SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
@@ -182,16 +210,24 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
 
     // @inheritdoc IERC20SessionKeyValidator
     function onInstall(bytes calldata data) external override {
+        if (initialized[msg.sender] == true)
+            revert ERC20SKV_ModuleAlreadyInstalled();
         initialized[msg.sender] = true;
+        emit ERC20SKV_ModuleInstalled(msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function onUninstall(bytes calldata data) external override {
+        if (initialized[msg.sender] == false)
+            revert ERC20SKV_ModuleNotInstalled();
         address[] memory sessionKeys = getAssociatedSessionKeys();
-        for (uint256 i; i < sessionKeys.length; i++) {
+        uint256 sessionKeysLength = sessionKeys.length;
+        for (uint256 i; i < sessionKeysLength; i++) {
             delete sessionData[sessionKeys[i]][msg.sender];
         }
+        delete walletSessionKeys[msg.sender];
         initialized[msg.sender] = false;
+        emit ERC20SKV_ModuleUninstalled(msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
@@ -205,7 +241,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
 
     // @inheritdoc IERC20SessionKeyValidator
     function isInitialized(address smartAccount) external view returns (bool) {
-        revert NotImplemented();
+        return initialized[smartAccount];
     }
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/

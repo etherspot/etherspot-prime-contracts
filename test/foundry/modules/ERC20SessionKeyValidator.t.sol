@@ -39,6 +39,17 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     uint256 sessionKey1Private;
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
+    /*                   EVENTS                  */
+    /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
+
+    event ERC20SKV_ModuleInstalled(address wallet);
+    event ERC20SKV_ModuleUninstalled(address wallet);
+    event ERC20SKV_SessionKeyEnabled(address sessionKey, address wallet);
+    event ERC20SKV_SessionKeyDisabled(address sessionKey, address wallet);
+    event ERC20SKV_SessionKeyPaused(address sessionKey, address wallet);
+    event ERC20SKV_SessionKeyUnpaused(address sessionKey, address wallet);
+
+    /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*             HELPER FUNCTIONS              */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
@@ -91,6 +102,9 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(sessionKeyValidator),
             hex""
         );
+        // check emitted event
+        vm.expectEmit(false, false, false, true);
+        emit ERC20SKV_ModuleInstalled(address(mew));
         defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
         // should be 3 validator modules installed
         assertTrue(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
@@ -98,7 +112,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
 
     function test_uninstallModule() public {
         mew = setupMEWWithSessionKeys();
-        vm.startPrank(owner1);
+        vm.startPrank(address(mew));
         // install another validator module for total of 3
         Execution[] memory batchCall1 = new Execution[](1);
         batchCall1[0].target = address(mew);
@@ -114,6 +128,18 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
         assertTrue(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
         assertTrue(mew.isModuleInstalled(1, address(defaultValidator), ""));
+        // check associated session keys == 1
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(erc20),
+            type(IERC20).interfaceId,
+            IERC20.transferFrom.selector,
+            uint256(100),
+            uint48(block.timestamp + 1),
+            uint48(block.timestamp + 1 days)
+        );
+        sessionKeyValidator.enableSessionKey(sessionData);
+        assertEq(sessionKeyValidator.getAssociatedSessionKeys().length, 1);
         // get previous validator to pass into uninstall
         // required for linked list
         address prevValidator = _getPrevValidator(address(sessionKeyValidator));
@@ -127,15 +153,64 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(sessionKeyValidator),
             abi.encode(prevValidator, hex"")
         );
+        // check emitted event
+        vm.expectEmit(false, false, false, true);
+        emit ERC20SKV_ModuleUninstalled(address(mew));
         defaultExecutor.execBatch(IERC7579Account(mew), batchCall2);
         // check session key validator is uninstalled
         assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
         assertFalse(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
         assertTrue(mew.isModuleInstalled(1, address(defaultValidator), ""));
+        assertFalse(sessionKeyValidator.isInitialized(address(mew)));
+        assertEq(sessionKeyValidator.getAssociatedSessionKeys().length, 0);
         vm.stopPrank();
     }
 
     function test_pass_enableSessionKey() public {
+        vm.startPrank(alice);
+        // Enable session
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(erc20),
+            type(IERC20).interfaceId,
+            IERC20.transferFrom.selector,
+            uint256(100),
+            uint48(block.timestamp + 1),
+            uint48(block.timestamp + 1 days)
+        );
+        // check emitted event
+        vm.expectEmit(false, false, false, true);
+        emit ERC20SKV_SessionKeyEnabled(sessionKeyAddr, address(alice));
+        validator.enableSessionKey(sessionData);
+        // Session should be enabled
+        assertFalse(
+            validator.getSessionKeyData(sessionKeyAddr).validUntil == 0
+        );
+        vm.stopPrank();
+    }
+
+    function test_fail_enableSessionKey_InvalidSessionKey_SessionKeyZeroAddress()
+        public
+    {
+        // Enable session
+        bytes memory sessionData = abi.encodePacked(
+            address(0),
+            address(erc20),
+            type(IERC20).interfaceId,
+            IERC20.transferFrom.selector,
+            uint256(100),
+            uint48(block.timestamp + 1),
+            uint48(block.timestamp + 1 days)
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20SessionKeyValidator.ERC20SKV_InvalidSessionKey.selector
+            )
+        );
+        validator.enableSessionKey(sessionData);
+    }
+
+    function test_fail_enableSessionKey_SessionKeyAlreadyExists() public {
         // Enable session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
@@ -147,13 +222,118 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp + 1 days)
         );
         validator.enableSessionKey(sessionData);
-        // Session should be enabled
-        assertFalse(
-            validator.getSessionKeyData(sessionKeyAddr).validUntil == 0
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20SessionKeyValidator
+                    .ERC20SKV_SessionKeyAlreadyExists
+                    .selector,
+                sessionKeyAddr
+            )
         );
+        validator.enableSessionKey(sessionData);
+    }
+
+    function test_fail_enableSessionKey_InvalidToken() public {
+        // Enable session
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(0),
+            type(IERC20).interfaceId,
+            IERC20.transferFrom.selector,
+            uint256(100),
+            uint48(block.timestamp + 1),
+            uint48(block.timestamp + 1 days)
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20SessionKeyValidator.ERC20SKV_InvalidToken.selector
+            )
+        );
+        validator.enableSessionKey(sessionData);
+    }
+
+    function test_fail_enableSessionKey_InvalidInterfaceId() public {
+        // Enable session
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(erc20),
+            bytes4(0),
+            IERC20.transferFrom.selector,
+            uint256(100),
+            uint48(block.timestamp + 1),
+            uint48(block.timestamp + 1 days)
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20SessionKeyValidator.ERC20SKV_InvalidInterfaceId.selector
+            )
+        );
+        validator.enableSessionKey(sessionData);
+    }
+
+    function test_fail_enableSessionKey_InvalidFunctionSelector() public {
+        // Enable session
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(erc20),
+            type(IERC20).interfaceId,
+            bytes4(0),
+            uint256(100),
+            uint48(block.timestamp + 1),
+            uint48(block.timestamp + 1 days)
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20SessionKeyValidator
+                    .ERC20SKV_InvalidFunctionSelector
+                    .selector
+            )
+        );
+        validator.enableSessionKey(sessionData);
+    }
+
+    function test_fail_enableSessionKey_InvalidSpendingLimit() public {
+        // Enable session
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(erc20),
+            type(IERC20).interfaceId,
+            IERC20.transferFrom.selector,
+            uint256(0),
+            uint48(block.timestamp + 1),
+            uint48(block.timestamp + 1 days)
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20SessionKeyValidator.ERC20SKV_InvalidSpendingLimit.selector
+            )
+        );
+        validator.enableSessionKey(sessionData);
+    }
+
+    function test_fail_enableSessionKey_InvalidDuration() public {
+        // Enable session
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(erc20),
+            type(IERC20).interfaceId,
+            IERC20.transferFrom.selector,
+            uint256(100),
+            uint48(block.timestamp),
+            uint48(block.timestamp)
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20SessionKeyValidator.ERC20SKV_InvalidDuration.selector,
+                block.timestamp,
+                block.timestamp
+            )
+        );
+        validator.enableSessionKey(sessionData);
     }
 
     function test_pass_disableSessionKey() public {
+        vm.startPrank(alice);
         // Enable session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
@@ -165,14 +345,21 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp + 1 days)
         );
         validator.enableSessionKey(sessionData);
+        assertEq(validator.getAssociatedSessionKeys().length, 1);
         // Session should be enabled
         assertFalse(
             validator.getSessionKeyData(sessionKeyAddr).validUntil == 0
         );
+        // check emitted event
+        vm.expectEmit(false, false, false, true);
+        emit ERC20SKV_SessionKeyDisabled(sessionKeyAddr, address(alice));
+
         // Disable session
         validator.disableSessionKey(sessionKeyAddr);
         // Session should now be disabled
         assertTrue(validator.getSessionKeyData(sessionKeyAddr).validUntil == 0);
+        assertEq(validator.getAssociatedSessionKeys().length, 0);
+        vm.stopPrank();
     }
 
     function test_pass_rotateSessionKey() public {
@@ -207,8 +394,9 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         assertTrue(validator.getSessionKeyData(sessionKeyAddr).validUntil == 0);
     }
 
-    function test_pass_sessionPause() public {
+    function test_pass_toggleSessionKeyPause() public {
         // Enable session
+        vm.startPrank(alice);
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             address(erc20),
@@ -222,9 +410,15 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         // Session should be enabled
         assertFalse(validator.checkSessionKeyPaused(sessionKeyAddr));
         // Disable session
+        vm.expectEmit(false, false, false, true);
+        emit ERC20SKV_SessionKeyPaused(sessionKeyAddr, alice);
         validator.toggleSessionKeyPause(sessionKeyAddr);
         // Session should now be disabled
         assertTrue(validator.checkSessionKeyPaused(sessionKeyAddr));
+        vm.expectEmit(false, false, false, true);
+        emit ERC20SKV_SessionKeyUnpaused(sessionKeyAddr, alice);
+        validator.toggleSessionKeyPause(sessionKeyAddr);
+        vm.stopPrank();
     }
 
     function test_pass_getAssociatedSessionKeys() public {
@@ -238,7 +432,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp + 1 days)
         );
         bytes memory sessionData2 = abi.encodePacked(
-            sessionKeyAddr,
+            sessionKey1Addr,
             address(erc20),
             type(IERC20).interfaceId,
             IERC20.transferFrom.selector,

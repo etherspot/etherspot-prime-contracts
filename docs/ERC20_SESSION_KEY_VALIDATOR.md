@@ -12,18 +12,30 @@ The `ERC20SessionKeyValidator` is a Solidity smart contract that implements the 
 
 ### Events
 
+- `ERC20SKV_ModuleInstalled(address wallet)`: Emitted when the module is installed.
+- `ERC20SKV_ModuleUninstalled(address wallet)`: Emitted when the module is uninstalled.
 - `ERC20SKV_SessionKeyEnabled(address sessionKey, address wallet)`: Emitted when a new session key is enabled for a wallet.
 - `ERC20SKV_SessionKeyDisabled(address sessionKey, address wallet)`: Emitted when a session key is disabled for a wallet.
+- `ERC20SKV_SessionKeyPaused(address sessionKey, address wallet)`: Emitted when a session key is paused.
+- `ERC20SKV_SessionKeyUnpaused(address sessionKey, address wallet)`: Emitted when a session key is unpaused.
 
 ### Errors
 
+- `ERC20SKV_ModuleAlreadyInstalled()`: Thrown when the module is already installed.
+- `ERC20SKV_ModuleNotInstalled()`: Thrown when the module is not installed.
 - `ERC20SKV_InvalidSessionKey()`: Thrown when the provided session key is invalid or expired.
+- `ERC20SKV_InvalidToken()`: Thrown when the provided token address is invalid >> `address(0)` check.
+- `ERC20SKV_InvalidInterfaceId()`: Thrown when the provided interface ID is invalid >>  `bytes(0)` check.
+- `ERC20SKV_InvalidFunctionSelector()`: Thrown when the provided function selector is invalid >>  `bytes(0)` check.
+- `ERC20SKV_InvalidSpendingLimit()`: Thrown when the provided spend limit for the session key is zero.
+- `ERC20SKV_InvalidDuration(uint256 validAfter, uint256 validUntil)`: Thrown when the provided `validUntil` and `validAfter` are zero or when the `validUntil` is less than the `validAfter`.
+- `ERC20SKV_SessionKeyAlreadyExists(address sessionKey)`: Thrown when the provided session key already exists.
+- `ERC20SKV_SessionKeyDoesNotExist(address session)`: Thrown when the provided session key does not exist.
 - `ERC20SKV_SessionPaused(address sessionKey)`: Thrown when the provided session key is currently paused.
 - `ERC20SKV_UnsuportedToken()`: Thrown when the target contract is not the configured token for the session key.
-- `ERC20SKV_UnsupportedSelector(bytes4 selectorUsed)`: Thrown when the function selector is not supported by the session key.
 - `ERC20SKV_UnsupportedInterface()`: Thrown when the target contract does not support the required interface for the session key.
+- `ERC20SKV_UnsupportedSelector(bytes4 selectorUsed)`: Thrown when the function selector is not supported by the session key.
 - `ERC20SKV_SessionKeySpendLimitExceeded()`: Thrown when the requested transfer amount exceeds the spending limit of the session key.
-- `ERC20SKV_InsufficientApprovalAmount()`: Thrown when the approval amount is insufficient for the requested transfer.
 - `NotImplemented()`: Thrown for unimplemented functions.
 
 ### Structs
@@ -56,4 +68,3 @@ The `ERC20SessionKeyValidator` is a Solidity smart contract that implements the 
 ### Usage
 
 To use the `ERC20SessionKeyValidator` contract, wallet owners can enable session keys with specific configurations for ERC20 token transfers and approvals. The contract will validate UserOps against the configured session key parameters before execution, ensuring that the requested operation is within the allowed limits and validity period.
-
