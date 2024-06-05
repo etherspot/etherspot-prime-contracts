@@ -75,6 +75,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
     error ProposalTimelocked();
     error OnlyOwnerOrGuardianOrSelf();
     error OnlyProxy();
+    error RequiredModule();
 
     function setUp() public override {
         super.setUp();
@@ -966,7 +967,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         mewAccount.discardCurrentProposal();
     }
 
-    function test_uninstallModule() public {
+    function test_fail_uninstallModule_RequiredModule() public {
         mew = setupMEW();
         vm.startPrank(address(mewAccount));
         assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
@@ -980,8 +981,8 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
             address(ecdsaValidator),
             abi.encode(address(0x1), hex"")
         );
+        vm.expectRevert(RequiredModule.selector);
         defaultExecutor.execBatch(IERC7579Account(mew), batchCalls);
-        assertFalse(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
         vm.stopPrank();
     }
 }
