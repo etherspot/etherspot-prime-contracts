@@ -7,15 +7,11 @@ import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
-import {EIP712} from "solady/src/utils/EIP712.sol";
 
-contract MultipleOwnerECDSAValidator is EIP712, IValidator {
+contract MultipleOwnerECDSAValidator is IValidator {
     using ExecutionLib for bytes;
     using ECDSA for bytes32;
 
-    /// @dev `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
-        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
     string constant NAME = "MultipleOwnerECDSAValidator";
     string constant VERSION = "1.0.0";
 
@@ -49,15 +45,8 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        bytes32 domainSeparator = _domainSeparator();
-        bytes32 signedMessageHash = keccak256(
-            abi.encodePacked("\x19\x01", domainSeparator, userOpHash)
-        );
-        bytes32 ethHash = ECDSA.toEthSignedMessageHash(signedMessageHash);
-        address signer = ECDSA.recover(ethHash, userOp.signature);
-
-        // bytes32 hash = userOpHash.toEthSignedMessageHash();
-        // address signer = hash.recover(userOp.signature);
+        bytes32 hash = userOpHash.toEthSignedMessageHash();
+        address signer = hash.recover(userOp.signature);
         if (
             signer == address(0) ||
             !ModularEtherspotWallet(payable(msg.sender)).isOwner(signer)
@@ -86,46 +75,11 @@ contract MultipleOwnerECDSAValidator is EIP712, IValidator {
         bytes32 hash,
         bytes calldata data
     ) external view override returns (bytes4) {
-        // Include the proxy address in the domain separator
-        bytes32 domainSeparator = _domainSeparator();
-        bytes32 signedMessageHash = keccak256(
-            abi.encodePacked("\x19\x01", domainSeparator, hash)
-        );
-        bytes32 ethHash = ECDSA.toEthSignedMessageHash(signedMessageHash);
+        bytes32 ethHash = ECDSA.toEthSignedMessageHash(hash);
         address owner = ECDSA.recover(ethHash, data);
         if (ModularEtherspotWallet(payable(msg.sender)).isOwner(owner)) {
             return 0x1626ba7e;
         }
         return 0xffffffff;
-    }
-
-    function _domainSeparator() internal view override returns (bytes32) {
-        (string memory _name, string memory _version) = _domainNameAndVersion();
-        bytes32 nameHash = keccak256(bytes(_name));
-        bytes32 versionHash = keccak256(bytes(_version));
-        // Use the proxy address for the EIP-712 domain separator.
-        address proxyAddress = address(this);
-
-        // Construct the domain separator with name, version, chainId, and proxy address.
-        bytes32 typeHash = EIP712_DOMAIN_TYPEHASH;
-        return
-            keccak256(
-                abi.encode(
-                    typeHash,
-                    nameHash,
-                    versionHash,
-                    block.chainid,
-                    proxyAddress
-                )
-            );
-    }
-
-    function _domainNameAndVersion()
-        internal
-        pure
-        override
-        returns (string memory, string memory)
-    {
-        return (NAME, VERSION);
     }
 }
