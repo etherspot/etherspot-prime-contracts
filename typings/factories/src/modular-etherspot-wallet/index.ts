@@ -3,7 +3,6 @@
 /* eslint-disable */
 export * as access from "./access";
 export * as erc7579RefImpl from "./erc7579-ref-impl";
-export * as hooks from "./hooks";
 export * as interfaces from "./interfaces";
 export * as libraries from "./libraries";
 export * as modules from "./modules";

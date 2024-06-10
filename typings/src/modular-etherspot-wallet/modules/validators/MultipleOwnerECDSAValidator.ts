@@ -21,61 +21,57 @@ import type {
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../../../common";
+} from "../../../../common";
 
-export declare namespace IERC4337 {
-  export type UserOperationStruct = {
-    sender: PromiseOrValue<string>;
-    nonce: PromiseOrValue<BigNumberish>;
-    initCode: PromiseOrValue<BytesLike>;
-    callData: PromiseOrValue<BytesLike>;
-    callGasLimit: PromiseOrValue<BigNumberish>;
-    verificationGasLimit: PromiseOrValue<BigNumberish>;
-    preVerificationGas: PromiseOrValue<BigNumberish>;
-    maxFeePerGas: PromiseOrValue<BigNumberish>;
-    maxPriorityFeePerGas: PromiseOrValue<BigNumberish>;
-    paymasterAndData: PromiseOrValue<BytesLike>;
-    signature: PromiseOrValue<BytesLike>;
-  };
+export type PackedUserOperationStruct = {
+  sender: PromiseOrValue<string>;
+  nonce: PromiseOrValue<BigNumberish>;
+  initCode: PromiseOrValue<BytesLike>;
+  callData: PromiseOrValue<BytesLike>;
+  accountGasLimits: PromiseOrValue<BytesLike>;
+  preVerificationGas: PromiseOrValue<BigNumberish>;
+  gasFees: PromiseOrValue<BytesLike>;
+  paymasterAndData: PromiseOrValue<BytesLike>;
+  signature: PromiseOrValue<BytesLike>;
+};
 
-  export type UserOperationStructOutput = [
-    string,
-    BigNumber,
-    string,
-    string,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    BigNumber,
-    string,
-    string
-  ] & {
-    sender: string;
-    nonce: BigNumber;
-    initCode: string;
-    callData: string;
-    callGasLimit: BigNumber;
-    verificationGasLimit: BigNumber;
-    preVerificationGas: BigNumber;
-    maxFeePerGas: BigNumber;
-    maxPriorityFeePerGas: BigNumber;
-    paymasterAndData: string;
-    signature: string;
-  };
-}
+export type PackedUserOperationStructOutput = [
+  string,
+  BigNumber,
+  string,
+  string,
+  string,
+  BigNumber,
+  string,
+  string,
+  string
+] & {
+  sender: string;
+  nonce: BigNumber;
+  initCode: string;
+  callData: string;
+  accountGasLimits: string;
+  preVerificationGas: BigNumber;
+  gasFees: string;
+  paymasterAndData: string;
+  signature: string;
+};
 
 export interface MultipleOwnerECDSAValidatorInterface extends utils.Interface {
   functions: {
+    "eip712Domain()": FunctionFragment;
+    "isInitialized(address)": FunctionFragment;
     "isModuleType(uint256)": FunctionFragment;
     "isValidSignatureWithSender(address,bytes32,bytes)": FunctionFragment;
     "onInstall(bytes)": FunctionFragment;
     "onUninstall(bytes)": FunctionFragment;
-    "validateUserOp((address,uint256,bytes,bytes,uint256,uint256,uint256,uint256,uint256,bytes,bytes),bytes32)": FunctionFragment;
+    "validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
+      | "eip712Domain"
+      | "isInitialized"
       | "isModuleType"
       | "isValidSignatureWithSender"
       | "onInstall"
@@ -83,6 +79,14 @@ export interface MultipleOwnerECDSAValidatorInterface extends utils.Interface {
       | "validateUserOp"
   ): FunctionFragment;
 
+  encodeFunctionData(
+    functionFragment: "eip712Domain",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isInitialized",
+    values: [PromiseOrValue<string>]
+  ): string;
   encodeFunctionData(
     functionFragment: "isModuleType",
     values: [PromiseOrValue<BigNumberish>]
@@ -105,9 +109,17 @@ export interface MultipleOwnerECDSAValidatorInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "validateUserOp",
-    values: [IERC4337.UserOperationStruct, PromiseOrValue<BytesLike>]
+    values: [PackedUserOperationStruct, PromiseOrValue<BytesLike>]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "eip712Domain",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "isInitialized",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "isModuleType",
     data: BytesLike
@@ -156,13 +168,32 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    eip712Domain(
+      overrides?: CallOverrides
+    ): Promise<
+      [string, string, string, BigNumber, string, string, BigNumber[]] & {
+        fields: string;
+        name: string;
+        version: string;
+        chainId: BigNumber;
+        verifyingContract: string;
+        salt: string;
+        extensions: BigNumber[];
+      }
+    >;
+
+    isInitialized(
+      smartAccount: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     isModuleType(
       typeID: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
     isValidSignatureWithSender(
-      sender: PromiseOrValue<string>,
+      arg0: PromiseOrValue<string>,
       hash: PromiseOrValue<BytesLike>,
       data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -179,11 +210,30 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
     ): Promise<ContractTransaction>;
 
     validateUserOp(
-      userOp: IERC4337.UserOperationStruct,
+      userOp: PackedUserOperationStruct,
       userOpHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
   };
+
+  eip712Domain(
+    overrides?: CallOverrides
+  ): Promise<
+    [string, string, string, BigNumber, string, string, BigNumber[]] & {
+      fields: string;
+      name: string;
+      version: string;
+      chainId: BigNumber;
+      verifyingContract: string;
+      salt: string;
+      extensions: BigNumber[];
+    }
+  >;
+
+  isInitialized(
+    smartAccount: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
 
   isModuleType(
     typeID: PromiseOrValue<BigNumberish>,
@@ -191,7 +241,7 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
   ): Promise<boolean>;
 
   isValidSignatureWithSender(
-    sender: PromiseOrValue<string>,
+    arg0: PromiseOrValue<string>,
     hash: PromiseOrValue<BytesLike>,
     data: PromiseOrValue<BytesLike>,
     overrides?: CallOverrides
@@ -208,19 +258,38 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
   ): Promise<ContractTransaction>;
 
   validateUserOp(
-    userOp: IERC4337.UserOperationStruct,
+    userOp: PackedUserOperationStruct,
     userOpHash: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   callStatic: {
+    eip712Domain(
+      overrides?: CallOverrides
+    ): Promise<
+      [string, string, string, BigNumber, string, string, BigNumber[]] & {
+        fields: string;
+        name: string;
+        version: string;
+        chainId: BigNumber;
+        verifyingContract: string;
+        salt: string;
+        extensions: BigNumber[];
+      }
+    >;
+
+    isInitialized(
+      smartAccount: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     isModuleType(
       typeID: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
     isValidSignatureWithSender(
-      sender: PromiseOrValue<string>,
+      arg0: PromiseOrValue<string>,
       hash: PromiseOrValue<BytesLike>,
       data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -237,7 +306,7 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
     ): Promise<void>;
 
     validateUserOp(
-      userOp: IERC4337.UserOperationStruct,
+      userOp: PackedUserOperationStruct,
       userOpHash: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
@@ -246,13 +315,20 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
   filters: {};
 
   estimateGas: {
+    eip712Domain(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isInitialized(
+      smartAccount: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     isModuleType(
       typeID: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     isValidSignatureWithSender(
-      sender: PromiseOrValue<string>,
+      arg0: PromiseOrValue<string>,
       hash: PromiseOrValue<BytesLike>,
       data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -269,20 +345,27 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
     ): Promise<BigNumber>;
 
     validateUserOp(
-      userOp: IERC4337.UserOperationStruct,
+      userOp: PackedUserOperationStruct,
       userOpHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    eip712Domain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isInitialized(
+      smartAccount: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     isModuleType(
       typeID: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     isValidSignatureWithSender(
-      sender: PromiseOrValue<string>,
+      arg0: PromiseOrValue<string>,
       hash: PromiseOrValue<BytesLike>,
       data: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
@@ -299,9 +382,9 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     validateUserOp(
-      userOp: IERC4337.UserOperationStruct,
+      userOp: PackedUserOperationStruct,
       userOpHash: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
 }
