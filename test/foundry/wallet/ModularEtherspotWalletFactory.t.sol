@@ -25,16 +25,21 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
     uint256 owner1Key;
 
     function setUp() public virtual {
+        (owner1, owner1Key) = makeAddrAndKey("owner1");
+
+        vm.startPrank(owner1);
         etchEntrypoint();
         implementation = new ModularEtherspotWallet();
-        factory = new ModularEtherspotWalletFactory(address(implementation));
+        factory = new ModularEtherspotWalletFactory(
+            address(implementation),
+            owner1
+        );
+        vm.stopPrank();
 
         // setup module singletons
         defaultExecutor = new MockExecutor();
         defaultValidator = new MockValidator();
         target = new MockTarget();
-
-        (owner1, owner1Key) = makeAddrAndKey("owner1");
     }
 
     function test_setUpState() public {
