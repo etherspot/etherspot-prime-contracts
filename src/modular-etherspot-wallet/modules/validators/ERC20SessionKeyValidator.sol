@@ -3,7 +3,6 @@ pragma solidity 0.8.23;
 
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {EIP712} from "solady/src/utils/EIP712.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
@@ -14,7 +13,7 @@ import {IERC20SessionKeyValidator} from "../../interfaces/IERC20SessionKeyValida
 import {ERC20Actions} from "../executors/ERC20Actions.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
-contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
+contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
 
@@ -22,9 +21,6 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     /*                  CONSTANTS                */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
-    /// @dev `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
-        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
     string constant NAME = "ERC20SessionKeyValidator";
     string constant VERSION = "1.0.0";
 
@@ -187,12 +183,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        // EIP712
-        bytes32 domainSeparator = _domainSeparator();
-        bytes32 signedMessageHash = keccak256(
-            abi.encodePacked("\x19\x01", domainSeparator, userOpHash)
-        );
-        bytes32 ethHash = ECDSA.toEthSignedMessageHash(signedMessageHash);
+        bytes32 ethHash = ECDSA.toEthSignedMessageHash(userOpHash);
         address sessionKeySigner = ECDSA.recover(ethHash, userOp.signature);
 
         if (!validateSessionKeyParams(sessionKeySigner, userOp))
@@ -288,35 +279,5 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
         } else {
             revert ERC20SKV_UnsupportedSelector(functionSelector);
         }
-    }
-
-    function _domainSeparator() internal view override returns (bytes32) {
-        (string memory _name, string memory _version) = _domainNameAndVersion();
-        bytes32 nameHash = keccak256(bytes(_name));
-        bytes32 versionHash = keccak256(bytes(_version));
-        // Use the proxy address for the EIP-712 domain separator.
-        address proxyAddress = address(this);
-
-        // Construct the domain separator with name, version, chainId, and proxy address.
-        bytes32 typeHash = EIP712_DOMAIN_TYPEHASH;
-        return
-            keccak256(
-                abi.encode(
-                    typeHash,
-                    nameHash,
-                    versionHash,
-                    block.chainid,
-                    proxyAddress
-                )
-            );
-    }
-
-    function _domainNameAndVersion()
-        internal
-        pure
-        override
-        returns (string memory, string memory)
-    {
-        return (NAME, VERSION);
     }
 }

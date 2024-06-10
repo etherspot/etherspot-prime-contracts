@@ -25,9 +25,6 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     ERC20Actions erc20Action;
     TestERC20 erc20;
 
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
-        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
-
     address alice;
     uint256 aliceKey;
     address bob;
@@ -517,31 +514,14 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         userOp.nonce = getNonce(address(mew), address(sessionKeyValidator));
         bytes32 hash = entrypoint.getUserOpHash(userOp);
 
-        // EIP712
-        {
-            bytes32 nameHash = keccak256(bytes("ERC20SessionKeyValidator"));
-            bytes32 versionHash = keccak256(bytes("1.0.0"));
-            bytes32 domainSeparator = keccak256(
-                abi.encode(
-                    EIP712_DOMAIN_TYPEHASH,
-                    nameHash,
-                    versionHash,
-                    block.chainid,
-                    address(sessionKeyValidator)
-                )
-            );
-            bytes32 signedMessageHash = keccak256(
-                abi.encodePacked("\x19\x01", domainSeparator, hash)
-            );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            sessionKeyPrivate,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
 
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-                sessionKeyPrivate,
-                ECDSA.toEthSignedMessageHash(signedMessageHash)
-            );
-            bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
 
-            userOp.signature = signature;
-        }
         // Validation should succeed
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
@@ -600,31 +580,14 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         userOp.nonce = getNonce(address(mew), address(sessionKeyValidator));
         bytes32 hash = entrypoint.getUserOpHash(userOp);
 
-        // EIP712
-        {
-            bytes32 nameHash = keccak256(bytes("ERC20SessionKeyValidator"));
-            bytes32 versionHash = keccak256(bytes("1.0.0"));
-            bytes32 domainSeparator = keccak256(
-                abi.encode(
-                    EIP712_DOMAIN_TYPEHASH,
-                    nameHash,
-                    versionHash,
-                    block.chainid,
-                    address(sessionKeyValidator)
-                )
-            );
-            bytes32 signedMessageHash = keccak256(
-                abi.encodePacked("\x19\x01", domainSeparator, hash)
-            );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            sessionKeyPrivate,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
 
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-                sessionKeyPrivate,
-                ECDSA.toEthSignedMessageHash(signedMessageHash)
-            );
-            bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
 
-            userOp.signature = signature;
-        }
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         // Validation should fail
@@ -669,31 +632,15 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         address sessionKeyValidatorAddr = address(sessionKeyValidator);
         userOp.nonce = uint256(uint160(sessionKeyValidatorAddr)) << 96;
         bytes32 hash = entrypoint.getUserOpHash(userOp);
-        // EIP712
-        {
-            bytes32 nameHash = keccak256(bytes("ERC20SessionKeyValidator"));
-            bytes32 versionHash = keccak256(bytes("1.0.0"));
-            bytes32 domainSeparator = keccak256(
-                abi.encode(
-                    EIP712_DOMAIN_TYPEHASH,
-                    nameHash,
-                    versionHash,
-                    block.chainid,
-                    address(sessionKeyValidator)
-                )
-            );
-            bytes32 signedMessageHash = keccak256(
-                abi.encodePacked("\x19\x01", domainSeparator, hash)
-            );
 
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-                sessionKeyPrivate,
-                ECDSA.toEthSignedMessageHash(signedMessageHash)
-            );
-            bytes memory signature = abi.encodePacked(r, s, v);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            sessionKeyPrivate,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
 
-            userOp.signature = signature;
-        }
+        userOp.signature = signature;
+
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         vm.expectRevert(
@@ -741,31 +688,15 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         address sessionKeyValidatorAddr = address(sessionKeyValidator);
         userOp.nonce = uint256(uint160(sessionKeyValidatorAddr)) << 96;
         bytes32 hash = entrypoint.getUserOpHash(userOp);
-        // EIP712
-        {
-            bytes32 nameHash = keccak256(bytes("ERC20SessionKeyValidator"));
-            bytes32 versionHash = keccak256(bytes("1.0.0"));
-            bytes32 domainSeparator = keccak256(
-                abi.encode(
-                    EIP712_DOMAIN_TYPEHASH,
-                    nameHash,
-                    versionHash,
-                    block.chainid,
-                    address(sessionKeyValidator)
-                )
-            );
-            bytes32 signedMessageHash = keccak256(
-                abi.encodePacked("\x19\x01", domainSeparator, hash)
-            );
 
-            (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-                sessionKeyPrivate,
-                ECDSA.toEthSignedMessageHash(signedMessageHash)
-            );
-            bytes memory signature = abi.encodePacked(r, s, v);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            sessionKeyPrivate,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
 
-            userOp.signature = signature;
-        }
+        userOp.signature = signature;
+
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         vm.expectRevert(
