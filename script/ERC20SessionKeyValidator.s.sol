@@ -29,10 +29,19 @@ contract ERC20SessionKeyValidatorScript is Script {
             ERC20SessionKeyValidator erc20SessionKeyValidator = new ERC20SessionKeyValidator{
                     salt: SALT
                 }();
-            console2.log(
-                "ERC20SessionKeyValidator deployed at address",
-                address(erc20SessionKeyValidator)
-            );
+            if (
+                address(erc20SessionKeyValidator) !=
+                EXPECTED_ERC20_SESSION_KEY_VALIDATOR
+            ) {
+                revert("Unexpected wallet implementation address!!!");
+            } else {
+                console2.log(
+                    "ERC20SessionKeyValidator deployed at address",
+                    address(erc20SessionKeyValidator)
+                );
+                // bytes memory implCode = address(implementation).code;
+                // console2.logBytes(implCode);
+            }
         } else {
             console2.log(
                 "Already deployed at address",
