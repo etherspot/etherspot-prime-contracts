@@ -36,25 +36,25 @@ contract ModularEtherspotWalletScript is Script {
 
         console2.log("Starting deployment sequence...");
 
-        // ModularEtherspotWallet Implementation
-        console2.log("Deploying ModularEtherspotWallet implementation...");
-        implementation = new ModularEtherspotWallet();
-        console2.log(
-            "Wallet implementation deployed at address",
-            address(implementation)
-        );
+        // // ModularEtherspotWallet Implementation
+        // console2.log("Deploying ModularEtherspotWallet implementation...");
+        // implementation = new ModularEtherspotWallet();
+        // console2.log(
+        //     "Wallet implementation deployed at address",
+        //     address(implementation)
+        // );
 
-        // ModularEtherspotWalletFactory
-        console2.log("Deploying ModularEtherspotWalletFactory...");
-        ModularEtherspotWalletFactory factory = new ModularEtherspotWalletFactory(
-                address(implementation),
-                DEPLOYER
-            );
-        console2.log("Wallet factory deployed at address", address(factory));
+        // // ModularEtherspotWalletFactory
+        // console2.log("Deploying ModularEtherspotWalletFactory...");
+        // ModularEtherspotWalletFactory factory = new ModularEtherspotWalletFactory(
+        //         address(implementation),
+        //         DEPLOYER
+        //     );
+        // console2.log("Wallet factory deployed at address", address(factory));
 
-        // Bootstrap
-        Bootstrap bootstrap = new Bootstrap();
-        console2.log("Bootstrap deployed at address", address(bootstrap));
+        // // Bootstrap
+        // Bootstrap bootstrap = new Bootstrap();
+        // console2.log("Bootstrap deployed at address", address(bootstrap));
 
         // MultipleOwnerECDSAValidator
         console2.log("Deploying MultipleOwnerECDSAValidator...");
