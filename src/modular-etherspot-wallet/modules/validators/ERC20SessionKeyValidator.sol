@@ -148,12 +148,6 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         ) = _digest(callData);
 
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (
-            sd.validUntil == 0 ||
-            sd.validUntil < block.timestamp ||
-            sd.validAfter == 0 ||
-            sd.validAfter > block.timestamp
-        ) revert ERC20SKV_InvalidSessionKey();
         if (target != sd.token) revert ERC20SKV_UnsuportedToken();
         if (IERC165(target).supportsInterface(sd.interfaceId) == false)
             revert ERC20SKV_UnsupportedInterface();
