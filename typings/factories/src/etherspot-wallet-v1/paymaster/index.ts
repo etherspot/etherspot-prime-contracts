@@ -3,4 +3,5 @@
 /* eslint-disable */
 export { BasePaymaster__factory } from "./BasePaymaster__factory";
 export { EtherspotPaymaster__factory } from "./EtherspotPaymaster__factory";
+export { VerifyingPaymaster__factory } from "./VerifyingPaymaster__factory";
 export { Whitelist__factory } from "./Whitelist__factory";

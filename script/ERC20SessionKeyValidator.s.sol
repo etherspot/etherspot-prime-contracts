@@ -15,7 +15,7 @@ contract ERC20SessionKeyValidatorScript is Script {
     bytes32 immutable SALT =
         bytes32(abi.encodePacked("ModularEtherspotWallet:Create2:salt"));
     address constant EXPECTED_ERC20_SESSION_KEY_VALIDATOR =
-        0xC1bb12d3a63b29C77963255827012706Fad0D3de;
+        0x1417aDC5308a32265E0fA0690ea1408FFA62F37c;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -39,8 +39,6 @@ contract ERC20SessionKeyValidatorScript is Script {
                     "ERC20SessionKeyValidator deployed at address",
                     address(erc20SessionKeyValidator)
                 );
-                // bytes memory implCode = address(implementation).code;
-                // console2.logBytes(implCode);
             }
         } else {
             console2.log(

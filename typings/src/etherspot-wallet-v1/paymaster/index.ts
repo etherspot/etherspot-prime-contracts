@@ -3,4 +3,5 @@
 /* eslint-disable */
 export type { BasePaymaster } from "./BasePaymaster";
 export type { EtherspotPaymaster } from "./EtherspotPaymaster";
+export type { VerifyingPaymaster } from "./VerifyingPaymaster";
 export type { Whitelist } from "./Whitelist";

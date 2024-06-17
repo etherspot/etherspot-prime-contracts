@@ -27,7 +27,7 @@ contract ModularEtherspotWalletScript is Script {
     address constant EXPECTED_BOOTSTRAP =
         0x1baCB2F1ef4fD02f02e32cCF70888D9Caeb5f066;
     address constant EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR =
-        0x609d3ED5F7D1707806327D198Cb480B93dD6E6b9;
+        0x8c4496Ba340aFe5ac4148cfEA9ccbBCD54093143;
 
     function run() external {
         ModularEtherspotWallet implementation;
@@ -36,33 +36,95 @@ contract ModularEtherspotWalletScript is Script {
 
         console2.log("Starting deployment sequence...");
 
-        // // ModularEtherspotWallet Implementation
-        // console2.log("Deploying ModularEtherspotWallet implementation...");
-        // implementation = new ModularEtherspotWallet();
-        // console2.log(
-        //     "Wallet implementation deployed at address",
-        //     address(implementation)
-        // );
+        // Wallet Implementation
+        console2.log("Deploying ModularEtherspotWallet implementation...");
+        if (EXPECTED_IMPLEMENTATION.code.length == 0) {
+            implementation = new ModularEtherspotWallet{salt: SALT}();
+            if (address(implementation) != EXPECTED_IMPLEMENTATION) {
+                revert("Unexpected wallet implementation address!!!");
+            } else {
+                console2.log(
+                    "Wallet implementation deployed at address",
+                    address(implementation)
+                );
+                // bytes memory implCode = address(implementation).code;
+                // console2.logBytes(implCode);
+            }
+        } else {
+            console2.log(
+                "Wallet implementation already deployed at address",
+                EXPECTED_IMPLEMENTATION
+            );
+        }
 
-        // // ModularEtherspotWalletFactory
-        // console2.log("Deploying ModularEtherspotWalletFactory...");
-        // ModularEtherspotWalletFactory factory = new ModularEtherspotWalletFactory(
-        //         address(implementation),
-        //         DEPLOYER
-        //     );
-        // console2.log("Wallet factory deployed at address", address(factory));
+        // Wallet Factory
+        console2.log("Deploying ModularEtherspotWalletFactory...");
+        if (EXPECTED_FACTORY.code.length == 0) {
+            ModularEtherspotWalletFactory factory = new ModularEtherspotWalletFactory{
+                    salt: SALT
+                }(EXPECTED_IMPLEMENTATION, DEPLOYER);
+            if (address(factory) != EXPECTED_FACTORY) {
+                revert("Unexpected wallet factory address!!!");
+            } else {
+                console2.log(
+                    "Wallet factory deployed at address",
+                    address(factory)
+                );
+                // bytes memory factCode = address(factory).code;
+                // console2.logBytes(factCode);
+            }
+        } else {
+            console2.log(
+                "Wallet factory already deployed at address",
+                EXPECTED_FACTORY
+            );
+        }
 
-        // // Bootstrap
-        // Bootstrap bootstrap = new Bootstrap();
-        // console2.log("Bootstrap deployed at address", address(bootstrap));
+        // Deploy Bootstrap
+        if (EXPECTED_BOOTSTRAP.code.length == 0) {
+            Bootstrap bootstrap = new Bootstrap{salt: SALT}();
+            if (address(bootstrap) != EXPECTED_BOOTSTRAP) {
+                revert("Unexpected bootstrap address!!!");
+            } else {
+                console2.log(
+                    "Bootstrap deployed at address",
+                    address(bootstrap)
+                );
+                // bytes memory bootCode = address(bootstrap).code;
+                // console2.logBytes(bootCode);
+            }
+        } else {
+            console2.log(
+                "Bootstrap already deployed at address",
+                EXPECTED_BOOTSTRAP
+            );
+        }
 
-        // MultipleOwnerECDSAValidator
+        // Multiple Owner ECDSA Validator
         console2.log("Deploying MultipleOwnerECDSAValidator...");
-        MultipleOwnerECDSAValidator multipleOwnerECDSAValidator = new MultipleOwnerECDSAValidator();
-        console2.log(
-            "MultipleOwnerECDSAValidator deployed at address",
-            address(multipleOwnerECDSAValidator)
-        );
+        if (EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR.code.length == 0) {
+            MultipleOwnerECDSAValidator multipleOwnerECDSAValidator = new MultipleOwnerECDSAValidator{
+                    salt: SALT
+                }();
+            if (
+                address(multipleOwnerECDSAValidator) !=
+                EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR
+            ) {
+                revert("Unexpected MultipleOwnerECDSAValidator address!!!");
+            } else {
+                console2.log(
+                    "MultipleOwnerECDSAValidator deployed at address",
+                    address(multipleOwnerECDSAValidator)
+                );
+                // bytes memory valCode = address(multipleOwnerECDSAValidator).code;
+                // console2.logBytes(valCode);
+            }
+        } else {
+            console2.log(
+                "MultipleOwnerECDSAValidator already deployed at address",
+                EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR
+            );
+        }
 
         console2.log("Finished deployment sequence!");
 
@@ -78,93 +140,45 @@ contract ModularEtherspotWalletScript is Script {
 
     //     // Wallet Implementation
     //     console2.log("Deploying ModularEtherspotWallet implementation...");
-    //     if (EXPECTED_IMPLEMENTATION.code.length == 0) {
-    //         implementation = new ModularEtherspotWallet{salt: SALT}();
-    //         if (address(implementation) != EXPECTED_IMPLEMENTATION) {
-    //             revert("Unexpected wallet implementation address!!!");
-    //         } else {
-    //             console2.log(
-    //                 "Wallet implementation deployed at address",
-    //                 address(implementation)
-    //             );
-    //             // bytes memory implCode = address(implementation).code;
-    //             // console2.logBytes(implCode);
-    //         }
-    //     } else {
-    //         console2.log(
-    //             "Wallet implementation already deployed at address",
-    //             EXPECTED_IMPLEMENTATION
-    //         );
-    //     }
+    //     implementation = new ModularEtherspotWallet();
+    //     console2.log(
+    //         "Wallet implementation deployed at address",
+    //         address(implementation)
+    //     );
+    // bytes memory implCode = address(implementation).code;
+    // console2.logBytes(implCode);
 
-    //     // Wallet Factory
-    //     console2.log("Deploying ModularEtherspotWalletFactory...");
-    //     if (EXPECTED_FACTORY.code.length == 0) {
-    //         ModularEtherspotWalletFactory factory = new ModularEtherspotWalletFactory{
-    //                 salt: SALT
-    //             }(0x202A5598bDba2cE62bFfA13EcccB04969719Fad9, DEPLOYER);
-    //         if (address(factory) != EXPECTED_FACTORY) {
-    //             revert("Unexpected wallet factory address!!!");
-    //         } else {
-    //             console2.log(
-    //                 "Wallet factory deployed at address",
-    //                 address(factory)
-    //             );
-    //             // bytes memory factCode = address(factory).code;
-    //             // console2.logBytes(factCode);
-    //         }
-    //     } else {
-    //         console2.log(
-    //             "Wallet factory already deployed at address",
-    //             EXPECTED_FACTORY
-    //         );
-    //     }
+    // // Wallet Factory
+    // console2.log("Deploying ModularEtherspotWalletFactory...");
+    // if (EXPECTED_FACTORY.code.length == 0) {
+    //     ModularEtherspotWalletFactory factory = new ModularEtherspotWalletFactory{
+    //             (0x202A5598bDba2cE62bFfA13EcccB04969719Fad9, DEPLOYER);
 
-    //     // Deploy Bootstrap
-    //     if (EXPECTED_BOOTSTRAP.code.length == 0) {
-    //         Bootstrap bootstrap = new Bootstrap{salt: SALT}();
-    //         if (address(bootstrap) != EXPECTED_BOOTSTRAP) {
-    //             revert("Unexpected bootstrap address!!!");
-    //         } else {
-    //             console2.log(
-    //                 "Bootstrap deployed at address",
-    //                 address(bootstrap)
-    //             );
-    //             // bytes memory bootCode = address(bootstrap).code;
-    //             // console2.logBytes(bootCode);
-    //         }
-    //     } else {
     //         console2.log(
-    //             "Bootstrap already deployed at address",
-    //             EXPECTED_BOOTSTRAP
+    //             "Wallet factory deployed at address",
+    //             address(factory)
     //         );
-    //     }
+    //         // bytes memory factCode = address(factory).code;
+    //         // console2.logBytes(factCode);
 
-    //     // Multiple Owner ECDSA Validator
-    //     console2.log("Deploying MultipleOwnerECDSAValidator...");
-    //     if (EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR.code.length == 0) {
-    //         MultipleOwnerECDSAValidator multipleOwnerECDSAValidator = new MultipleOwnerECDSAValidator{
-    //                 salt: SALT
-    //             }();
-    //         if (
-    //             address(multipleOwnerECDSAValidator) !=
-    //             EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR
-    //         ) {
-    //             revert("Unexpected MultipleOwnerECDSAValidator address!!!");
-    //         } else {
-    //             console2.log(
-    //                 "MultipleOwnerECDSAValidator deployed at address",
-    //                 address(multipleOwnerECDSAValidator)
-    //             );
-    //             // bytes memory valCode = address(multipleOwnerECDSAValidator).code;
-    //             // console2.logBytes(valCode);
-    //         }
-    //     } else {
+    // // Deploy Bootstrap
+    //     Bootstrap bootstrap = new Bootstrap();
     //         console2.log(
-    //             "MultipleOwnerECDSAValidator already deployed at address",
-    //             EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR
+    //             "Bootstrap deployed at address",
+    //             address(bootstrap)
     //         );
-    //     }
+    //         // bytes memory bootCode = address(bootstrap).code;
+    //         // console2.logBytes(bootCode);
+
+    // // Multiple Owner ECDSA Validator
+    // console2.log("Deploying MultipleOwnerECDSAValidator...");
+    //     MultipleOwnerECDSAValidator multipleOwnerECDSAValidator = new MultipleOwnerECDSAValidator();
+    //         console2.log(
+    //             "MultipleOwnerECDSAValidator deployed at address",
+    //             address(multipleOwnerECDSAValidator)
+    //         );
+    //         // bytes memory valCode = address(multipleOwnerECDSAValidator).code;
+    //         // console2.logBytes(valCode);
 
     //     console2.log("Finished deployment sequence!");
 

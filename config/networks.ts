@@ -223,6 +223,11 @@ const networks: HardhatUserConfig['networks'] = {
     url: 'https://rpc-amoy.polygon.technology',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
+  xdcApothem: {
+    chainId: 51,
+    url: 'https://rpc.apothem.network',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
   dev: { url: 'http://localhost:8545' },
 };
 export default networks;

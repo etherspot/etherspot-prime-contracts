@@ -1,0 +1,1112 @@
+{
+  "address": "0x4ebd86AAF89151b5303DB072e0205C668e31E5E7",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "smartAccount",
+          "type": "address"
+        }
+      ],
+      "name": "AlreadyInitialized",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "validAfter",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "validUntil",
+          "type": "uint256"
+        }
+      ],
+      "name": "ERC20SKV_InvalidDuration",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_InvalidFunctionSelector",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_InvalidInterfaceId",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_InvalidSessionKey",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_InvalidSpendingLimit",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_InvalidToken",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_ModuleAlreadyInstalled",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_ModuleNotInstalled",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sessionKey",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_SessionKeyAlreadyExists",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "session",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_SessionKeyDoesNotExist",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_SessionKeySpendLimitExceeded",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sessionKey",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_SessionPaused",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_UnsuportedToken",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "ERC20SKV_UnsupportedInterface",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes4",
+          "name": "selectorUsed",
+          "type": "bytes4"
+        }
+      ],
+      "name": "ERC20SKV_UnsupportedSelector",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "target",
+          "type": "address"
+        }
+      ],
+      "name": "InvalidTargetAddress",
+      "type": "error"
+    },
+    {
+      "inputs": [],
+      "name": "NotImplemented",
+      "type": "error"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "smartAccount",
+          "type": "address"
+        }
+      ],
+      "name": "NotInitialized",
+      "type": "error"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_ModuleInstalled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_ModuleUninstalled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sessionKey",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_SessionKeyDisabled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sessionKey",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_SessionKeyEnabled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sessionKey",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_SessionKeyPaused",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "sessionKey",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "ERC20SKV_SessionKeyUnpaused",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_sessionKey",
+          "type": "address"
+        }
+      ],
+      "name": "checkSessionKeyPaused",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_session",
+          "type": "address"
+        }
+      ],
+      "name": "disableSessionKey",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "_sessionData",
+          "type": "bytes"
+        }
+      ],
+      "name": "enableSessionKey",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAssociatedSessionKeys",
+      "outputs": [
+        {
+          "internalType": "address[]",
+          "name": "",
+          "type": "address[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_sessionKey",
+          "type": "address"
+        }
+      ],
+      "name": "getSessionKeyData",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "token",
+              "type": "address"
+            },
+            {
+              "internalType": "bytes4",
+              "name": "interfaceId",
+              "type": "bytes4"
+            },
+            {
+              "internalType": "bytes4",
+              "name": "funcSelector",
+              "type": "bytes4"
+            },
+            {
+              "internalType": "uint256",
+              "name": "spendingLimit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint48",
+              "name": "validAfter",
+              "type": "uint48"
+            },
+            {
+              "internalType": "uint48",
+              "name": "validUntil",
+              "type": "uint48"
+            },
+            {
+              "internalType": "bool",
+              "name": "paused",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct IERC20SessionKeyValidator.SessionData",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "initialized",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "smartAccount",
+          "type": "address"
+        }
+      ],
+      "name": "isInitialized",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "moduleTypeId",
+          "type": "uint256"
+        }
+      ],
+      "name": "isModuleType",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "pure",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sender",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "hash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "isValidSignatureWithSender",
+      "outputs": [
+        {
+          "internalType": "bytes4",
+          "name": "",
+          "type": "bytes4"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "onInstall",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "onUninstall",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_oldSessionKey",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "_newSessionData",
+          "type": "bytes"
+        }
+      ],
+      "name": "rotateSessionKey",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "sessionKey",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        }
+      ],
+      "name": "sessionData",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes4",
+          "name": "interfaceId",
+          "type": "bytes4"
+        },
+        {
+          "internalType": "bytes4",
+          "name": "funcSelector",
+          "type": "bytes4"
+        },
+        {
+          "internalType": "uint256",
+          "name": "spendingLimit",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint48",
+          "name": "validAfter",
+          "type": "uint48"
+        },
+        {
+          "internalType": "uint48",
+          "name": "validUntil",
+          "type": "uint48"
+        },
+        {
+          "internalType": "bool",
+          "name": "paused",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_sessionKey",
+          "type": "address"
+        }
+      ],
+      "name": "toggleSessionKeyPause",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_sessionKey",
+          "type": "address"
+        },
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "sender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "initCode",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "callData",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "accountGasLimits",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "preVerificationGas",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "gasFees",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes",
+              "name": "paymasterAndData",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct PackedUserOperation",
+          "name": "userOp",
+          "type": "tuple"
+        }
+      ],
+      "name": "validateSessionKeyParams",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "components": [
+            {
+              "internalType": "address",
+              "name": "sender",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "nonce",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes",
+              "name": "initCode",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "callData",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "accountGasLimits",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "uint256",
+              "name": "preVerificationGas",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bytes32",
+              "name": "gasFees",
+              "type": "bytes32"
+            },
+            {
+              "internalType": "bytes",
+              "name": "paymasterAndData",
+              "type": "bytes"
+            },
+            {
+              "internalType": "bytes",
+              "name": "signature",
+              "type": "bytes"
+            }
+          ],
+          "internalType": "struct PackedUserOperation",
+          "name": "userOp",
+          "type": "tuple"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "userOpHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "validateUserOp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "wallet",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "walletSessionKeys",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "assocSessionKeys",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "transactionHash": "0xe538eecff81075228e25497029904e3d454ef2ae011d353232ae72e45ad7622d",
+  "receipt": {
+    "to": null,
+    "from": "0x09FD4F6088f2025427AB1e89257A44747081Ed59",
+    "contractAddress": "0x4ebd86AAF89151b5303DB072e0205C668e31E5E7",
+    "transactionIndex": 0,
+    "gasUsed": "1980530",
+    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "blockHash": "0xcffa4a6134ae5f589e1ccaa16efec00d11283e5dd4af8dfb196791690c24555d",
+    "transactionHash": "0xe538eecff81075228e25497029904e3d454ef2ae011d353232ae72e45ad7622d",
+    "logs": [],
+    "blockNumber": 64205200,
+    "cumulativeGasUsed": "1980530",
+    "status": 1,
+    "byzantium": true
+  },
+  "args": [],
+  "numDeployments": 1,
+  "solcInputHash": "6e4ce9519befb2c9f6b2b39bea9bf5fc",
+  "metadata": "{\"compiler\":{\"version\":\"0.8.23+commit.f704f362\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"smartAccount\",\"type\":\"address\"}],\"name\":\"AlreadyInitialized\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"validAfter\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"validUntil\",\"type\":\"uint256\"}],\"name\":\"ERC20SKV_InvalidDuration\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_InvalidFunctionSelector\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_InvalidInterfaceId\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_InvalidSessionKey\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_InvalidSpendingLimit\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_InvalidToken\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_ModuleAlreadyInstalled\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_ModuleNotInstalled\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sessionKey\",\"type\":\"address\"}],\"name\":\"ERC20SKV_SessionKeyAlreadyExists\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"session\",\"type\":\"address\"}],\"name\":\"ERC20SKV_SessionKeyDoesNotExist\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_SessionKeySpendLimitExceeded\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sessionKey\",\"type\":\"address\"}],\"name\":\"ERC20SKV_SessionPaused\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_UnsuportedToken\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"ERC20SKV_UnsupportedInterface\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"bytes4\",\"name\":\"selectorUsed\",\"type\":\"bytes4\"}],\"name\":\"ERC20SKV_UnsupportedSelector\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"InvalidTargetAddress\",\"type\":\"error\"},{\"inputs\":[],\"name\":\"NotImplemented\",\"type\":\"error\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"smartAccount\",\"type\":\"address\"}],\"name\":\"NotInitialized\",\"type\":\"error\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"}],\"name\":\"ERC20SKV_ModuleInstalled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"}],\"name\":\"ERC20SKV_ModuleUninstalled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sessionKey\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"}],\"name\":\"ERC20SKV_SessionKeyDisabled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sessionKey\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"}],\"name\":\"ERC20SKV_SessionKeyEnabled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sessionKey\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"}],\"name\":\"ERC20SKV_SessionKeyPaused\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"sessionKey\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"}],\"name\":\"ERC20SKV_SessionKeyUnpaused\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sessionKey\",\"type\":\"address\"}],\"name\":\"checkSessionKeyPaused\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_session\",\"type\":\"address\"}],\"name\":\"disableSessionKey\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"_sessionData\",\"type\":\"bytes\"}],\"name\":\"enableSessionKey\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getAssociatedSessionKeys\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sessionKey\",\"type\":\"address\"}],\"name\":\"getSessionKeyData\",\"outputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"},{\"internalType\":\"bytes4\",\"name\":\"funcSelector\",\"type\":\"bytes4\"},{\"internalType\":\"uint256\",\"name\":\"spendingLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint48\",\"name\":\"validAfter\",\"type\":\"uint48\"},{\"internalType\":\"uint48\",\"name\":\"validUntil\",\"type\":\"uint48\"},{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\"}],\"internalType\":\"struct IERC20SessionKeyValidator.SessionData\",\"name\":\"\",\"type\":\"tuple\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"initialized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"smartAccount\",\"type\":\"address\"}],\"name\":\"isInitialized\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"moduleTypeId\",\"type\":\"uint256\"}],\"name\":\"isModuleType\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"bytes32\",\"name\":\"hash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"isValidSignatureWithSender\",\"outputs\":[{\"internalType\":\"bytes4\",\"name\":\"\",\"type\":\"bytes4\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"onInstall\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"data\",\"type\":\"bytes\"}],\"name\":\"onUninstall\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_oldSessionKey\",\"type\":\"address\"},{\"internalType\":\"bytes\",\"name\":\"_newSessionData\",\"type\":\"bytes\"}],\"name\":\"rotateSessionKey\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"sessionKey\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"}],\"name\":\"sessionData\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"token\",\"type\":\"address\"},{\"internalType\":\"bytes4\",\"name\":\"interfaceId\",\"type\":\"bytes4\"},{\"internalType\":\"bytes4\",\"name\":\"funcSelector\",\"type\":\"bytes4\"},{\"internalType\":\"uint256\",\"name\":\"spendingLimit\",\"type\":\"uint256\"},{\"internalType\":\"uint48\",\"name\":\"validAfter\",\"type\":\"uint48\"},{\"internalType\":\"uint48\",\"name\":\"validUntil\",\"type\":\"uint48\"},{\"internalType\":\"bool\",\"name\":\"paused\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sessionKey\",\"type\":\"address\"}],\"name\":\"toggleSessionKeyPause\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_sessionKey\",\"type\":\"address\"},{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"struct PackedUserOperation\",\"name\":\"userOp\",\"type\":\"tuple\"}],\"name\":\"validateSessionKeyParams\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"sender\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"nonce\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"initCode\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"callData\",\"type\":\"bytes\"},{\"internalType\":\"bytes32\",\"name\":\"accountGasLimits\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"preVerificationGas\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"gasFees\",\"type\":\"bytes32\"},{\"internalType\":\"bytes\",\"name\":\"paymasterAndData\",\"type\":\"bytes\"},{\"internalType\":\"bytes\",\"name\":\"signature\",\"type\":\"bytes\"}],\"internalType\":\"struct PackedUserOperation\",\"name\":\"userOp\",\"type\":\"tuple\"},{\"internalType\":\"bytes32\",\"name\":\"userOpHash\",\"type\":\"bytes32\"}],\"name\":\"validateUserOp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"wallet\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"name\":\"walletSessionKeys\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"assocSessionKeys\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"events\":{\"ERC20SKV_ModuleInstalled(address)\":{\"params\":{\"wallet\":\"The address of the wallet for which the module is installed.\"}},\"ERC20SKV_ModuleUninstalled(address)\":{\"params\":{\"wallet\":\"The address of the wallet from which the module is uninstalled.\"}},\"ERC20SKV_SessionKeyDisabled(address,address)\":{\"params\":{\"sessionKey\":\"The address of the session key.\",\"wallet\":\"The address of the wallet for which the session key is disabled.\"}},\"ERC20SKV_SessionKeyEnabled(address,address)\":{\"params\":{\"sessionKey\":\"The address of the session key.\",\"wallet\":\"The address of the wallet for which the session key is enabled.\"}},\"ERC20SKV_SessionKeyPaused(address,address)\":{\"params\":{\"sessionKey\":\"The address of the session key.\",\"wallet\":\"The address of the wallet for which the session key is paused.\"}},\"ERC20SKV_SessionKeyUnpaused(address,address)\":{\"params\":{\"sessionKey\":\"The address of the session key.\",\"wallet\":\"The address of the wallet for which the session key is unpaused.\"}}},\"kind\":\"dev\",\"methods\":{\"checkSessionKeyPaused(address)\":{\"params\":{\"_sessionKey\":\"The address of the session key to check.\"},\"returns\":{\"_0\":\"True if the session key is paused, false otherwise.\"}},\"disableSessionKey(address)\":{\"params\":{\"_session\":\"The address of the session key to disable.\"}},\"enableSessionKey(bytes)\":{\"params\":{\"_sessionData\":\"The encoded session data containing the session key address, token address, interface ID, function selector, spending limit, valid after timestamp, and valid until timestamp.\"}},\"getAssociatedSessionKeys()\":{\"returns\":{\"_0\":\"The array of associated session key addresses.\"}},\"getSessionKeyData(address)\":{\"params\":{\"_sessionKey\":\"The address of the session key.\"},\"returns\":{\"_0\":\"The session data struct.\"}},\"isInitialized(address)\":{\"params\":{\"smartAccount\":\"The address of the smart account.\"},\"returns\":{\"_0\":\"True if the smart account is initialized, false otherwise.\"}},\"isModuleType(uint256)\":{\"params\":{\"moduleTypeId\":\"The module type ID to check.\"},\"returns\":{\"_0\":\"True if the module type matches the validator module type, false otherwise.\"}},\"isValidSignatureWithSender(address,bytes32,bytes)\":{\"params\":{\"data\":\"The data associated with the message.\",\"hash\":\"The hash of the message.\",\"sender\":\"The address of the sender.\"},\"returns\":{\"_0\":\"A bytes4 value indicating the function is not implemented.\"}},\"onInstall(bytes)\":{\"params\":{\"data\":\"The data to pass during installation.\"}},\"onUninstall(bytes)\":{\"params\":{\"data\":\"The data to pass during uninstallation.\"}},\"rotateSessionKey(address,bytes)\":{\"params\":{\"_newSessionData\":\"The encoded session data for the new session key.\",\"_oldSessionKey\":\"The address of the old session key to disable.\"}},\"toggleSessionKeyPause(address)\":{\"params\":{\"_sessionKey\":\"The address of the session key to toggle the pause state for.\"}},\"validateSessionKeyParams(address,(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes))\":{\"params\":{\"_sessionKey\":\"The address of the session key.\",\"userOp\":\"The packed user operation containing the call data.\"},\"returns\":{\"_0\":\"True if the session key parameters are valid for the user operation, false otherwise.\"}},\"validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)\":{\"params\":{\"userOp\":\"The packed user operation.\",\"userOpHash\":\"The hash of the user operation.\"},\"returns\":{\"_0\":\"The validation data containing the expiration time and valid after timestamp of the session key.\"}}},\"version\":1},\"userdoc\":{\"events\":{\"ERC20SKV_ModuleInstalled(address)\":{\"notice\":\"Emitted when the ERC20 Session Key Validator module is installed for a wallet.\"},\"ERC20SKV_ModuleUninstalled(address)\":{\"notice\":\"Emitted when the ERC20 Session Key Validator module is uninstalled from a wallet.\"},\"ERC20SKV_SessionKeyDisabled(address,address)\":{\"notice\":\"Emitted when a session key is disabled for a wallet.\"},\"ERC20SKV_SessionKeyEnabled(address,address)\":{\"notice\":\"Emitted when a new session key is enabled for a wallet.\"},\"ERC20SKV_SessionKeyPaused(address,address)\":{\"notice\":\"Emitted when a session key is paused for a wallet.\"},\"ERC20SKV_SessionKeyUnpaused(address,address)\":{\"notice\":\"Emitted when a session key is unpaused for a wallet.\"}},\"kind\":\"user\",\"methods\":{\"checkSessionKeyPaused(address)\":{\"notice\":\"Checks if a session key is paused for the caller's wallet.\"},\"disableSessionKey(address)\":{\"notice\":\"Disables a session key for the caller's wallet.\"},\"enableSessionKey(bytes)\":{\"notice\":\"Enables a new session key for the caller's wallet.\"},\"getAssociatedSessionKeys()\":{\"notice\":\"Returns the list of associated session keys for the caller's wallet.\"},\"getSessionKeyData(address)\":{\"notice\":\"Returns the session data for a given session key and the caller's wallet.\"},\"isInitialized(address)\":{\"notice\":\"Reverts with a \\\"NotImplemented\\\" error.\"},\"isModuleType(uint256)\":{\"notice\":\"Checks if the module type matches the validator module type.\"},\"isValidSignatureWithSender(address,bytes32,bytes)\":{\"notice\":\"Reverts with a \\\"NotImplemented\\\" error.\"},\"onInstall(bytes)\":{\"notice\":\"Placeholder function for module installation.\"},\"onUninstall(bytes)\":{\"notice\":\"Placeholder function for module uninstallation.\"},\"rotateSessionKey(address,bytes)\":{\"notice\":\"Rotates a session key by disabling the old one and enabling a new one.\"},\"toggleSessionKeyPause(address)\":{\"notice\":\"Toggles the pause state of a session key for the caller's wallet.\"},\"validateSessionKeyParams(address,(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes))\":{\"notice\":\"Validates the parameters of a session key for a given user operation.\"},\"validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)\":{\"notice\":\"Validates a user operation using a session key.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol\":\"ERC20SessionKeyValidator\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\",\"useLiteralContent\":true},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"@openzeppelin/contracts/token/ERC20/IERC20.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (token/ERC20/IERC20.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Interface of the ERC20 standard as defined in the EIP.\\n */\\ninterface IERC20 {\\n    /**\\n     * @dev Emitted when `value` tokens are moved from one account (`from`) to\\n     * another (`to`).\\n     *\\n     * Note that `value` may be zero.\\n     */\\n    event Transfer(address indexed from, address indexed to, uint256 value);\\n\\n    /**\\n     * @dev Emitted when the allowance of a `spender` for an `owner` is set by\\n     * a call to {approve}. `value` is the new allowance.\\n     */\\n    event Approval(address indexed owner, address indexed spender, uint256 value);\\n\\n    /**\\n     * @dev Returns the value of tokens in existence.\\n     */\\n    function totalSupply() external view returns (uint256);\\n\\n    /**\\n     * @dev Returns the value of tokens owned by `account`.\\n     */\\n    function balanceOf(address account) external view returns (uint256);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from the caller's account to `to`.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transfer(address to, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Returns the remaining number of tokens that `spender` will be\\n     * allowed to spend on behalf of `owner` through {transferFrom}. This is\\n     * zero by default.\\n     *\\n     * This value changes when {approve} or {transferFrom} are called.\\n     */\\n    function allowance(address owner, address spender) external view returns (uint256);\\n\\n    /**\\n     * @dev Sets a `value` amount of tokens as the allowance of `spender` over the\\n     * caller's tokens.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * IMPORTANT: Beware that changing an allowance with this method brings the risk\\n     * that someone may use both the old and the new allowance by unfortunate\\n     * transaction ordering. One possible solution to mitigate this race\\n     * condition is to first reduce the spender's allowance to 0 and set the\\n     * desired value afterwards:\\n     * https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729\\n     *\\n     * Emits an {Approval} event.\\n     */\\n    function approve(address spender, uint256 value) external returns (bool);\\n\\n    /**\\n     * @dev Moves a `value` amount of tokens from `from` to `to` using the\\n     * allowance mechanism. `value` is then deducted from the caller's\\n     * allowance.\\n     *\\n     * Returns a boolean value indicating whether the operation succeeded.\\n     *\\n     * Emits a {Transfer} event.\\n     */\\n    function transferFrom(address from, address to, uint256 value) external returns (bool);\\n}\\n\",\"keccak256\":\"0xc6a8ff0ea489379b61faa647490411b80102578440ab9d84e9a957cc12164e70\",\"license\":\"MIT\"},\"@openzeppelin/contracts/utils/introspection/IERC165.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\n// OpenZeppelin Contracts (last updated v5.0.0) (utils/introspection/IERC165.sol)\\n\\npragma solidity ^0.8.20;\\n\\n/**\\n * @dev Interface of the ERC165 standard, as defined in the\\n * https://eips.ethereum.org/EIPS/eip-165[EIP].\\n *\\n * Implementers can declare support of contract interfaces, which can then be\\n * queried by others ({ERC165Checker}).\\n *\\n * For an implementation, see {ERC165}.\\n */\\ninterface IERC165 {\\n    /**\\n     * @dev Returns true if this contract implements the interface defined by\\n     * `interfaceId`. See the corresponding\\n     * https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]\\n     * to learn more about how these ids are created.\\n     *\\n     * This function call must use less than 30 000 gas.\\n     */\\n    function supportsInterface(bytes4 interfaceId) external view returns (bool);\\n}\\n\",\"keccak256\":\"0x4296879f55019b23e135000eb36896057e7101fb7fb859c5ef690cf14643757b\",\"license\":\"MIT\"},\"account-abstraction/contracts/core/Helpers.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity ^0.8.23;\\n\\n/* solhint-disable no-inline-assembly */\\n\\n\\n /*\\n  * For simulation purposes, validateUserOp (and validatePaymasterUserOp)\\n  * must return this value in case of signature failure, instead of revert.\\n  */\\nuint256 constant SIG_VALIDATION_FAILED = 1;\\n\\n\\n/*\\n * For simulation purposes, validateUserOp (and validatePaymasterUserOp)\\n * return this value on success.\\n */\\nuint256 constant SIG_VALIDATION_SUCCESS = 0;\\n\\n\\n/**\\n * Returned data from validateUserOp.\\n * validateUserOp returns a uint256, which is created by `_packedValidationData` and\\n * parsed by `_parseValidationData`.\\n * @param aggregator  - address(0) - The account validated the signature by itself.\\n *                      address(1) - The account failed to validate the signature.\\n *                      otherwise - This is an address of a signature aggregator that must\\n *                                  be used to validate the signature.\\n * @param validAfter  - This UserOp is valid only after this timestamp.\\n * @param validaUntil - This UserOp is valid only up to this timestamp.\\n */\\nstruct ValidationData {\\n    address aggregator;\\n    uint48 validAfter;\\n    uint48 validUntil;\\n}\\n\\n/**\\n * Extract sigFailed, validAfter, validUntil.\\n * Also convert zero validUntil to type(uint48).max.\\n * @param validationData - The packed validation data.\\n */\\nfunction _parseValidationData(\\n    uint256 validationData\\n) pure returns (ValidationData memory data) {\\n    address aggregator = address(uint160(validationData));\\n    uint48 validUntil = uint48(validationData >> 160);\\n    if (validUntil == 0) {\\n        validUntil = type(uint48).max;\\n    }\\n    uint48 validAfter = uint48(validationData >> (48 + 160));\\n    return ValidationData(aggregator, validAfter, validUntil);\\n}\\n\\n/**\\n * Helper to pack the return value for validateUserOp.\\n * @param data - The ValidationData to pack.\\n */\\nfunction _packValidationData(\\n    ValidationData memory data\\n) pure returns (uint256) {\\n    return\\n        uint160(data.aggregator) |\\n        (uint256(data.validUntil) << 160) |\\n        (uint256(data.validAfter) << (160 + 48));\\n}\\n\\n/**\\n * Helper to pack the return value for validateUserOp, when not using an aggregator.\\n * @param sigFailed  - True for signature failure, false for success.\\n * @param validUntil - Last timestamp this UserOperation is valid (or zero for infinite).\\n * @param validAfter - First timestamp this UserOperation is valid.\\n */\\nfunction _packValidationData(\\n    bool sigFailed,\\n    uint48 validUntil,\\n    uint48 validAfter\\n) pure returns (uint256) {\\n    return\\n        (sigFailed ? 1 : 0) |\\n        (uint256(validUntil) << 160) |\\n        (uint256(validAfter) << (160 + 48));\\n}\\n\\n/**\\n * keccak function over calldata.\\n * @dev copy calldata into memory, do keccak and drop allocated memory. Strangely, this is more efficient than letting solidity do it.\\n */\\n    function calldataKeccak(bytes calldata data) pure returns (bytes32 ret) {\\n        assembly (\\\"memory-safe\\\") {\\n            let mem := mload(0x40)\\n            let len := data.length\\n            calldatacopy(mem, data.offset, len)\\n            ret := keccak256(mem, len)\\n        }\\n    }\\n\\n\\n/**\\n * The minimum of two numbers.\\n * @param a - First number.\\n * @param b - Second number.\\n */\\n    function min(uint256 a, uint256 b) pure returns (uint256) {\\n        return a < b ? a : b;\\n    }\\n\",\"keccak256\":\"0x6247e011a6cb0b263b3aa098822977181674d91b62e5bdfe04c6e66f72da25d6\",\"license\":\"GPL-3.0\"},\"account-abstraction/contracts/interfaces/IAccount.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity >=0.7.5;\\n\\nimport \\\"./PackedUserOperation.sol\\\";\\n\\ninterface IAccount {\\n    /**\\n     * Validate user's signature and nonce\\n     * the entryPoint will make the call to the recipient only if this validation call returns successfully.\\n     * signature failure should be reported by returning SIG_VALIDATION_FAILED (1).\\n     * This allows making a \\\"simulation call\\\" without a valid signature\\n     * Other failures (e.g. nonce mismatch, or invalid signature format) should still revert to signal failure.\\n     *\\n     * @dev Must validate caller is the entryPoint.\\n     *      Must validate the signature and nonce\\n     * @param userOp              - The operation that is about to be executed.\\n     * @param userOpHash          - Hash of the user's request data. can be used as the basis for signature.\\n     * @param missingAccountFunds - Missing funds on the account's deposit in the entrypoint.\\n     *                              This is the minimum amount to transfer to the sender(entryPoint) to be\\n     *                              able to make the call. The excess is left as a deposit in the entrypoint\\n     *                              for future calls. Can be withdrawn anytime using \\\"entryPoint.withdrawTo()\\\".\\n     *                              In case there is a paymaster in the request (or the current deposit is high\\n     *                              enough), this value will be zero.\\n     * @return validationData       - Packaged ValidationData structure. use `_packValidationData` and\\n     *                              `_unpackValidationData` to encode and decode.\\n     *                              <20-byte> sigAuthorizer - 0 for valid signature, 1 to mark signature failure,\\n     *                                 otherwise, an address of an \\\"authorizer\\\" contract.\\n     *                              <6-byte> validUntil - Last timestamp this operation is valid. 0 for \\\"indefinite\\\"\\n     *                              <6-byte> validAfter - First timestamp this operation is valid\\n     *                                                    If an account doesn't use time-range, it is enough to\\n     *                                                    return SIG_VALIDATION_FAILED value (1) for signature failure.\\n     *                              Note that the validation code cannot use block.timestamp (or block.number) directly.\\n     */\\n    function validateUserOp(\\n        PackedUserOperation calldata userOp,\\n        bytes32 userOpHash,\\n        uint256 missingAccountFunds\\n    ) external returns (uint256 validationData);\\n}\\n\",\"keccak256\":\"0x38710bec0cb20ff4ceef46a80475b5bdabc27b7efd2687fd473db68332f61b78\",\"license\":\"GPL-3.0\"},\"account-abstraction/contracts/interfaces/PackedUserOperation.sol\":{\"content\":\"// SPDX-License-Identifier: GPL-3.0\\npragma solidity >=0.7.5;\\n\\n/**\\n * User Operation struct\\n * @param sender                - The sender account of this request.\\n * @param nonce                 - Unique value the sender uses to verify it is not a replay.\\n * @param initCode              - If set, the account contract will be created by this constructor/\\n * @param callData              - The method call to execute on this account.\\n * @param accountGasLimits      - Packed gas limits for validateUserOp and gas limit passed to the callData method call.\\n * @param preVerificationGas    - Gas not calculated by the handleOps method, but added to the gas paid.\\n *                                Covers batch overhead.\\n * @param gasFees               - packed gas fields maxPriorityFeePerGas and maxFeePerGas - Same as EIP-1559 gas parameters.\\n * @param paymasterAndData      - If set, this field holds the paymaster address, verification gas limit, postOp gas limit and paymaster-specific extra data\\n *                                The paymaster will pay for the transaction instead of the sender.\\n * @param signature             - Sender-verified signature over the entire request, the EntryPoint address and the chain ID.\\n */\\nstruct PackedUserOperation {\\n    address sender;\\n    uint256 nonce;\\n    bytes initCode;\\n    bytes callData;\\n    bytes32 accountGasLimits;\\n    uint256 preVerificationGas;\\n    bytes32 gasFees;\\n    bytes paymasterAndData;\\n    bytes signature;\\n}\\n\",\"keccak256\":\"0x1129b46381db68eddbc5cb49e50664667b66b03c480453858e7b25eabe444359\",\"license\":\"GPL-3.0\"},\"solady/src/utils/ECDSA.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.4;\\n\\n/// @notice Gas optimized ECDSA wrapper.\\n/// @author Solady (https://github.com/vectorized/solady/blob/main/src/utils/ECDSA.sol)\\n/// @author Modified from Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/ECDSA.sol)\\n/// @author Modified from OpenZeppelin (https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/cryptography/ECDSA.sol)\\n///\\n/// @dev Note:\\n/// - The recovery functions use the ecrecover precompile (0x1).\\n/// - As of Solady version 0.0.68, the `recover` variants will revert upon recovery failure.\\n///   This is for more safety by default.\\n///   Use the `tryRecover` variants if you need to get the zero address back\\n///   upon recovery failure instead.\\n/// - As of Solady version 0.0.134, all `bytes signature` variants accept both\\n///   regular 65-byte `(r, s, v)` and EIP-2098 `(r, vs)` short form signatures.\\n///   See: https://eips.ethereum.org/EIPS/eip-2098\\n///   This is for calldata efficiency on smart accounts prevalent on L2s.\\n///\\n/// WARNING! Do NOT use signatures as unique identifiers:\\n/// - Use a nonce in the digest to prevent replay attacks on the same contract.\\n/// - Use EIP-712 for the digest to prevent replay attacks across different chains and contracts.\\n///   EIP-712 also enables readable signing of typed data for better user safety.\\n/// This implementation does NOT check if a signature is non-malleable.\\nlibrary ECDSA {\\n    /*\\u00b4:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0\\u2022.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:*/\\n    /*                        CUSTOM ERRORS                       */\\n    /*.\\u2022\\u00b0:\\u00b0.\\u00b4+\\u02da.*\\u00b0.\\u02da:*.\\u00b4\\u2022*.+\\u00b0.\\u2022\\u00b0:\\u00b4*.\\u00b4\\u2022*.\\u2022\\u00b0.\\u2022\\u00b0:\\u00b0.\\u00b4:\\u2022\\u02da\\u00b0.*\\u00b0.\\u02da:*.\\u00b4+\\u00b0.\\u2022*/\\n\\n    /// @dev The signature is invalid.\\n    error InvalidSignature();\\n\\n    /*\\u00b4:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0\\u2022.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:*/\\n    /*                    RECOVERY OPERATIONS                     */\\n    /*.\\u2022\\u00b0:\\u00b0.\\u00b4+\\u02da.*\\u00b0.\\u02da:*.\\u00b4\\u2022*.+\\u00b0.\\u2022\\u00b0:\\u00b4*.\\u00b4\\u2022*.\\u2022\\u00b0.\\u2022\\u00b0:\\u00b0.\\u00b4:\\u2022\\u02da\\u00b0.*\\u00b0.\\u02da:*.\\u00b4+\\u00b0.\\u2022*/\\n\\n    /// @dev Recovers the signer's address from a message digest `hash`, and the `signature`.\\n    function recover(bytes32 hash, bytes memory signature) internal view returns (address result) {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            result := 1\\n            let m := mload(0x40) // Cache the free memory pointer.\\n            for {} 1 {} {\\n                mstore(0x00, hash)\\n                mstore(0x40, mload(add(signature, 0x20))) // `r`.\\n                if eq(mload(signature), 64) {\\n                    let vs := mload(add(signature, 0x40))\\n                    mstore(0x20, add(shr(255, vs), 27)) // `v`.\\n                    mstore(0x60, shr(1, shl(1, vs))) // `s`.\\n                    break\\n                }\\n                if eq(mload(signature), 65) {\\n                    mstore(0x20, byte(0, mload(add(signature, 0x60)))) // `v`.\\n                    mstore(0x60, mload(add(signature, 0x40))) // `s`.\\n                    break\\n                }\\n                result := 0\\n                break\\n            }\\n            result :=\\n                mload(\\n                    staticcall(\\n                        gas(), // Amount of gas left for the transaction.\\n                        result, // Address of `ecrecover`.\\n                        0x00, // Start of input.\\n                        0x80, // Size of input.\\n                        0x01, // Start of output.\\n                        0x20 // Size of output.\\n                    )\\n                )\\n            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.\\n            if iszero(returndatasize()) {\\n                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.\\n                revert(0x1c, 0x04)\\n            }\\n            mstore(0x60, 0) // Restore the zero slot.\\n            mstore(0x40, m) // Restore the free memory pointer.\\n        }\\n    }\\n\\n    /// @dev Recovers the signer's address from a message digest `hash`, and the `signature`.\\n    function recoverCalldata(bytes32 hash, bytes calldata signature)\\n        internal\\n        view\\n        returns (address result)\\n    {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            result := 1\\n            let m := mload(0x40) // Cache the free memory pointer.\\n            mstore(0x00, hash)\\n            for {} 1 {} {\\n                if eq(signature.length, 64) {\\n                    let vs := calldataload(add(signature.offset, 0x20))\\n                    mstore(0x20, add(shr(255, vs), 27)) // `v`.\\n                    mstore(0x40, calldataload(signature.offset)) // `r`.\\n                    mstore(0x60, shr(1, shl(1, vs))) // `s`.\\n                    break\\n                }\\n                if eq(signature.length, 65) {\\n                    mstore(0x20, byte(0, calldataload(add(signature.offset, 0x40)))) // `v`.\\n                    calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.\\n                    break\\n                }\\n                result := 0\\n                break\\n            }\\n            result :=\\n                mload(\\n                    staticcall(\\n                        gas(), // Amount of gas left for the transaction.\\n                        result, // Address of `ecrecover`.\\n                        0x00, // Start of input.\\n                        0x80, // Size of input.\\n                        0x01, // Start of output.\\n                        0x20 // Size of output.\\n                    )\\n                )\\n            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.\\n            if iszero(returndatasize()) {\\n                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.\\n                revert(0x1c, 0x04)\\n            }\\n            mstore(0x60, 0) // Restore the zero slot.\\n            mstore(0x40, m) // Restore the free memory pointer.\\n        }\\n    }\\n\\n    /// @dev Recovers the signer's address from a message digest `hash`,\\n    /// and the EIP-2098 short form signature defined by `r` and `vs`.\\n    function recover(bytes32 hash, bytes32 r, bytes32 vs) internal view returns (address result) {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            let m := mload(0x40) // Cache the free memory pointer.\\n            mstore(0x00, hash)\\n            mstore(0x20, add(shr(255, vs), 27)) // `v`.\\n            mstore(0x40, r)\\n            mstore(0x60, shr(1, shl(1, vs))) // `s`.\\n            result :=\\n                mload(\\n                    staticcall(\\n                        gas(), // Amount of gas left for the transaction.\\n                        1, // Address of `ecrecover`.\\n                        0x00, // Start of input.\\n                        0x80, // Size of input.\\n                        0x01, // Start of output.\\n                        0x20 // Size of output.\\n                    )\\n                )\\n            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.\\n            if iszero(returndatasize()) {\\n                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.\\n                revert(0x1c, 0x04)\\n            }\\n            mstore(0x60, 0) // Restore the zero slot.\\n            mstore(0x40, m) // Restore the free memory pointer.\\n        }\\n    }\\n\\n    /// @dev Recovers the signer's address from a message digest `hash`,\\n    /// and the signature defined by `v`, `r`, `s`.\\n    function recover(bytes32 hash, uint8 v, bytes32 r, bytes32 s)\\n        internal\\n        view\\n        returns (address result)\\n    {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            let m := mload(0x40) // Cache the free memory pointer.\\n            mstore(0x00, hash)\\n            mstore(0x20, and(v, 0xff))\\n            mstore(0x40, r)\\n            mstore(0x60, s)\\n            result :=\\n                mload(\\n                    staticcall(\\n                        gas(), // Amount of gas left for the transaction.\\n                        1, // Address of `ecrecover`.\\n                        0x00, // Start of input.\\n                        0x80, // Size of input.\\n                        0x01, // Start of output.\\n                        0x20 // Size of output.\\n                    )\\n                )\\n            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.\\n            if iszero(returndatasize()) {\\n                mstore(0x00, 0x8baa579f) // `InvalidSignature()`.\\n                revert(0x1c, 0x04)\\n            }\\n            mstore(0x60, 0) // Restore the zero slot.\\n            mstore(0x40, m) // Restore the free memory pointer.\\n        }\\n    }\\n\\n    /*\\u00b4:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0\\u2022.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:*/\\n    /*                   TRY-RECOVER OPERATIONS                   */\\n    /*.\\u2022\\u00b0:\\u00b0.\\u00b4+\\u02da.*\\u00b0.\\u02da:*.\\u00b4\\u2022*.+\\u00b0.\\u2022\\u00b0:\\u00b4*.\\u00b4\\u2022*.\\u2022\\u00b0.\\u2022\\u00b0:\\u00b0.\\u00b4:\\u2022\\u02da\\u00b0.*\\u00b0.\\u02da:*.\\u00b4+\\u00b0.\\u2022*/\\n\\n    // WARNING!\\n    // These functions will NOT revert upon recovery failure.\\n    // Instead, they will return the zero address upon recovery failure.\\n    // It is critical that the returned address is NEVER compared against\\n    // a zero address (e.g. an uninitialized address variable).\\n\\n    /// @dev Recovers the signer's address from a message digest `hash`, and the `signature`.\\n    function tryRecover(bytes32 hash, bytes memory signature)\\n        internal\\n        view\\n        returns (address result)\\n    {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            result := 1\\n            let m := mload(0x40) // Cache the free memory pointer.\\n            for {} 1 {} {\\n                mstore(0x00, hash)\\n                mstore(0x40, mload(add(signature, 0x20))) // `r`.\\n                if eq(mload(signature), 64) {\\n                    let vs := mload(add(signature, 0x40))\\n                    mstore(0x20, add(shr(255, vs), 27)) // `v`.\\n                    mstore(0x60, shr(1, shl(1, vs))) // `s`.\\n                    break\\n                }\\n                if eq(mload(signature), 65) {\\n                    mstore(0x20, byte(0, mload(add(signature, 0x60)))) // `v`.\\n                    mstore(0x60, mload(add(signature, 0x40))) // `s`.\\n                    break\\n                }\\n                result := 0\\n                break\\n            }\\n            pop(\\n                staticcall(\\n                    gas(), // Amount of gas left for the transaction.\\n                    result, // Address of `ecrecover`.\\n                    0x00, // Start of input.\\n                    0x80, // Size of input.\\n                    0x40, // Start of output.\\n                    0x20 // Size of output.\\n                )\\n            )\\n            mstore(0x60, 0) // Restore the zero slot.\\n            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.\\n            result := mload(xor(0x60, returndatasize()))\\n            mstore(0x40, m) // Restore the free memory pointer.\\n        }\\n    }\\n\\n    /// @dev Recovers the signer's address from a message digest `hash`, and the `signature`.\\n    function tryRecoverCalldata(bytes32 hash, bytes calldata signature)\\n        internal\\n        view\\n        returns (address result)\\n    {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            result := 1\\n            let m := mload(0x40) // Cache the free memory pointer.\\n            mstore(0x00, hash)\\n            for {} 1 {} {\\n                if eq(signature.length, 64) {\\n                    let vs := calldataload(add(signature.offset, 0x20))\\n                    mstore(0x20, add(shr(255, vs), 27)) // `v`.\\n                    mstore(0x40, calldataload(signature.offset)) // `r`.\\n                    mstore(0x60, shr(1, shl(1, vs))) // `s`.\\n                    break\\n                }\\n                if eq(signature.length, 65) {\\n                    mstore(0x20, byte(0, calldataload(add(signature.offset, 0x40)))) // `v`.\\n                    calldatacopy(0x40, signature.offset, 0x40) // Copy `r` and `s`.\\n                    break\\n                }\\n                result := 0\\n                break\\n            }\\n            pop(\\n                staticcall(\\n                    gas(), // Amount of gas left for the transaction.\\n                    result, // Address of `ecrecover`.\\n                    0x00, // Start of input.\\n                    0x80, // Size of input.\\n                    0x40, // Start of output.\\n                    0x20 // Size of output.\\n                )\\n            )\\n            mstore(0x60, 0) // Restore the zero slot.\\n            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.\\n            result := mload(xor(0x60, returndatasize()))\\n            mstore(0x40, m) // Restore the free memory pointer.\\n        }\\n    }\\n\\n    /// @dev Recovers the signer's address from a message digest `hash`,\\n    /// and the EIP-2098 short form signature defined by `r` and `vs`.\\n    function tryRecover(bytes32 hash, bytes32 r, bytes32 vs)\\n        internal\\n        view\\n        returns (address result)\\n    {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            let m := mload(0x40) // Cache the free memory pointer.\\n            mstore(0x00, hash)\\n            mstore(0x20, add(shr(255, vs), 27)) // `v`.\\n            mstore(0x40, r)\\n            mstore(0x60, shr(1, shl(1, vs))) // `s`.\\n            pop(\\n                staticcall(\\n                    gas(), // Amount of gas left for the transaction.\\n                    1, // Address of `ecrecover`.\\n                    0x00, // Start of input.\\n                    0x80, // Size of input.\\n                    0x40, // Start of output.\\n                    0x20 // Size of output.\\n                )\\n            )\\n            mstore(0x60, 0) // Restore the zero slot.\\n            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.\\n            result := mload(xor(0x60, returndatasize()))\\n            mstore(0x40, m) // Restore the free memory pointer.\\n        }\\n    }\\n\\n    /// @dev Recovers the signer's address from a message digest `hash`,\\n    /// and the signature defined by `v`, `r`, `s`.\\n    function tryRecover(bytes32 hash, uint8 v, bytes32 r, bytes32 s)\\n        internal\\n        view\\n        returns (address result)\\n    {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            let m := mload(0x40) // Cache the free memory pointer.\\n            mstore(0x00, hash)\\n            mstore(0x20, and(v, 0xff))\\n            mstore(0x40, r)\\n            mstore(0x60, s)\\n            pop(\\n                staticcall(\\n                    gas(), // Amount of gas left for the transaction.\\n                    1, // Address of `ecrecover`.\\n                    0x00, // Start of input.\\n                    0x80, // Size of input.\\n                    0x40, // Start of output.\\n                    0x20 // Size of output.\\n                )\\n            )\\n            mstore(0x60, 0) // Restore the zero slot.\\n            // `returndatasize()` will be `0x20` upon success, and `0x00` otherwise.\\n            result := mload(xor(0x60, returndatasize()))\\n            mstore(0x40, m) // Restore the free memory pointer.\\n        }\\n    }\\n\\n    /*\\u00b4:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0\\u2022.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:*/\\n    /*                     HASHING OPERATIONS                     */\\n    /*.\\u2022\\u00b0:\\u00b0.\\u00b4+\\u02da.*\\u00b0.\\u02da:*.\\u00b4\\u2022*.+\\u00b0.\\u2022\\u00b0:\\u00b4*.\\u00b4\\u2022*.\\u2022\\u00b0.\\u2022\\u00b0:\\u00b0.\\u00b4:\\u2022\\u02da\\u00b0.*\\u00b0.\\u02da:*.\\u00b4+\\u00b0.\\u2022*/\\n\\n    /// @dev Returns an Ethereum Signed Message, created from a `hash`.\\n    /// This produces a hash corresponding to the one signed with the\\n    /// [`eth_sign`](https://eth.wiki/json-rpc/API#eth_sign)\\n    /// JSON-RPC method as part of EIP-191.\\n    function toEthSignedMessageHash(bytes32 hash) internal pure returns (bytes32 result) {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            mstore(0x20, hash) // Store into scratch space for keccak256.\\n            mstore(0x00, \\\"\\\\x00\\\\x00\\\\x00\\\\x00\\\\x19Ethereum Signed Message:\\\\n32\\\") // 28 bytes.\\n            result := keccak256(0x04, 0x3c) // `32 * 2 - (32 - 28) = 60 = 0x3c`.\\n        }\\n    }\\n\\n    /// @dev Returns an Ethereum Signed Message, created from `s`.\\n    /// This produces a hash corresponding to the one signed with the\\n    /// [`eth_sign`](https://eth.wiki/json-rpc/API#eth_sign)\\n    /// JSON-RPC method as part of EIP-191.\\n    /// Note: Supports lengths of `s` up to 999999 bytes.\\n    function toEthSignedMessageHash(bytes memory s) internal pure returns (bytes32 result) {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            let sLength := mload(s)\\n            let o := 0x20\\n            mstore(o, \\\"\\\\x19Ethereum Signed Message:\\\\n\\\") // 26 bytes, zero-right-padded.\\n            mstore(0x00, 0x00)\\n            // Convert the `s.length` to ASCII decimal representation: `base10(s.length)`.\\n            for { let temp := sLength } 1 {} {\\n                o := sub(o, 1)\\n                mstore8(o, add(48, mod(temp, 10)))\\n                temp := div(temp, 10)\\n                if iszero(temp) { break }\\n            }\\n            let n := sub(0x3a, o) // Header length: `26 + 32 - o`.\\n            // Throw an out-of-offset error (consumes all gas) if the header exceeds 32 bytes.\\n            returndatacopy(returndatasize(), returndatasize(), gt(n, 0x20))\\n            mstore(s, or(mload(0x00), mload(n))) // Temporarily store the header.\\n            result := keccak256(add(s, sub(0x20, n)), add(n, sLength))\\n            mstore(s, sLength) // Restore the length.\\n        }\\n    }\\n\\n    /*\\u00b4:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0\\u2022.*\\u2022\\u00b4.*:\\u02da.\\u00b0*.\\u02da\\u2022\\u00b4.\\u00b0:\\u00b0\\u2022.\\u00b0+.*\\u2022\\u00b4.*:*/\\n    /*                   EMPTY CALLDATA HELPERS                   */\\n    /*.\\u2022\\u00b0:\\u00b0.\\u00b4+\\u02da.*\\u00b0.\\u02da:*.\\u00b4\\u2022*.+\\u00b0.\\u2022\\u00b0:\\u00b4*.\\u00b4\\u2022*.\\u2022\\u00b0.\\u2022\\u00b0:\\u00b0.\\u00b4:\\u2022\\u02da\\u00b0.*\\u00b0.\\u02da:*.\\u00b4+\\u00b0.\\u2022*/\\n\\n    /// @dev Returns an empty calldata bytes.\\n    function emptySignature() internal pure returns (bytes calldata signature) {\\n        /// @solidity memory-safe-assembly\\n        assembly {\\n            signature.length := 0\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x317f8208d1f03356e8f709eec8e2c579d6be227099a26f777cc9ec8a06814ae4\",\"license\":\"MIT\"},\"src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.21;\\n\\nimport { CallType, ExecType, ModeCode } from \\\"../libs/ModeLib.sol\\\";\\nimport {PackedUserOperation} from \\\"../../../../account-abstraction/contracts/interfaces/IAccount.sol\\\";\\n\\nstruct Execution {\\n    address target;\\n    uint256 value;\\n    bytes callData;\\n}\\n\\ninterface IERC7579Account {\\n    event ModuleInstalled(uint256 moduleTypeId, address module);\\n    event ModuleUninstalled(uint256 moduleTypeId, address module);\\n\\n    /**\\n     * @dev Executes a transaction on behalf of the account.\\n     *         This function is intended to be called by ERC-4337 EntryPoint.sol\\n     * @dev Ensure adequate authorization control: i.e. onlyEntryPointOrSelf\\n     *\\n     * @dev MSA MUST implement this function signature.\\n     * If a mode is requested that is not supported by the Account, it MUST revert\\n     * @param mode The encoded execution mode of the transaction. See ModeLib.sol for details\\n     * @param executionCalldata The encoded execution call data\\n     */\\n    function execute(ModeCode mode, bytes calldata executionCalldata) external payable;\\n\\n    /**\\n     * @dev Executes a transaction on behalf of the account.\\n     *         This function is intended to be called by Executor Modules\\n     * @dev Ensure adequate authorization control: i.e. onlyExecutorModule\\n     *\\n     * @dev MSA MUST implement this function signature.\\n     * If a mode is requested that is not supported by the Account, it MUST revert\\n     * @param mode The encoded execution mode of the transaction. See ModeLib.sol for details\\n     * @param executionCalldata The encoded execution call data\\n     */\\n    function executeFromExecutor(\\n        ModeCode mode,\\n        bytes calldata executionCalldata\\n    )\\n        external\\n        payable\\n        returns (bytes[] memory returnData);\\n\\n    /**\\n     * @dev ERC-4337 executeUserOp according to ERC-4337 v0.7\\n     *         This function is intended to be called by ERC-4337 EntryPoint.sol\\n     * @dev Ensure adequate authorization control: i.e. onlyEntryPointOrSelf\\n     *      The implementation of the function is OPTIONAL\\n     *\\n     * @param userOp PackedUserOperation struct (see ERC-4337 v0.7+)\\n     */\\n    function executeUserOp(PackedUserOperation calldata userOp) external payable;\\n\\n    /**\\n     * @dev ERC-4337 validateUserOp according to ERC-4337 v0.7\\n     *         This function is intended to be called by ERC-4337 EntryPoint.sol\\n     * this validation function should decode / sload the validator module to validate the userOp\\n     * and call it.\\n     *\\n     * @dev MSA MUST implement this function signature.\\n     * @param userOp PackedUserOperation struct (see ERC-4337 v0.7+)\\n     */\\n    function validateUserOp(\\n        PackedUserOperation calldata userOp,\\n        bytes32 userOpHash,\\n        uint256 missingAccountFunds\\n    )\\n        external\\n        payable\\n        returns (uint256 validSignature);\\n\\n    /**\\n     * @dev ERC-1271 isValidSignature\\n     *         This function is intended to be used to validate a smart account signature\\n     * and may forward the call to a validator module\\n     *\\n     * @param hash The hash of the data that is signed\\n     * @param data The data that is signed\\n     */\\n    function isValidSignature(bytes32 hash, bytes calldata data) external view returns (bytes4);\\n\\n    /**\\n     * @dev installs a Module of a certain type on the smart account\\n     * @dev Implement Authorization control of your chosing\\n     * @param moduleTypeId the module type ID according the ERC-7579 spec\\n     * @param module the module address\\n     * @param initData arbitrary data that may be required on the module during `onInstall`\\n     * initialization.\\n     */\\n    function installModule(\\n        uint256 moduleTypeId,\\n        address module,\\n        bytes calldata initData\\n    )\\n        external\\n        payable;\\n\\n    /**\\n     * @dev uninstalls a Module of a certain type on the smart account\\n     * @dev Implement Authorization control of your chosing\\n     * @param moduleTypeId the module type ID according the ERC-7579 spec\\n     * @param module the module address\\n     * @param deInitData arbitrary data that may be required on the module during `onUninstall`\\n     * de-initialization.\\n     */\\n    function uninstallModule(\\n        uint256 moduleTypeId,\\n        address module,\\n        bytes calldata deInitData\\n    )\\n        external\\n        payable;\\n\\n    /**\\n     * Function to check if the account supports a certain CallType or ExecType (see ModeLib.sol)\\n     * @param encodedMode the encoded mode\\n     */\\n    function supportsExecutionMode(ModeCode encodedMode) external view returns (bool);\\n\\n    /**\\n     * Function to check if the account supports installation of a certain module type Id\\n     * @param moduleTypeId the module type ID according the ERC-7579 spec\\n     */\\n    function supportsModule(uint256 moduleTypeId) external view returns (bool);\\n\\n    /**\\n     * Function to check if the account has a certain module installed\\n     * @param moduleTypeId the module type ID according the ERC-7579 spec\\n     *      Note: keep in mind that some contracts can be multiple module types at the same time. It\\n     *            thus may be necessary to query multiple module types\\n     * @param module the module address\\n     * @param additionalContext additional context data that the smart account may interpret to\\n     *                          identifiy conditions under which the module is installed.\\n     *                          usually this is not necessary, but for some special hooks that\\n     *                          are stored in mappings, this param might be needed\\n     */\\n    function isModuleInstalled(\\n        uint256 moduleTypeId,\\n        address module,\\n        bytes calldata additionalContext\\n    )\\n        external\\n        view\\n        returns (bool);\\n\\n    /**\\n     * @dev Returns the account id of the smart account\\n     * @return accountImplementationId the account id of the smart account\\n     * the accountId should be structured like so:\\n     *        \\\"vendorname.accountname.semver\\\"\\n     */\\n    function accountId() external view returns (string memory accountImplementationId);\\n}\",\"keccak256\":\"0xb8d6b68dd9ebad9367cb3c2829033692b53b708301978bc2e3c6f9caaf503c8f\",\"license\":\"MIT\"},\"src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.21;\\n\\nimport {PackedUserOperation} from \\\"../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol\\\";\\n\\nuint256 constant VALIDATION_SUCCESS = 0;\\nuint256 constant VALIDATION_FAILED = 1;\\n\\nuint256 constant MODULE_TYPE_VALIDATOR = 1;\\nuint256 constant MODULE_TYPE_EXECUTOR = 2;\\nuint256 constant MODULE_TYPE_FALLBACK = 3;\\nuint256 constant MODULE_TYPE_HOOK = 4;\\n\\ninterface IModule {\\n    error AlreadyInitialized(address smartAccount);\\n    error NotInitialized(address smartAccount);\\n\\n    /**\\n     * @dev This function is called by the smart account during installation of the module\\n     * @param data arbitrary data that may be required on the module during `onInstall`\\n     * initialization\\n     *\\n     * MUST revert on error (i.e. if module is already enabled)\\n     */\\n    function onInstall(bytes calldata data) external;\\n\\n    /**\\n     * @dev This function is called by the smart account during uninstallation of the module\\n     * @param data arbitrary data that may be required on the module during `onUninstall`\\n     * de-initialization\\n     *\\n     * MUST revert on error\\n     */\\n    function onUninstall(bytes calldata data) external;\\n\\n    /**\\n     * @dev Returns boolean value if module is a certain type\\n     * @param moduleTypeId the module type ID according the ERC-7579 spec\\n     *\\n     * MUST return true if the module is of the given type and false otherwise\\n     */\\n    function isModuleType(uint256 moduleTypeId) external view returns (bool);\\n\\n    /**\\n     * @dev Returns if the module was already initialized for a provided smartaccount\\n     */\\n    function isInitialized(address smartAccount) external view returns (bool);\\n}\\n\\ninterface IValidator is IModule {\\n    error InvalidTargetAddress(address target);\\n\\n    /**\\n     * @dev Validates a transaction on behalf of the account.\\n     *         This function is intended to be called by the MSA during the ERC-4337 validaton phase\\n     *         Note: solely relying on bytes32 hash and signature is not suffcient for some\\n     * validation implementations (i.e. SessionKeys often need access to userOp.calldata)\\n     * @param userOp The user operation to be validated. The userOp MUST NOT contain any metadata.\\n     * The MSA MUST clean up the userOp before sending it to the validator.\\n     * @param userOpHash The hash of the user operation to be validated\\n     * @return return value according to ERC-4337\\n     */\\n    function validateUserOp(\\n        PackedUserOperation calldata userOp,\\n        bytes32 userOpHash\\n    )\\n        external\\n        returns (uint256);\\n\\n    /**\\n     * Validator can be used for ERC-1271 validation\\n     */\\n    function isValidSignatureWithSender(\\n        address sender,\\n        bytes32 hash,\\n        bytes calldata data\\n    )\\n        external\\n        view\\n        returns (bytes4);\\n}\\n\\ninterface IExecutor is IModule { }\\n\\ninterface IHook is IModule {\\n    function preCheck(\\n        address msgSender,\\n        bytes calldata msgData\\n    )\\n        external\\n        returns (bytes memory hookData);\\n    function postCheck(bytes calldata hookData) external returns (bool success);\\n}\\n\\ninterface IFallback is IModule { }\",\"keccak256\":\"0xb70280ab96b9dcfed3c559a3a1ed64850fc2171374e5809d2d2887c4956c8379\",\"license\":\"MIT\"},\"src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\nimport {Execution} from \\\"../interfaces/IERC7579Account.sol\\\";\\n\\n/**\\n * Helper Library for decoding Execution calldata\\n * malloc for memory allocation is bad for gas. use this assembly instead\\n */\\nlibrary ExecutionLib {\\n    function decodeBatch(\\n        bytes calldata callData\\n    ) internal pure returns (Execution[] calldata executionBatch) {\\n        /*\\n         * Batch Call Calldata Layout\\n         * Offset (in bytes)    | Length (in bytes) | Contents\\n         * 0x0                  | 0x4               | bytes4 function selector\\n        *  0x4                  | -                 |\\n        abi.encode(IERC7579Execution.Execution[])\\n         */\\n        // solhint-disable-next-line no-inline-assembly\\n        assembly (\\\"memory-safe\\\") {\\n            let dataPointer := add(\\n                callData.offset,\\n                calldataload(callData.offset)\\n            )\\n\\n            // Extract the ERC7579 Executions\\n            executionBatch.offset := add(dataPointer, 32)\\n            executionBatch.length := calldataload(dataPointer)\\n        }\\n    }\\n\\n    function encodeBatch(\\n        Execution[] memory executions\\n    ) internal pure returns (bytes memory callData) {\\n        callData = abi.encode(executions);\\n    }\\n\\n    function decodeSingle(\\n        bytes calldata executionCalldata\\n    )\\n        internal\\n        pure\\n        returns (address target, uint256 value, bytes calldata callData)\\n    {\\n        target = address(bytes20(executionCalldata[0:20]));\\n        value = uint256(bytes32(executionCalldata[20:52]));\\n        callData = executionCalldata[52:];\\n    }\\n\\n    function encodeSingle(\\n        address target,\\n        uint256 value,\\n        bytes memory callData\\n    ) internal pure returns (bytes memory userOpCalldata) {\\n        userOpCalldata = abi.encodePacked(target, value, callData);\\n    }\\n}\\n\",\"keccak256\":\"0xad2974b9073a9dd7eb9c6fc33c9becce272d270d7c14b4438a92221c0e1f0126\",\"license\":\"MIT\"},\"src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\n/**\\n * @title ModeLib\\n * To allow smart accounts to be very simple, but allow for more complex execution, A custom mode\\n * encoding is used.\\n *    Function Signature of execute function:\\n *           function execute(ModeCode mode, bytes calldata executionCalldata) external payable;\\n * This allows for a single bytes32 to be used to encode the execution mode, calltype, execType and\\n * context.\\n * NOTE: Simple Account implementations only have to scope for the most significant byte. Account  that\\n * implement\\n * more complex execution modes may use the entire bytes32.\\n *\\n * |--------------------------------------------------------------------|\\n * | CALLTYPE  | EXECTYPE  |   UNUSED   | ModeSelector  |  ModePayload  |\\n * |--------------------------------------------------------------------|\\n * | 1 byte    | 1 byte    |   4 bytes  | 4 bytes       |   22 bytes    |\\n * |--------------------------------------------------------------------|\\n *\\n * CALLTYPE: 1 byte\\n * CallType is used to determine how the executeCalldata paramter of the execute function has to be\\n * decoded.\\n * It can be either single, batch or delegatecall. In the future different calls could be added.\\n * CALLTYPE can be used by a validation module to determine how to decode <userOp.callData[36:]>.\\n *\\n * EXECTYPE: 1 byte\\n * ExecType is used to determine how the account should handle the execution.\\n * It can indicate if the execution should revert on failure or continue execution.\\n * In the future more execution modes may be added.\\n * Default Behavior (EXECTYPE = 0x00) is to revert on a single failed execution. If one execution in\\n * a batch fails, the entire batch is reverted\\n *\\n * UNUSED: 4 bytes\\n * Unused bytes are reserved for future use.\\n *\\n * ModeSelector: bytes4\\n * The \\\"optional\\\" mode selector can be used by account vendors, to implement custom behavior in\\n * their accounts.\\n * the way a ModeSelector is to be calculated is bytes4(keccak256(\\\"vendorname.featurename\\\"))\\n * this is to prevent collisions between different vendors, while allowing innovation and the\\n * development of new features without coordination between ERC-7579 implementing accounts\\n *\\n * ModePayload: 22 bytes\\n * Mode payload is used to pass additional data to the smart account execution, this may be\\n * interpreted depending on the ModeSelector\\n *\\n * ExecutionCallData: n bytes\\n * single, delegatecall or batch exec abi.encoded as bytes\\n */\\nimport { Execution } from \\\"../interfaces/IERC7579Account.sol\\\";\\n\\n// Custom type for improved developer experience\\ntype ModeCode is bytes32;\\n\\ntype CallType is bytes1;\\n\\ntype ExecType is bytes1;\\n\\ntype ModeSelector is bytes4;\\n\\ntype ModePayload is bytes22;\\n\\n// Default CallType\\nCallType constant CALLTYPE_SINGLE = CallType.wrap(0x00);\\n// Batched CallType\\nCallType constant CALLTYPE_BATCH = CallType.wrap(0x01);\\n// @dev Implementing delegatecall is OPTIONAL!\\n// implement delegatecall with extreme care.\\nCallType constant CALLTYPE_STATIC = CallType.wrap(0xFE);\\nCallType constant CALLTYPE_DELEGATECALL = CallType.wrap(0xFF);\\n\\n// @dev default behavior is to revert on failure\\n// To allow very simple accounts to use mode encoding, the default behavior is to revert on failure\\n// Since this is value 0x00, no additional encoding is required for simple accounts\\nExecType constant EXECTYPE_DEFAULT = ExecType.wrap(0x00);\\n// @dev account may elect to change execution behavior. For example \\\"try exec\\\" / \\\"allow fail\\\"\\nExecType constant EXECTYPE_TRY = ExecType.wrap(0x01);\\n\\nModeSelector constant MODE_DEFAULT = ModeSelector.wrap(bytes4(0x00000000));\\n// Example declaration of a custom mode selector\\nModeSelector constant MODE_OFFSET = ModeSelector.wrap(bytes4(keccak256(\\\"default.mode.offset\\\")));\\n\\n/**\\n * @dev ModeLib is a helper library to encode/decode ModeCodes\\n */\\nlibrary ModeLib {\\n    function decode(ModeCode mode)\\n        internal\\n        pure\\n        returns (\\n            CallType _calltype,\\n            ExecType _execType,\\n            ModeSelector _modeSelector,\\n            ModePayload _modePayload\\n        )\\n    {\\n        assembly {\\n            _calltype := mode\\n            _execType := shl(8, mode)\\n            _modeSelector := shl(48, mode)\\n            _modePayload := shl(80, mode)\\n        }\\n    }\\n\\n    function encode(\\n        CallType callType,\\n        ExecType execType,\\n        ModeSelector mode,\\n        ModePayload payload\\n    )\\n        internal\\n        pure\\n        returns (ModeCode)\\n    {\\n        return ModeCode.wrap(\\n            bytes32(\\n                abi.encodePacked(callType, execType, bytes4(0), ModeSelector.unwrap(mode), payload)\\n            )\\n        );\\n    }\\n\\n    function encodeSimpleBatch() internal pure returns (ModeCode mode) {\\n        mode = encode(CALLTYPE_BATCH, EXECTYPE_DEFAULT, MODE_DEFAULT, ModePayload.wrap(0x00));\\n    }\\n\\n    function encodeSimpleSingle() internal pure returns (ModeCode mode) {\\n        mode = encode(CALLTYPE_SINGLE, EXECTYPE_DEFAULT, MODE_DEFAULT, ModePayload.wrap(0x00));\\n    }\\n\\n    function getCallType(ModeCode mode) internal pure returns (CallType calltype) {\\n        assembly {\\n            calltype := mode\\n        }\\n    }\\n}\\n\\nusing { eqModeSelector as == } for ModeSelector global;\\nusing { eqCallType as == } for CallType global;\\nusing { eqExecType as == } for ExecType global;\\n\\nfunction eqCallType(CallType a, CallType b) pure returns (bool) {\\n    return CallType.unwrap(a) == CallType.unwrap(b);\\n}\\n\\nfunction eqExecType(ExecType a, ExecType b) pure returns (bool) {\\n    return ExecType.unwrap(a) == ExecType.unwrap(b);\\n}\\n\\nfunction eqModeSelector(ModeSelector a, ModeSelector b) pure returns (bool) {\\n    return ModeSelector.unwrap(a) == ModeSelector.unwrap(b);\\n}\",\"keccak256\":\"0x9c0886362e13274bb5e255ff391b13290461ce02b58d9dff9ae55b5bd01fcba3\",\"license\":\"MIT\"},\"src/modular-etherspot-wallet/interfaces/IERC20SessionKeyValidator.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.23;\\n\\nimport {IValidator} from \\\"../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol\\\";\\nimport {IERC7579Account} from \\\"../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol\\\";\\nimport {PackedUserOperation} from \\\"../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol\\\";\\n\\n/// @title ERC20SessionKeyValidator Interface\\n/// @author Etherspot\\n/// @notice This interface defines the functions and events of the ERC20SessionKeyValidator contract.\\ninterface IERC20SessionKeyValidator is IValidator {\\n    /// @notice Emitted when the ERC20 Session Key Validator module is installed for a wallet.\\n    /// @param wallet The address of the wallet for which the module is installed.\\n    event ERC20SKV_ModuleInstalled(address wallet);\\n\\n    /// @notice Emitted when the ERC20 Session Key Validator module is uninstalled from a wallet.\\n    /// @param wallet The address of the wallet from which the module is uninstalled.\\n    event ERC20SKV_ModuleUninstalled(address wallet);\\n\\n    /// @notice Emitted when a new session key is enabled for a wallet.\\n    /// @param sessionKey The address of the session key.\\n    /// @param wallet The address of the wallet for which the session key is enabled.\\n    event ERC20SKV_SessionKeyEnabled(address sessionKey, address wallet);\\n\\n    /// @notice Emitted when a session key is disabled for a wallet.\\n    /// @param sessionKey The address of the session key.\\n    /// @param wallet The address of the wallet for which the session key is disabled.\\n    event ERC20SKV_SessionKeyDisabled(address sessionKey, address wallet);\\n\\n    /// @notice Emitted when a session key is paused for a wallet.\\n    /// @param sessionKey The address of the session key.\\n    /// @param wallet The address of the wallet for which the session key is paused.\\n    event ERC20SKV_SessionKeyPaused(address sessionKey, address wallet);\\n\\n    /// @notice Emitted when a session key is unpaused for a wallet.\\n    /// @param sessionKey The address of the session key.\\n    /// @param wallet The address of the wallet for which the session key is unpaused.\\n    event ERC20SKV_SessionKeyUnpaused(address sessionKey, address wallet);\\n\\n    /// @notice Struct representing the data associated with a session key.\\n    struct SessionData {\\n        address token; // The ERC20 token contract address.\\n        bytes4 interfaceId; // The interface ID of the ERC20 token contract.\\n        bytes4 funcSelector; // The function selector for the allowed operation (e.g., transfer, transferFrom).\\n        uint256 spendingLimit; // The maximum amount that can be spent with this session key.\\n        uint48 validAfter; // The timestamp after which the session key is valid.\\n        uint48 validUntil; // The timestamp until which the session key is valid.\\n        bool paused; // Flag indicating whether the session key is paused or not.\\n    }\\n\\n    /// @notice Enables a new session key for the caller's wallet.\\n    /// @param _sessionData The encoded session data containing the session key address, token address, interface ID, function selector, spending limit, valid after timestamp, and valid until timestamp.\\n    function enableSessionKey(bytes calldata _sessionData) external;\\n\\n    /// @notice Disables a session key for the caller's wallet.\\n    /// @param _session The address of the session key to disable.\\n    function disableSessionKey(address _session) external;\\n\\n    /// @notice Rotates a session key by disabling the old one and enabling a new one.\\n    /// @param _oldSessionKey The address of the old session key to disable.\\n    /// @param _newSessionData The encoded session data for the new session key.\\n    function rotateSessionKey(\\n        address _oldSessionKey,\\n        bytes calldata _newSessionData\\n    ) external;\\n\\n    /// @notice Toggles the pause state of a session key for the caller's wallet.\\n    /// @param _sessionKey The address of the session key to toggle the pause state for.\\n    function toggleSessionKeyPause(address _sessionKey) external;\\n\\n    /// @notice Checks if a session key is paused for the caller's wallet.\\n    /// @param _sessionKey The address of the session key to check.\\n    /// @return paused True if the session key is paused, false otherwise.\\n    function checkSessionKeyPaused(\\n        address _sessionKey\\n    ) external view returns (bool paused);\\n\\n    /// @notice Validates the parameters of a session key for a given user operation.\\n    /// @param _sessionKey The address of the session key.\\n    /// @param userOp The packed user operation containing the call data.\\n    /// @return valid True if the session key parameters are valid for the user operation, false otherwise.\\n    function validateSessionKeyParams(\\n        address _sessionKey,\\n        PackedUserOperation calldata userOp\\n    ) external returns (bool valid);\\n\\n    /// @notice Returns the list of associated session keys for the caller's wallet.\\n    /// @return keys The array of associated session key addresses.\\n    function getAssociatedSessionKeys()\\n        external\\n        view\\n        returns (address[] memory keys);\\n\\n    /// @notice Returns the session data for a given session key and the caller's wallet.\\n    /// @param _sessionKey The address of the session key.\\n    /// @return data The session data struct.\\n    function getSessionKeyData(\\n        address _sessionKey\\n    ) external view returns (SessionData memory data);\\n\\n    /// @notice Validates a user operation using a session key.\\n    /// @param userOp The packed user operation.\\n    /// @param userOpHash The hash of the user operation.\\n    /// @return validationData The validation data containing the expiration time and valid after timestamp of the session key.\\n    function validateUserOp(\\n        PackedUserOperation calldata userOp,\\n        bytes32 userOpHash\\n    ) external returns (uint256 validationData);\\n\\n    /// @notice Checks if the module type matches the validator module type.\\n    /// @param moduleTypeId The module type ID to check.\\n    /// @return True if the module type matches the validator module type, false otherwise.\\n    function isModuleType(uint256 moduleTypeId) external pure returns (bool);\\n\\n    /// @notice Placeholder function for module installation.\\n    /// @param data The data to pass during installation.\\n    function onInstall(bytes calldata data) external;\\n\\n    /// @notice Placeholder function for module uninstallation.\\n    /// @param data The data to pass during uninstallation.\\n    function onUninstall(bytes calldata data) external;\\n\\n    /// @notice Reverts with a \\\"NotImplemented\\\" error.\\n    /// @param sender The address of the sender.\\n    /// @param hash The hash of the message.\\n    /// @param data The data associated with the message.\\n    /// @return A bytes4 value indicating the function is not implemented.\\n    function isValidSignatureWithSender(\\n        address sender,\\n        bytes32 hash,\\n        bytes calldata data\\n    ) external view returns (bytes4);\\n\\n    /// @notice Reverts with a \\\"NotImplemented\\\" error.\\n    /// @param smartAccount The address of the smart account.\\n    /// @return True if the smart account is initialized, false otherwise.\\n    function isInitialized(address smartAccount) external view returns (bool);\\n}\\n\",\"keccak256\":\"0xf67be7a25f60e0b4f62e028d21a8c872eacaaf1ae3d2dd9b33bc4f5e1c0c7827\",\"license\":\"MIT\"},\"src/modular-etherspot-wallet/libraries/ArrayLib.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.19;\\n\\nlibrary ArrayLib {\\n    function _contains(\\n        address[] memory A,\\n        address a\\n    ) internal pure returns (bool) {\\n        (, bool isIn) = _indexOf(A, a);\\n        return isIn;\\n    }\\n\\n    function _indexOf(\\n        address[] memory A,\\n        address a\\n    ) internal pure returns (uint256, bool) {\\n        uint256 length = A.length;\\n        for (uint256 i = 0; i < length; i++) {\\n            if (A[i] == a) {\\n                return (i, true);\\n            }\\n        }\\n        return (0, false);\\n    }\\n\\n    function _removeElement(\\n        address[] storage _data,\\n        address _element\\n    ) internal {\\n        uint256 length = _data.length;\\n        // remove item from array and resize array\\n        for (uint256 ii = 0; ii < length; ii++) {\\n            if (_data[ii] == _element) {\\n                if (length > 1) {\\n                    _data[ii] = _data[length - 1];\\n                }\\n                _data.pop();\\n                break;\\n            }\\n        }\\n    }\\n\\n    function _removeElement(\\n        address[] memory _data,\\n        address _element\\n    ) internal pure returns (address[] memory) {\\n        address[] memory newData = new address[](_data.length - 1);\\n        uint256 j;\\n        for (uint256 i; i < _data.length; i++) {\\n            if (_data[i] != _element) {\\n                newData[j] = _data[i];\\n                j++;\\n            }\\n        }\\n        return newData;\\n    }\\n}\\n\",\"keccak256\":\"0x6179c61cbc4fc0c811dce30e94e4ecf647c472c57ad10dc8cefb7b9cbde458d9\",\"license\":\"MIT\"},\"src/modular-etherspot-wallet/modules/executors/ERC20Actions.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity ^0.8.0;\\n\\nimport {IERC20} from \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport {IFallback} from \\\"../../../modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol\\\";\\n\\ncontract ERC20Actions is IFallback {\\n    function onInstall(bytes calldata data) external override {}\\n\\n    function onUninstall(bytes calldata data) external override {}\\n    function isModuleType(\\n        uint256 moduleTypeId\\n    ) external view override returns (bool) {}\\n\\n    function isInitialized(address _mew) external view returns (bool) {}\\n    function transferERC20Action(\\n        address _token,\\n        address _to,\\n        uint256 _amount\\n    ) external {\\n        IERC20(_token).transferFrom(msg.sender, _to, _amount);\\n    }\\n\\n    function invalidERC20Action() public pure returns (uint256) {\\n        return 0;\\n    }\\n}\\n\",\"keccak256\":\"0x6ccaac5b245a1e3dbcc7e69f347c457ade157b534315e3f120a085bdd20d6a2c\",\"license\":\"MIT\"},\"src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol\":{\"content\":\"// SPDX-License-Identifier: MIT\\npragma solidity 0.8.23;\\n\\nimport {ECDSA} from \\\"solady/src/utils/ECDSA.sol\\\";\\nimport {IERC20} from \\\"@openzeppelin/contracts/token/ERC20/IERC20.sol\\\";\\nimport {IERC165} from \\\"@openzeppelin/contracts/utils/introspection/IERC165.sol\\\";\\nimport {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED} from \\\"../../erc7579-ref-impl/interfaces/IERC7579Module.sol\\\";\\nimport {PackedUserOperation} from \\\"../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol\\\";\\nimport \\\"../../../../account-abstraction/contracts/core/Helpers.sol\\\";\\nimport \\\"../../erc7579-ref-impl/libs/ModeLib.sol\\\";\\nimport \\\"../../erc7579-ref-impl/libs/ExecutionLib.sol\\\";\\nimport {IERC20SessionKeyValidator} from \\\"../../interfaces/IERC20SessionKeyValidator.sol\\\";\\nimport {ERC20Actions} from \\\"../executors/ERC20Actions.sol\\\";\\nimport {ArrayLib} from \\\"../../libraries/ArrayLib.sol\\\";\\n\\ncontract ERC20SessionKeyValidator is IERC20SessionKeyValidator {\\n    using ModeLib for ModeCode;\\n    using ExecutionLib for bytes;\\n\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n    /*                  CONSTANTS                */\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n\\n    string constant NAME = \\\"ERC20SessionKeyValidator\\\";\\n    string constant VERSION = \\\"1.0.0\\\";\\n\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n    /*                    ERRORS                 */\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n\\n    error ERC20SKV_ModuleAlreadyInstalled();\\n    error ERC20SKV_ModuleNotInstalled();\\n    error ERC20SKV_InvalidSessionKey();\\n    error ERC20SKV_InvalidToken();\\n    error ERC20SKV_InvalidInterfaceId();\\n    error ERC20SKV_InvalidFunctionSelector();\\n    error ERC20SKV_InvalidSpendingLimit();\\n    error ERC20SKV_InvalidDuration(uint256 validAfter, uint256 validUntil);\\n    error ERC20SKV_SessionKeyAlreadyExists(address sessionKey);\\n    error ERC20SKV_SessionKeyDoesNotExist(address session);\\n    error ERC20SKV_SessionPaused(address sessionKey);\\n    error ERC20SKV_UnsuportedToken();\\n    error ERC20SKV_UnsupportedInterface();\\n    error ERC20SKV_UnsupportedSelector(bytes4 selectorUsed);\\n    error ERC20SKV_SessionKeySpendLimitExceeded();\\n    error NotImplemented();\\n\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n    /*                   MAPPINGS                */\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n\\n    mapping(address => bool) public initialized;\\n    mapping(address wallet => address[] assocSessionKeys)\\n        public walletSessionKeys;\\n    mapping(address sessionKey => mapping(address wallet => SessionData))\\n        public sessionData;\\n\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n    /*               PUBLIC/EXTERNAL             */\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function enableSessionKey(bytes calldata _sessionData) public {\\n        address sessionKey = address(bytes20(_sessionData[0:20]));\\n        if (sessionKey == address(0)) revert ERC20SKV_InvalidSessionKey();\\n        if (\\n            sessionData[sessionKey][msg.sender].validUntil != 0 &&\\n            ArrayLib._contains(getAssociatedSessionKeys(), sessionKey)\\n        ) revert ERC20SKV_SessionKeyAlreadyExists(sessionKey);\\n        address token = address(bytes20(_sessionData[20:40]));\\n        if (token == address(0)) revert ERC20SKV_InvalidToken();\\n        bytes4 interfaceId = bytes4(_sessionData[40:44]);\\n        if (interfaceId == bytes4(0)) revert ERC20SKV_InvalidInterfaceId();\\n        bytes4 funcSelector = bytes4(_sessionData[44:48]);\\n        if (funcSelector == bytes4(0))\\n            revert ERC20SKV_InvalidFunctionSelector();\\n        uint256 spendingLimit = uint256(bytes32(_sessionData[48:80]));\\n        if (spendingLimit == 0) revert ERC20SKV_InvalidSpendingLimit();\\n        uint48 validAfter = uint48(bytes6(_sessionData[80:86]));\\n        uint48 validUntil = uint48(bytes6(_sessionData[86:92]));\\n        if (validUntil <= validAfter || validUntil == 0 || validAfter == 0)\\n            revert ERC20SKV_InvalidDuration(validAfter, validUntil);\\n        sessionData[sessionKey][msg.sender] = SessionData(\\n            token,\\n            interfaceId,\\n            funcSelector,\\n            spendingLimit,\\n            validAfter,\\n            validUntil,\\n            false\\n        );\\n        walletSessionKeys[msg.sender].push(sessionKey);\\n        emit ERC20SKV_SessionKeyEnabled(sessionKey, msg.sender);\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function disableSessionKey(address _session) public {\\n        if (sessionData[_session][msg.sender].validUntil == 0)\\n            revert ERC20SKV_SessionKeyDoesNotExist(_session);\\n        delete sessionData[_session][msg.sender];\\n        walletSessionKeys[msg.sender] = ArrayLib._removeElement(\\n            getAssociatedSessionKeys(),\\n            _session\\n        );\\n        emit ERC20SKV_SessionKeyDisabled(_session, msg.sender);\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function rotateSessionKey(\\n        address _oldSessionKey,\\n        bytes calldata _newSessionData\\n    ) external {\\n        disableSessionKey(_oldSessionKey);\\n        enableSessionKey(_newSessionData);\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function toggleSessionKeyPause(address _sessionKey) external {\\n        SessionData memory sd = sessionData[_sessionKey][msg.sender];\\n        if (sd.paused) {\\n            sessionData[_sessionKey][msg.sender].paused = false;\\n            emit ERC20SKV_SessionKeyUnpaused(_sessionKey, msg.sender);\\n        } else {\\n            sessionData[_sessionKey][msg.sender].paused = true;\\n            emit ERC20SKV_SessionKeyPaused(_sessionKey, msg.sender);\\n        }\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function checkSessionKeyPaused(\\n        address _sessionKey\\n    ) public view returns (bool) {\\n        return sessionData[_sessionKey][msg.sender].paused;\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function validateSessionKeyParams(\\n        address _sessionKey,\\n        PackedUserOperation calldata userOp\\n    ) public returns (bool) {\\n        bytes calldata callData = userOp.callData;\\n        (\\n            bytes4 selector,\\n            address target,\\n            address to,\\n            address from,\\n            uint256 amount\\n        ) = _digest(callData);\\n\\n        SessionData memory sd = sessionData[_sessionKey][msg.sender];\\n        if (\\n            sd.validUntil == 0 ||\\n            sd.validUntil < block.timestamp ||\\n            sd.validAfter == 0 ||\\n            sd.validAfter > block.timestamp\\n        ) revert ERC20SKV_InvalidSessionKey();\\n        if (target != sd.token) revert ERC20SKV_UnsuportedToken();\\n        if (IERC165(target).supportsInterface(sd.interfaceId) == false)\\n            revert ERC20SKV_UnsupportedInterface();\\n        if (selector != sd.funcSelector)\\n            revert ERC20SKV_UnsupportedSelector(selector);\\n        if (amount > sd.spendingLimit)\\n            revert ERC20SKV_SessionKeySpendLimitExceeded();\\n        if (checkSessionKeyPaused(_sessionKey))\\n            revert ERC20SKV_SessionPaused(_sessionKey);\\n        return true;\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function getAssociatedSessionKeys() public view returns (address[] memory) {\\n        return walletSessionKeys[msg.sender];\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function getSessionKeyData(\\n        address _sessionKey\\n    ) public view returns (SessionData memory) {\\n        return sessionData[_sessionKey][msg.sender];\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function validateUserOp(\\n        PackedUserOperation calldata userOp,\\n        bytes32 userOpHash\\n    ) external override returns (uint256) {\\n        bytes32 ethHash = ECDSA.toEthSignedMessageHash(userOpHash);\\n        address sessionKeySigner = ECDSA.recover(ethHash, userOp.signature);\\n\\n        if (!validateSessionKeyParams(sessionKeySigner, userOp))\\n            return VALIDATION_FAILED;\\n        SessionData memory sd = sessionData[sessionKeySigner][msg.sender];\\n        return _packValidationData(false, sd.validUntil, sd.validAfter);\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function isModuleType(\\n        uint256 moduleTypeId\\n    ) external pure override returns (bool) {\\n        return moduleTypeId == MODULE_TYPE_VALIDATOR;\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function onInstall(bytes calldata data) external override {\\n        if (initialized[msg.sender] == true)\\n            revert ERC20SKV_ModuleAlreadyInstalled();\\n        initialized[msg.sender] = true;\\n        emit ERC20SKV_ModuleInstalled(msg.sender);\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function onUninstall(bytes calldata data) external override {\\n        if (initialized[msg.sender] == false)\\n            revert ERC20SKV_ModuleNotInstalled();\\n        address[] memory sessionKeys = getAssociatedSessionKeys();\\n        uint256 sessionKeysLength = sessionKeys.length;\\n        for (uint256 i; i < sessionKeysLength; i++) {\\n            delete sessionData[sessionKeys[i]][msg.sender];\\n        }\\n        delete walletSessionKeys[msg.sender];\\n        initialized[msg.sender] = false;\\n        emit ERC20SKV_ModuleUninstalled(msg.sender);\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function isValidSignatureWithSender(\\n        address sender,\\n        bytes32 hash,\\n        bytes calldata data\\n    ) external view returns (bytes4) {\\n        revert NotImplemented();\\n    }\\n\\n    // @inheritdoc IERC20SessionKeyValidator\\n    function isInitialized(address smartAccount) external view returns (bool) {\\n        return initialized[smartAccount];\\n    }\\n\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n    /*                   INTERNAL                */\\n    /*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*\\u00a7*/\\n\\n    function _digest(\\n        bytes calldata _data\\n    )\\n        internal\\n        pure\\n        returns (\\n            bytes4 selector,\\n            address targetContract,\\n            address to,\\n            address from,\\n            uint256 amount\\n        )\\n    {\\n        bytes4 functionSelector;\\n        assembly {\\n            functionSelector := calldataload(_data.offset)\\n            targetContract := calldataload(add(_data.offset, 0x04))\\n        }\\n        if (\\n            functionSelector == IERC20.approve.selector ||\\n            functionSelector == IERC20.transfer.selector ||\\n            functionSelector == ERC20Actions.transferERC20Action.selector\\n        ) {\\n            assembly {\\n                targetContract := calldataload(add(_data.offset, 0x04))\\n                to := calldataload(add(_data.offset, 0x24))\\n                amount := calldataload(add(_data.offset, 0x44))\\n            }\\n            return (functionSelector, targetContract, to, address(0), amount);\\n        } else if (functionSelector == IERC20.transferFrom.selector) {\\n            assembly {\\n                targetContract := calldataload(add(_data.offset, 0x04))\\n                from := calldataload(add(_data.offset, 0x24))\\n                to := calldataload(add(_data.offset, 0x44))\\n                amount := calldataload(add(_data.offset, 0x64))\\n            }\\n            return (functionSelector, targetContract, to, from, amount);\\n        } else {\\n            revert ERC20SKV_UnsupportedSelector(functionSelector);\\n        }\\n    }\\n}\\n\",\"keccak256\":\"0x6d67d564b01a127e8b35ff0e604d708cd6304b186efe37c793762238bfe33cc6\",\"license\":\"MIT\"}},\"version\":1}",
+  "bytecode": "0x608060405234801561001057600080fd5b50611c36806100206000396000f3fe608060405234801561001057600080fd5b506004361061010b5760003560e01c8063c037ee19116100a2578063d60b347f11610071578063d60b347f14610453578063d8d38e421461047f578063e08dd00814610492578063ecd05961146104a7578063f551e2ee146104bb57600080fd5b8063c037ee19146103e7578063c602e59c1461040a578063cbca47db1461041d578063cc8cbd281461044057600080fd5b80636d61fe70116100de5780636d61fe70146103755780638a91b0e3146103885780638aaa6a401461039b57806397003203146103c657600080fd5b8063110891c11461011057806320cbdcc61461027a578063495079a01461028f57806352721fdd146102a2575b600080fd5b6101fa61011e36600461178e565b6040805160e081018252600080825260208201819052918101829052606081018290526080810182905260a0810182905260c0810191909152506001600160a01b039081166000908152600260208181526040808420338552825292839020835160e08082018652825496871682526001600160e01b0319600160a01b8804821b811694830194909452600160c01b90960490951b9091169284019290925260018201546060840152015465ffffffffffff8082166080840152600160301b82041660a083015260ff600160601b90910416151560c082015290565b6040805182516001600160a01b031681526020808401516001600160e01b0319908116918301919091528383015116918101919091526060808301519082015260808083015165ffffffffffff9081169183019190915260a0808401519091169082015260c09182015115159181019190915260e0015b60405180910390f35b61028d61028836600461178e565b6104e7565b005b61028d61029d3660046117f2565b610667565b61031b6102b0366004611834565b600260208181526000938452604080852090915291835291208054600182015491909201546001600160a01b03831692600160a01b810460e090811b93600160c01b909204901b9165ffffffffffff80821691600160301b810490911690600160601b900460ff1687565b604080516001600160a01b039890981688526001600160e01b031996871660208901529490951693860193909352606085019190915265ffffffffffff90811660808501521660a0830152151560c082015260e001610271565b61028d6103833660046117f2565b610b20565b61028d6103963660046117f2565b610b9e565b6103ae6103a9366004611867565b610cce565b6040516001600160a01b039091168152602001610271565b6103d96103d43660046118aa565b610d06565b604051908152602001610271565b6103fa6103f53660046118ef565b610e5c565b6040519015158152602001610271565b61028d61041836600461193d565b6111c1565b6103fa61042b36600461178e565b60006020819052908152604090205460ff1681565b6103fa61044e36600461178e565b6111d9565b6103fa61046136600461178e565b6001600160a01b031660009081526020819052604090205460ff1690565b61028d61048d36600461178e565b61120b565b61049a611331565b6040516102719190611990565b6103fa6104b53660046119dd565b60011490565b6104ce6104c93660046119f6565b61139c565b6040516001600160e01b03199091168152602001610271565b6001600160a01b038082166000908152600260208181526040808420338552825292839020835160e08082018652825496871682526001600160e01b0319600160a01b8804821b811694830194909452600160c01b90960490951b9091169284019290925260018201546060840152015465ffffffffffff8082166080840152600160301b82041660a083015260ff600160601b9091041615801560c08301526105fa576001600160a01b03821660008181526002602081815260408084203380865290835293819020909201805460ff60601b1916905581519384528301919091527fdafe9b16860cb2a92db27f042fbea578512b3290e6025be770cafb9f82d253ae91015b60405180910390a15050565b6001600160a01b03821660008181526002602081815260408084203380865290835293819020909201805460ff60601b1916600160601b17905581519384528301919091527ff5eec43346204709e3490be81892a0abceba36de8afb2c87c9c8b62565cf0a7b91016105ee565b60006106766014828486611a50565b61067f91611a7a565b60601c9050806106a257604051636ed16c7960e01b815260040160405180910390fd5b6001600160a01b03811660009081526002602081815260408084203385529091529091200154600160301b900465ffffffffffff16158015906106f157506106f16106eb611331565b826113b7565b1561071f576040516353a146e760e11b81526001600160a01b03821660048201526024015b60405180910390fd5b600061072f602860148587611a50565b61073891611a7a565b60601c90508061075b57604051630c99762360e11b815260040160405180910390fd5b600061076b602c60288688611a50565b61077491611aaf565b90506001600160e01b0319811661079e57604051639c7bab4360e01b815260040160405180910390fd5b60006107ae6030602c8789611a50565b6107b791611aaf565b90506001600160e01b031981166107e15760405163b17e3ec360e01b815260040160405180910390fd5b60006107f160506030888a611a50565b6107fa91611add565b9050600081900361081e5760405163171c5d6160e01b815260040160405180910390fd5b600061082e60566050898b611a50565b61083791611afb565b60d01c9050600061084c605c60568a8c611a50565b61085591611afb565b60d01c905065ffffffffffff821681111580610877575065ffffffffffff8116155b80610888575065ffffffffffff8216155b156108b857604051630a6c748560e11b815265ffffffffffff808416600483015282166024820152604401610716565b6040518060e00160405280876001600160a01b03168152602001866001600160e01b0319168152602001856001600160e01b03191681526020018481526020018365ffffffffffff1681526020018265ffffffffffff1681526020016000151581525060026000896001600160a01b03166001600160a01b031681526020019081526020016000206000336001600160a01b03166001600160a01b0316815260200190815260200160002060008201518160000160006101000a8154816001600160a01b0302191690836001600160a01b0316021790555060208201518160000160146101000a81548163ffffffff021916908360e01c021790555060408201518160000160186101000a81548163ffffffff021916908360e01c02179055506060820151816001015560808201518160020160006101000a81548165ffffffffffff021916908365ffffffffffff16021790555060a08201518160020160066101000a81548165ffffffffffff021916908365ffffffffffff16021790555060c082015181600201600c6101000a81548160ff02191690831515021790555090505060016000336001600160a01b03166001600160a01b03168152602001908152602001600020879080600181540180825580915050600190039060005260206000200160009091909190916101000a8154816001600160a01b0302191690836001600160a01b031602179055507f3c8d6097a1246293dc66a3eeb0db267cb28a5b6c3367e2de5f331659222eb1ff8733604051610b0d9291906001600160a01b0392831681529116602082015260400190565b60405180910390a1505050505050505050565b3360009081526020819052604090205460ff161515600103610b5557604051639fb25a0560e01b815260040160405180910390fd5b3360008181526020818152604091829020805460ff1916600117905590519182527fa6d916f9c8039923d6c8929c933b9417bdeeceb2dfbb39525b8a2269094d5e3c91016105ee565b3360009081526020819052604081205460ff1615159003610bd2576040516317bd7c1760e31b815260040160405180910390fd5b6000610bdc611331565b805190915060005b81811015610c665760026000848381518110610c0257610c02611b29565b6020908102919091018101516001600160a01b031682528181019290925260409081016000908120338252909252812080546001600160e01b031916815560018082019290925560020180546cffffffffffffffffffffffffff1916905501610be4565b50336000908152600160205260408120610c7f916116d7565b3360008181526020818152604091829020805460ff1916905590519182527fd168e595dbfa90dd76eed9c2c9b6c3a9892ae9e79dd68661b0e26f30c582cd4d910160405180910390a150505050565b60016020528160005260406000208181548110610cea57600080fd5b6000918252602090912001546001600160a01b03169150829050565b600080610d38836020527b19457468657265756d205369676e6564204d6573736167653a0a3332600052603c60042090565b90506000610d8882610d4e610100880188611b3f565b8080601f0160208091040260200160405190810160405280939291908181526020018383808284376000920191909152506113cd92505050565b9050610d948186610e5c565b610da357600192505050610e56565b6001600160a01b0381811660009081526002602081815260408084203385528252808420815160e0808201845282549788168252600160a01b8804811b6001600160e01b031990811695830195909552600160c01b90970490961b9092169085015260018101546060850152015465ffffffffffff80821660808501819052600160301b830490911660a08501819052600160601b90920460ff16151560c0850152610e5092919061145e565b93505050505b92915050565b60003681610e6d6060850185611b3f565b915091506000806000806000610e838787611496565b945094509450945094506000600260008c6001600160a01b03166001600160a01b031681526020019081526020016000206000336001600160a01b03166001600160a01b031681526020019081526020016000206040518060e00160405290816000820160009054906101000a90046001600160a01b03166001600160a01b03166001600160a01b031681526020016000820160149054906101000a900460e01b6001600160e01b0319166001600160e01b03191681526020016000820160189054906101000a900460e01b6001600160e01b0319166001600160e01b0319168152602001600182015481526020016002820160009054906101000a900465ffffffffffff1665ffffffffffff1665ffffffffffff1681526020016002820160069054906101000a900465ffffffffffff1665ffffffffffff1665ffffffffffff16815260200160028201600c9054906101000a900460ff16151515158152505090508060a0015165ffffffffffff166000148061100c5750428160a0015165ffffffffffff16105b806110215750608081015165ffffffffffff16155b80611037575042816080015165ffffffffffff16115b1561105557604051636ed16c7960e01b815260040160405180910390fd5b80516001600160a01b038681169116146110825760405163218d2fb360e11b815260040160405180910390fd5b60208101516040516301ffc9a760e01b81526001600160e01b031990911660048201526001600160a01b038616906301ffc9a790602401602060405180830381865afa1580156110d6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906110fa9190611b86565b151560000361111c57604051630863587160e11b815260040160405180910390fd5b60408101516001600160e01b03198781169116146111595760405163a47eb18d60e01b81526001600160e01b031987166004820152602401610716565b806060015182111561117e57604051638d6d48cb60e01b815260040160405180910390fd5b6111878b6111d9565b156111b0576040516374d12a8360e01b81526001600160a01b038c166004820152602401610716565b5060019a9950505050505050505050565b6111ca8361120b565b6111d48282610667565b505050565b6001600160a01b031660009081526002602081815260408084203385529091529091200154600160601b900460ff1690565b6001600160a01b038116600090815260026020818152604080842033855290915282200154600160301b900465ffffffffffff169003611269576040516315aab36760e31b81526001600160a01b0382166004820152602401610716565b6001600160a01b0381166000908152600260208181526040808420338552909152822080546001600160e01b031916815560018101929092550180546cffffffffffffffffffffffffff191690556112c86112c2611331565b82611575565b33600090815260016020908152604090912082516112ec93919291909101906116f8565b50604080516001600160a01b03831681523360208201527f3552ecdbdb725cc8b621be8a316008bbcb5bc1e72e9a6b08da9b20bd7f78266d910160405180910390a150565b3360009081526001602090815260409182902080548351818402810184019094528084526060939283018282801561139257602002820191906000526020600020905b81546001600160a01b03168152600190910190602001808311611374575b5050505050905090565b600060405163d623472560e01b815260040160405180910390fd5b6000806113c4848461166e565b95945050505050565b604051600190836000526020830151604052604083510361140957604083015160ff81901c601b016020526001600160ff1b031660605261142f565b604183510361142a57606083015160001a602052604083015160605261142f565b600091505b6020600160806000855afa5191503d61145057638baa579f6000526004601cfd5b600060605260405292915050565b600060d08265ffffffffffff16901b60a08465ffffffffffff16901b85611486576000611489565b60015b60ff161717949350505050565b6000600483013581808086356001600160e01b0319811663095ea7b360e01b14806114d157506001600160e01b0319811663a9059cbb60e01b145b806114ec57506001600160e01b0319811663010a5c0b60e41b145b1561150e5794505050506004840135905060248401356000604486013561156b565b63dc478d2360e01b6001600160e01b03198216016115465794505050506004840135905060448401356024850135606486013561156b565b60405163a47eb18d60e01b81526001600160e01b031982166004820152602401610716565b9295509295909350565b60606000600184516115879190611bbe565b67ffffffffffffffff81111561159f5761159f611bd1565b6040519080825280602002602001820160405280156115c8578160200160208202803683370190505b5090506000805b855181101561166457846001600160a01b03168682815181106115f4576115f4611b29565b60200260200101516001600160a01b03161461165c5785818151811061161c5761161c611b29565b602002602001015183838151811061163657611636611b29565b6001600160a01b03909216602092830291909101909101528161165881611be7565b9250505b6001016115cf565b5090949350505050565b81516000908190815b818110156116c657846001600160a01b031686828151811061169b5761169b611b29565b60200260200101516001600160a01b0316036116be579250600191506116d09050565b600101611677565b5060008092509250505b9250929050565b50805460008255906000526020600020908101906116f5919061175d565b50565b82805482825590600052602060002090810192821561174d579160200282015b8281111561174d57825182546001600160a01b0319166001600160a01b03909116178255602090920191600190910190611718565b5061175992915061175d565b5090565b5b80821115611759576000815560010161175e565b80356001600160a01b038116811461178957600080fd5b919050565b6000602082840312156117a057600080fd5b6117a982611772565b9392505050565b60008083601f8401126117c257600080fd5b50813567ffffffffffffffff8111156117da57600080fd5b6020830191508360208285010111156116d057600080fd5b6000806020838503121561180557600080fd5b823567ffffffffffffffff81111561181c57600080fd5b611828858286016117b0565b90969095509350505050565b6000806040838503121561184757600080fd5b61185083611772565b915061185e60208401611772565b90509250929050565b6000806040838503121561187a57600080fd5b61188383611772565b946020939093013593505050565b600061012082840312156118a457600080fd5b50919050565b600080604083850312156118bd57600080fd5b823567ffffffffffffffff8111156118d457600080fd5b6118e085828601611891565b95602094909401359450505050565b6000806040838503121561190257600080fd5b61190b83611772565b9150602083013567ffffffffffffffff81111561192757600080fd5b61193385828601611891565b9150509250929050565b60008060006040848603121561195257600080fd5b61195b84611772565b9250602084013567ffffffffffffffff81111561197757600080fd5b611983868287016117b0565b9497909650939450505050565b6020808252825182820181905260009190848201906040850190845b818110156119d15783516001600160a01b0316835292840192918401916001016119ac565b50909695505050505050565b6000602082840312156119ef57600080fd5b5035919050565b60008060008060608587031215611a0c57600080fd5b611a1585611772565b935060208501359250604085013567ffffffffffffffff811115611a3857600080fd5b611a44878288016117b0565b95989497509550505050565b60008085851115611a6057600080fd5b83861115611a6d57600080fd5b5050820193919092039150565b6bffffffffffffffffffffffff198135818116916014851015611aa75780818660140360031b1b83161692505b505092915050565b6001600160e01b03198135818116916004851015611aa75760049490940360031b84901b1690921692915050565b80356020831015610e5657600019602084900360031b1b1692915050565b6001600160d01b03198135818116916006851015611aa75760069490940360031b84901b1690921692915050565b634e487b7160e01b600052603260045260246000fd5b6000808335601e19843603018112611b5657600080fd5b83018035915067ffffffffffffffff821115611b7157600080fd5b6020019150368190038213156116d057600080fd5b600060208284031215611b9857600080fd5b815180151581146117a957600080fd5b634e487b7160e01b600052601160045260246000fd5b81810381811115610e5657610e56611ba8565b634e487b7160e01b600052604160045260246000fd5b600060018201611bf957611bf9611ba8565b506001019056fea2646970667358221220fc42ce8038c2e6ed23a4fec6ba556bf4c2be896eaf600e696efc6eede2f0e57c64736f6c63430008170033",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061010b5760003560e01c8063c037ee19116100a2578063d60b347f11610071578063d60b347f14610453578063d8d38e421461047f578063e08dd00814610492578063ecd05961146104a7578063f551e2ee146104bb57600080fd5b8063c037ee19146103e7578063c602e59c1461040a578063cbca47db1461041d578063cc8cbd281461044057600080fd5b80636d61fe70116100de5780636d61fe70146103755780638a91b0e3146103885780638aaa6a401461039b57806397003203146103c657600080fd5b8063110891c11461011057806320cbdcc61461027a578063495079a01461028f57806352721fdd146102a2575b600080fd5b6101fa61011e36600461178e565b6040805160e081018252600080825260208201819052918101829052606081018290526080810182905260a0810182905260c0810191909152506001600160a01b039081166000908152600260208181526040808420338552825292839020835160e08082018652825496871682526001600160e01b0319600160a01b8804821b811694830194909452600160c01b90960490951b9091169284019290925260018201546060840152015465ffffffffffff8082166080840152600160301b82041660a083015260ff600160601b90910416151560c082015290565b6040805182516001600160a01b031681526020808401516001600160e01b0319908116918301919091528383015116918101919091526060808301519082015260808083015165ffffffffffff9081169183019190915260a0808401519091169082015260c09182015115159181019190915260e0015b60405180910390f35b61028d61028836600461178e565b6104e7565b005b61028d61029d3660046117f2565b610667565b61031b6102b0366004611834565b600260208181526000938452604080852090915291835291208054600182015491909201546001600160a01b03831692600160a01b810460e090811b93600160c01b909204901b9165ffffffffffff80821691600160301b810490911690600160601b900460ff1687565b604080516001600160a01b039890981688526001600160e01b031996871660208901529490951693860193909352606085019190915265ffffffffffff90811660808501521660a0830152151560c082015260e001610271565b61028d6103833660046117f2565b610b20565b61028d6103963660046117f2565b610b9e565b6103ae6103a9366004611867565b610cce565b6040516001600160a01b039091168152602001610271565b6103d96103d43660046118aa565b610d06565b604051908152602001610271565b6103fa6103f53660046118ef565b610e5c565b6040519015158152602001610271565b61028d61041836600461193d565b6111c1565b6103fa61042b36600461178e565b60006020819052908152604090205460ff1681565b6103fa61044e36600461178e565b6111d9565b6103fa61046136600461178e565b6001600160a01b031660009081526020819052604090205460ff1690565b61028d61048d36600461178e565b61120b565b61049a611331565b6040516102719190611990565b6103fa6104b53660046119dd565b60011490565b6104ce6104c93660046119f6565b61139c565b6040516001600160e01b03199091168152602001610271565b6001600160a01b038082166000908152600260208181526040808420338552825292839020835160e08082018652825496871682526001600160e01b0319600160a01b8804821b811694830194909452600160c01b90960490951b9091169284019290925260018201546060840152015465ffffffffffff8082166080840152600160301b82041660a083015260ff600160601b9091041615801560c08301526105fa576001600160a01b03821660008181526002602081815260408084203380865290835293819020909201805460ff60601b1916905581519384528301919091527fdafe9b16860cb2a92db27f042fbea578512b3290e6025be770cafb9f82d253ae91015b60405180910390a15050565b6001600160a01b03821660008181526002602081815260408084203380865290835293819020909201805460ff60601b1916600160601b17905581519384528301919091527ff5eec43346204709e3490be81892a0abceba36de8afb2c87c9c8b62565cf0a7b91016105ee565b60006106766014828486611a50565b61067f91611a7a565b60601c9050806106a257604051636ed16c7960e01b815260040160405180910390fd5b6001600160a01b03811660009081526002602081815260408084203385529091529091200154600160301b900465ffffffffffff16158015906106f157506106f16106eb611331565b826113b7565b1561071f576040516353a146e760e11b81526001600160a01b03821660048201526024015b60405180910390fd5b600061072f602860148587611a50565b61073891611a7a565b60601c90508061075b57604051630c99762360e11b815260040160405180910390fd5b600061076b602c60288688611a50565b61077491611aaf565b90506001600160e01b0319811661079e57604051639c7bab4360e01b815260040160405180910390fd5b60006107ae6030602c8789611a50565b6107b791611aaf565b90506001600160e01b031981166107e15760405163b17e3ec360e01b815260040160405180910390fd5b60006107f160506030888a611a50565b6107fa91611add565b9050600081900361081e5760405163171c5d6160e01b815260040160405180910390fd5b600061082e60566050898b611a50565b61083791611afb565b60d01c9050600061084c605c60568a8c611a50565b61085591611afb565b60d01c905065ffffffffffff821681111580610877575065ffffffffffff8116155b80610888575065ffffffffffff8216155b156108b857604051630a6c748560e11b815265ffffffffffff808416600483015282166024820152604401610716565b6040518060e00160405280876001600160a01b03168152602001866001600160e01b0319168152602001856001600160e01b03191681526020018481526020018365ffffffffffff1681526020018265ffffffffffff1681526020016000151581525060026000896001600160a01b03166001600160a01b031681526020019081526020016000206000336001600160a01b03166001600160a01b0316815260200190815260200160002060008201518160000160006101000a8154816001600160a01b0302191690836001600160a01b0316021790555060208201518160000160146101000a81548163ffffffff021916908360e01c021790555060408201518160000160186101000a81548163ffffffff021916908360e01c02179055506060820151816001015560808201518160020160006101000a81548165ffffffffffff021916908365ffffffffffff16021790555060a08201518160020160066101000a81548165ffffffffffff021916908365ffffffffffff16021790555060c082015181600201600c6101000a81548160ff02191690831515021790555090505060016000336001600160a01b03166001600160a01b03168152602001908152602001600020879080600181540180825580915050600190039060005260206000200160009091909190916101000a8154816001600160a01b0302191690836001600160a01b031602179055507f3c8d6097a1246293dc66a3eeb0db267cb28a5b6c3367e2de5f331659222eb1ff8733604051610b0d9291906001600160a01b0392831681529116602082015260400190565b60405180910390a1505050505050505050565b3360009081526020819052604090205460ff161515600103610b5557604051639fb25a0560e01b815260040160405180910390fd5b3360008181526020818152604091829020805460ff1916600117905590519182527fa6d916f9c8039923d6c8929c933b9417bdeeceb2dfbb39525b8a2269094d5e3c91016105ee565b3360009081526020819052604081205460ff1615159003610bd2576040516317bd7c1760e31b815260040160405180910390fd5b6000610bdc611331565b805190915060005b81811015610c665760026000848381518110610c0257610c02611b29565b6020908102919091018101516001600160a01b031682528181019290925260409081016000908120338252909252812080546001600160e01b031916815560018082019290925560020180546cffffffffffffffffffffffffff1916905501610be4565b50336000908152600160205260408120610c7f916116d7565b3360008181526020818152604091829020805460ff1916905590519182527fd168e595dbfa90dd76eed9c2c9b6c3a9892ae9e79dd68661b0e26f30c582cd4d910160405180910390a150505050565b60016020528160005260406000208181548110610cea57600080fd5b6000918252602090912001546001600160a01b03169150829050565b600080610d38836020527b19457468657265756d205369676e6564204d6573736167653a0a3332600052603c60042090565b90506000610d8882610d4e610100880188611b3f565b8080601f0160208091040260200160405190810160405280939291908181526020018383808284376000920191909152506113cd92505050565b9050610d948186610e5c565b610da357600192505050610e56565b6001600160a01b0381811660009081526002602081815260408084203385528252808420815160e0808201845282549788168252600160a01b8804811b6001600160e01b031990811695830195909552600160c01b90970490961b9092169085015260018101546060850152015465ffffffffffff80821660808501819052600160301b830490911660a08501819052600160601b90920460ff16151560c0850152610e5092919061145e565b93505050505b92915050565b60003681610e6d6060850185611b3f565b915091506000806000806000610e838787611496565b945094509450945094506000600260008c6001600160a01b03166001600160a01b031681526020019081526020016000206000336001600160a01b03166001600160a01b031681526020019081526020016000206040518060e00160405290816000820160009054906101000a90046001600160a01b03166001600160a01b03166001600160a01b031681526020016000820160149054906101000a900460e01b6001600160e01b0319166001600160e01b03191681526020016000820160189054906101000a900460e01b6001600160e01b0319166001600160e01b0319168152602001600182015481526020016002820160009054906101000a900465ffffffffffff1665ffffffffffff1665ffffffffffff1681526020016002820160069054906101000a900465ffffffffffff1665ffffffffffff1665ffffffffffff16815260200160028201600c9054906101000a900460ff16151515158152505090508060a0015165ffffffffffff166000148061100c5750428160a0015165ffffffffffff16105b806110215750608081015165ffffffffffff16155b80611037575042816080015165ffffffffffff16115b1561105557604051636ed16c7960e01b815260040160405180910390fd5b80516001600160a01b038681169116146110825760405163218d2fb360e11b815260040160405180910390fd5b60208101516040516301ffc9a760e01b81526001600160e01b031990911660048201526001600160a01b038616906301ffc9a790602401602060405180830381865afa1580156110d6573d6000803e3d6000fd5b505050506040513d601f19601f820116820180604052508101906110fa9190611b86565b151560000361111c57604051630863587160e11b815260040160405180910390fd5b60408101516001600160e01b03198781169116146111595760405163a47eb18d60e01b81526001600160e01b031987166004820152602401610716565b806060015182111561117e57604051638d6d48cb60e01b815260040160405180910390fd5b6111878b6111d9565b156111b0576040516374d12a8360e01b81526001600160a01b038c166004820152602401610716565b5060019a9950505050505050505050565b6111ca8361120b565b6111d48282610667565b505050565b6001600160a01b031660009081526002602081815260408084203385529091529091200154600160601b900460ff1690565b6001600160a01b038116600090815260026020818152604080842033855290915282200154600160301b900465ffffffffffff169003611269576040516315aab36760e31b81526001600160a01b0382166004820152602401610716565b6001600160a01b0381166000908152600260208181526040808420338552909152822080546001600160e01b031916815560018101929092550180546cffffffffffffffffffffffffff191690556112c86112c2611331565b82611575565b33600090815260016020908152604090912082516112ec93919291909101906116f8565b50604080516001600160a01b03831681523360208201527f3552ecdbdb725cc8b621be8a316008bbcb5bc1e72e9a6b08da9b20bd7f78266d910160405180910390a150565b3360009081526001602090815260409182902080548351818402810184019094528084526060939283018282801561139257602002820191906000526020600020905b81546001600160a01b03168152600190910190602001808311611374575b5050505050905090565b600060405163d623472560e01b815260040160405180910390fd5b6000806113c4848461166e565b95945050505050565b604051600190836000526020830151604052604083510361140957604083015160ff81901c601b016020526001600160ff1b031660605261142f565b604183510361142a57606083015160001a602052604083015160605261142f565b600091505b6020600160806000855afa5191503d61145057638baa579f6000526004601cfd5b600060605260405292915050565b600060d08265ffffffffffff16901b60a08465ffffffffffff16901b85611486576000611489565b60015b60ff161717949350505050565b6000600483013581808086356001600160e01b0319811663095ea7b360e01b14806114d157506001600160e01b0319811663a9059cbb60e01b145b806114ec57506001600160e01b0319811663010a5c0b60e41b145b1561150e5794505050506004840135905060248401356000604486013561156b565b63dc478d2360e01b6001600160e01b03198216016115465794505050506004840135905060448401356024850135606486013561156b565b60405163a47eb18d60e01b81526001600160e01b031982166004820152602401610716565b9295509295909350565b60606000600184516115879190611bbe565b67ffffffffffffffff81111561159f5761159f611bd1565b6040519080825280602002602001820160405280156115c8578160200160208202803683370190505b5090506000805b855181101561166457846001600160a01b03168682815181106115f4576115f4611b29565b60200260200101516001600160a01b03161461165c5785818151811061161c5761161c611b29565b602002602001015183838151811061163657611636611b29565b6001600160a01b03909216602092830291909101909101528161165881611be7565b9250505b6001016115cf565b5090949350505050565b81516000908190815b818110156116c657846001600160a01b031686828151811061169b5761169b611b29565b60200260200101516001600160a01b0316036116be579250600191506116d09050565b600101611677565b5060008092509250505b9250929050565b50805460008255906000526020600020908101906116f5919061175d565b50565b82805482825590600052602060002090810192821561174d579160200282015b8281111561174d57825182546001600160a01b0319166001600160a01b03909116178255602090920191600190910190611718565b5061175992915061175d565b5090565b5b80821115611759576000815560010161175e565b80356001600160a01b038116811461178957600080fd5b919050565b6000602082840312156117a057600080fd5b6117a982611772565b9392505050565b60008083601f8401126117c257600080fd5b50813567ffffffffffffffff8111156117da57600080fd5b6020830191508360208285010111156116d057600080fd5b6000806020838503121561180557600080fd5b823567ffffffffffffffff81111561181c57600080fd5b611828858286016117b0565b90969095509350505050565b6000806040838503121561184757600080fd5b61185083611772565b915061185e60208401611772565b90509250929050565b6000806040838503121561187a57600080fd5b61188383611772565b946020939093013593505050565b600061012082840312156118a457600080fd5b50919050565b600080604083850312156118bd57600080fd5b823567ffffffffffffffff8111156118d457600080fd5b6118e085828601611891565b95602094909401359450505050565b6000806040838503121561190257600080fd5b61190b83611772565b9150602083013567ffffffffffffffff81111561192757600080fd5b61193385828601611891565b9150509250929050565b60008060006040848603121561195257600080fd5b61195b84611772565b9250602084013567ffffffffffffffff81111561197757600080fd5b611983868287016117b0565b9497909650939450505050565b6020808252825182820181905260009190848201906040850190845b818110156119d15783516001600160a01b0316835292840192918401916001016119ac565b50909695505050505050565b6000602082840312156119ef57600080fd5b5035919050565b60008060008060608587031215611a0c57600080fd5b611a1585611772565b935060208501359250604085013567ffffffffffffffff811115611a3857600080fd5b611a44878288016117b0565b95989497509550505050565b60008085851115611a6057600080fd5b83861115611a6d57600080fd5b5050820193919092039150565b6bffffffffffffffffffffffff198135818116916014851015611aa75780818660140360031b1b83161692505b505092915050565b6001600160e01b03198135818116916004851015611aa75760049490940360031b84901b1690921692915050565b80356020831015610e5657600019602084900360031b1b1692915050565b6001600160d01b03198135818116916006851015611aa75760069490940360031b84901b1690921692915050565b634e487b7160e01b600052603260045260246000fd5b6000808335601e19843603018112611b5657600080fd5b83018035915067ffffffffffffffff821115611b7157600080fd5b6020019150368190038213156116d057600080fd5b600060208284031215611b9857600080fd5b815180151581146117a957600080fd5b634e487b7160e01b600052601160045260246000fd5b81810381811115610e5657610e56611ba8565b634e487b7160e01b600052604160045260246000fd5b600060018201611bf957611bf9611ba8565b506001019056fea2646970667358221220fc42ce8038c2e6ed23a4fec6ba556bf4c2be896eaf600e696efc6eede2f0e57c64736f6c63430008170033",
+  "devdoc": {
+    "events": {
+      "ERC20SKV_ModuleInstalled(address)": {
+        "params": {
+          "wallet": "The address of the wallet for which the module is installed."
+        }
+      },
+      "ERC20SKV_ModuleUninstalled(address)": {
+        "params": {
+          "wallet": "The address of the wallet from which the module is uninstalled."
+        }
+      },
+      "ERC20SKV_SessionKeyDisabled(address,address)": {
+        "params": {
+          "sessionKey": "The address of the session key.",
+          "wallet": "The address of the wallet for which the session key is disabled."
+        }
+      },
+      "ERC20SKV_SessionKeyEnabled(address,address)": {
+        "params": {
+          "sessionKey": "The address of the session key.",
+          "wallet": "The address of the wallet for which the session key is enabled."
+        }
+      },
+      "ERC20SKV_SessionKeyPaused(address,address)": {
+        "params": {
+          "sessionKey": "The address of the session key.",
+          "wallet": "The address of the wallet for which the session key is paused."
+        }
+      },
+      "ERC20SKV_SessionKeyUnpaused(address,address)": {
+        "params": {
+          "sessionKey": "The address of the session key.",
+          "wallet": "The address of the wallet for which the session key is unpaused."
+        }
+      }
+    },
+    "kind": "dev",
+    "methods": {
+      "checkSessionKeyPaused(address)": {
+        "params": {
+          "_sessionKey": "The address of the session key to check."
+        },
+        "returns": {
+          "_0": "True if the session key is paused, false otherwise."
+        }
+      },
+      "disableSessionKey(address)": {
+        "params": {
+          "_session": "The address of the session key to disable."
+        }
+      },
+      "enableSessionKey(bytes)": {
+        "params": {
+          "_sessionData": "The encoded session data containing the session key address, token address, interface ID, function selector, spending limit, valid after timestamp, and valid until timestamp."
+        }
+      },
+      "getAssociatedSessionKeys()": {
+        "returns": {
+          "_0": "The array of associated session key addresses."
+        }
+      },
+      "getSessionKeyData(address)": {
+        "params": {
+          "_sessionKey": "The address of the session key."
+        },
+        "returns": {
+          "_0": "The session data struct."
+        }
+      },
+      "isInitialized(address)": {
+        "params": {
+          "smartAccount": "The address of the smart account."
+        },
+        "returns": {
+          "_0": "True if the smart account is initialized, false otherwise."
+        }
+      },
+      "isModuleType(uint256)": {
+        "params": {
+          "moduleTypeId": "The module type ID to check."
+        },
+        "returns": {
+          "_0": "True if the module type matches the validator module type, false otherwise."
+        }
+      },
+      "isValidSignatureWithSender(address,bytes32,bytes)": {
+        "params": {
+          "data": "The data associated with the message.",
+          "hash": "The hash of the message.",
+          "sender": "The address of the sender."
+        },
+        "returns": {
+          "_0": "A bytes4 value indicating the function is not implemented."
+        }
+      },
+      "onInstall(bytes)": {
+        "params": {
+          "data": "The data to pass during installation."
+        }
+      },
+      "onUninstall(bytes)": {
+        "params": {
+          "data": "The data to pass during uninstallation."
+        }
+      },
+      "rotateSessionKey(address,bytes)": {
+        "params": {
+          "_newSessionData": "The encoded session data for the new session key.",
+          "_oldSessionKey": "The address of the old session key to disable."
+        }
+      },
+      "toggleSessionKeyPause(address)": {
+        "params": {
+          "_sessionKey": "The address of the session key to toggle the pause state for."
+        }
+      },
+      "validateSessionKeyParams(address,(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes))": {
+        "params": {
+          "_sessionKey": "The address of the session key.",
+          "userOp": "The packed user operation containing the call data."
+        },
+        "returns": {
+          "_0": "True if the session key parameters are valid for the user operation, false otherwise."
+        }
+      },
+      "validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)": {
+        "params": {
+          "userOp": "The packed user operation.",
+          "userOpHash": "The hash of the user operation."
+        },
+        "returns": {
+          "_0": "The validation data containing the expiration time and valid after timestamp of the session key."
+        }
+      }
+    },
+    "version": 1
+  },
+  "userdoc": {
+    "events": {
+      "ERC20SKV_ModuleInstalled(address)": {
+        "notice": "Emitted when the ERC20 Session Key Validator module is installed for a wallet."
+      },
+      "ERC20SKV_ModuleUninstalled(address)": {
+        "notice": "Emitted when the ERC20 Session Key Validator module is uninstalled from a wallet."
+      },
+      "ERC20SKV_SessionKeyDisabled(address,address)": {
+        "notice": "Emitted when a session key is disabled for a wallet."
+      },
+      "ERC20SKV_SessionKeyEnabled(address,address)": {
+        "notice": "Emitted when a new session key is enabled for a wallet."
+      },
+      "ERC20SKV_SessionKeyPaused(address,address)": {
+        "notice": "Emitted when a session key is paused for a wallet."
+      },
+      "ERC20SKV_SessionKeyUnpaused(address,address)": {
+        "notice": "Emitted when a session key is unpaused for a wallet."
+      }
+    },
+    "kind": "user",
+    "methods": {
+      "checkSessionKeyPaused(address)": {
+        "notice": "Checks if a session key is paused for the caller's wallet."
+      },
+      "disableSessionKey(address)": {
+        "notice": "Disables a session key for the caller's wallet."
+      },
+      "enableSessionKey(bytes)": {
+        "notice": "Enables a new session key for the caller's wallet."
+      },
+      "getAssociatedSessionKeys()": {
+        "notice": "Returns the list of associated session keys for the caller's wallet."
+      },
+      "getSessionKeyData(address)": {
+        "notice": "Returns the session data for a given session key and the caller's wallet."
+      },
+      "isInitialized(address)": {
+        "notice": "Reverts with a \"NotImplemented\" error."
+      },
+      "isModuleType(uint256)": {
+        "notice": "Checks if the module type matches the validator module type."
+      },
+      "isValidSignatureWithSender(address,bytes32,bytes)": {
+        "notice": "Reverts with a \"NotImplemented\" error."
+      },
+      "onInstall(bytes)": {
+        "notice": "Placeholder function for module installation."
+      },
+      "onUninstall(bytes)": {
+        "notice": "Placeholder function for module uninstallation."
+      },
+      "rotateSessionKey(address,bytes)": {
+        "notice": "Rotates a session key by disabling the old one and enabling a new one."
+      },
+      "toggleSessionKeyPause(address)": {
+        "notice": "Toggles the pause state of a session key for the caller's wallet."
+      },
+      "validateSessionKeyParams(address,(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes))": {
+        "notice": "Validates the parameters of a session key for a given user operation."
+      },
+      "validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)": {
+        "notice": "Validates a user operation using a session key."
+      }
+    },
+    "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 6090,
+        "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+        "label": "initialized",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_mapping(t_address,t_bool)"
+      },
+      {
+        "astId": 6095,
+        "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+        "label": "walletSessionKeys",
+        "offset": 0,
+        "slot": "1",
+        "type": "t_mapping(t_address,t_array(t_address)dyn_storage)"
+      },
+      {
+        "astId": 6102,
+        "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+        "label": "sessionData",
+        "offset": 0,
+        "slot": "2",
+        "type": "t_mapping(t_address,t_mapping(t_address,t_struct(SessionData)5146_storage))"
+      }
+    ],
+    "types": {
+      "t_address": {
+        "encoding": "inplace",
+        "label": "address",
+        "numberOfBytes": "20"
+      },
+      "t_array(t_address)dyn_storage": {
+        "base": "t_address",
+        "encoding": "dynamic_array",
+        "label": "address[]",
+        "numberOfBytes": "32"
+      },
+      "t_bool": {
+        "encoding": "inplace",
+        "label": "bool",
+        "numberOfBytes": "1"
+      },
+      "t_bytes4": {
+        "encoding": "inplace",
+        "label": "bytes4",
+        "numberOfBytes": "4"
+      },
+      "t_mapping(t_address,t_array(t_address)dyn_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => address[])",
+        "numberOfBytes": "32",
+        "value": "t_array(t_address)dyn_storage"
+      },
+      "t_mapping(t_address,t_bool)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => bool)",
+        "numberOfBytes": "32",
+        "value": "t_bool"
+      },
+      "t_mapping(t_address,t_mapping(t_address,t_struct(SessionData)5146_storage))": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => mapping(address => struct IERC20SessionKeyValidator.SessionData))",
+        "numberOfBytes": "32",
+        "value": "t_mapping(t_address,t_struct(SessionData)5146_storage)"
+      },
+      "t_mapping(t_address,t_struct(SessionData)5146_storage)": {
+        "encoding": "mapping",
+        "key": "t_address",
+        "label": "mapping(address => struct IERC20SessionKeyValidator.SessionData)",
+        "numberOfBytes": "32",
+        "value": "t_struct(SessionData)5146_storage"
+      },
+      "t_struct(SessionData)5146_storage": {
+        "encoding": "inplace",
+        "label": "struct IERC20SessionKeyValidator.SessionData",
+        "members": [
+          {
+            "astId": 5133,
+            "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+            "label": "token",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address"
+          },
+          {
+            "astId": 5135,
+            "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+            "label": "interfaceId",
+            "offset": 20,
+            "slot": "0",
+            "type": "t_bytes4"
+          },
+          {
+            "astId": 5137,
+            "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+            "label": "funcSelector",
+            "offset": 24,
+            "slot": "0",
+            "type": "t_bytes4"
+          },
+          {
+            "astId": 5139,
+            "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+            "label": "spendingLimit",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_uint256"
+          },
+          {
+            "astId": 5141,
+            "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+            "label": "validAfter",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_uint48"
+          },
+          {
+            "astId": 5143,
+            "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+            "label": "validUntil",
+            "offset": 6,
+            "slot": "2",
+            "type": "t_uint48"
+          },
+          {
+            "astId": 5145,
+            "contract": "src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol:ERC20SessionKeyValidator",
+            "label": "paused",
+            "offset": 12,
+            "slot": "2",
+            "type": "t_bool"
+          }
+        ],
+        "numberOfBytes": "96"
+      },
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      },
+      "t_uint48": {
+        "encoding": "inplace",
+        "label": "uint48",
+        "numberOfBytes": "6"
+      }
+    }
+  }
+}

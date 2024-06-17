@@ -24,7 +24,7 @@ contract StakeModularWalletFactoryScript is Script {
 
         console2.log("Staking wallet factory...");
         // stake wallet factory
-        ModularEtherspotWalletFactory(EXPECTED_FACTORY).addStake{value: 1e17}(
+        ModularEtherspotWalletFactory(EXPECTED_FACTORY).addStake{value: 1e16}(
             ENTRY_POINT_07,
             86400
         );
