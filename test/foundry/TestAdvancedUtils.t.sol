@@ -18,6 +18,7 @@ import "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/En
 import {ModularEtherspotWallet} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator.sol";
 import {ERC20SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol";
+import {SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validators/SessionKeyValidator.sol";
 
 contract TestAdvancedUtils is BootstrapUtil, Test {
     // singletons
@@ -30,6 +31,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     MockFallback fallbackHandler;
     MultipleOwnerECDSAValidator ecdsaValidator;
     ERC20SessionKeyValidator sessionKeyValidator;
+    SessionKeyValidator genericSessionKeyValidator;
 
     ModularEtherspotWallet mewAccount;
     MockTarget target;
@@ -55,8 +57,11 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         // MultipleOwnerECDSAValidator for MEW
         ecdsaValidator = new MultipleOwnerECDSAValidator();
 
-        // SimpleSessionKeyValidtor for MEW
+        // ERC20SessionKeyValidtor for MEW
         sessionKeyValidator = new ERC20SessionKeyValidator();
+
+        // SessionKeyValidator for MEW
+        genericSessionKeyValidator = new SessionKeyValidator();
 
         // Set up Target for testing
         target = new MockTarget();
@@ -233,6 +238,52 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         BootstrapConfig[] memory validators = new BootstrapConfig[](2);
         validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
         validators[1] = _makeBootstrapConfig(address(sessionKeyValidator), "");
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
+            ""
+        );
+
+        // Create owner
+        (owner1, owner1Key) = makeAddrAndKey("owner1");
+        vm.deal(owner1, 100 ether);
+
+        // Create initcode and salt to be sent to Factory
+        bytes memory _initCode = abi.encode(
+            owner1,
+            address(bootstrapSingleton),
+            abi.encodeCall(
+                bootstrapSingleton.initMSA,
+                (validators, executors, hook, fallbacks)
+            )
+        );
+        bytes32 salt = keccak256("1");
+
+        vm.startPrank(owner1);
+        // create account
+        mewAccount = ModularEtherspotWallet(
+            payable(factory.createAccount({salt: salt, initCode: _initCode}))
+        );
+        vm.deal(address(mewAccount), 100 ether);
+        vm.stopPrank();
+        return mewAccount;
+    }
+
+    function setupMEWWithGenericSessionKeys()
+        internal
+        returns (ModularEtherspotWallet mew)
+    {
+        // Create config for initial modules
+        BootstrapConfig[] memory validators = new BootstrapConfig[](2);
+        validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
+        validators[1] = _makeBootstrapConfig(
+            address(genericSessionKeyValidator),
+            ""
+        );
         BootstrapConfig[] memory executors = makeBootstrapConfig(
             address(defaultExecutor),
             ""
