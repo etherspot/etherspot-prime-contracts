@@ -594,10 +594,9 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         sessionKeyValidator.disableSessionKey(sessionKeyAddr);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IEntryPoint.FailedOpWithRevert.selector,
+                IEntryPoint.FailedOp.selector,
                 0,
-                "AA23 reverted",
-                abi.encodeWithSignature("ERC20SKV_InvalidSessionKey()")
+                "AA24 signature error"
             )
         );
         entrypoint.handleOps(userOps, beneficiary);
@@ -645,15 +644,9 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         userOps[0] = userOp;
         vm.expectRevert(
             abi.encodeWithSelector(
-                IEntryPoint.FailedOpWithRevert.selector,
+                IEntryPoint.FailedOp.selector,
                 0,
-                "AA23 reverted",
-                abi.encodeWithSelector(
-                    ERC20SessionKeyValidator
-                        .ERC20SKV_UnsupportedSelector
-                        .selector,
-                    IERC20.transferFrom.selector
-                )
+                "AA24 signature error"
             )
         );
         entrypoint.handleOps(userOps, beneficiary);
@@ -701,12 +694,9 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         userOps[0] = userOp;
         vm.expectRevert(
             abi.encodeWithSelector(
-                IEntryPoint.FailedOpWithRevert.selector,
+                IEntryPoint.FailedOp.selector,
                 0,
-                "AA23 reverted",
-                abi.encodeWithSignature(
-                    "ERC20SKV_SessionKeySpendLimitExceeded()"
-                )
+                "AA24 signature error"
             )
         );
         entrypoint.handleOps(userOps, beneficiary);

@@ -4,7 +4,7 @@ pragma solidity 0.8.23;
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED, VALIDATION_SUCCESS} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
@@ -39,10 +39,6 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     error ERC20SKV_SessionKeyAlreadyExists(address sessionKey);
     error ERC20SKV_SessionKeyDoesNotExist(address session);
     error ERC20SKV_SessionPaused(address sessionKey);
-    error ERC20SKV_UnsuportedToken();
-    error ERC20SKV_UnsupportedInterface();
-    error ERC20SKV_UnsupportedSelector(bytes4 selectorUsed);
-    error ERC20SKV_SessionKeySpendLimitExceeded();
     error NotImplemented();
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
@@ -137,7 +133,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     function validateSessionKeyParams(
         address _sessionKey,
         PackedUserOperation calldata userOp
-    ) public returns (bool) {
+    ) public returns (uint256) {
         bytes calldata callData = userOp.callData;
         (
             bytes4 selector,
@@ -148,16 +144,13 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         ) = _digest(callData);
 
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (target != sd.token) revert ERC20SKV_UnsuportedToken();
+        if (target != sd.token) return VALIDATION_FAILED;
         if (IERC165(target).supportsInterface(sd.interfaceId) == false)
-            revert ERC20SKV_UnsupportedInterface();
-        if (selector != sd.funcSelector)
-            revert ERC20SKV_UnsupportedSelector(selector);
-        if (amount > sd.spendingLimit)
-            revert ERC20SKV_SessionKeySpendLimitExceeded();
-        if (checkSessionKeyPaused(_sessionKey))
-            revert ERC20SKV_SessionPaused(_sessionKey);
-        return true;
+            return VALIDATION_FAILED;
+        if (selector != sd.funcSelector) return VALIDATION_FAILED;
+        if (amount > sd.spendingLimit) return VALIDATION_FAILED;
+        if (checkSessionKeyPaused(_sessionKey)) return VALIDATION_FAILED;
+        return VALIDATION_SUCCESS;
     }
 
     // @inheritdoc IERC20SessionKeyValidator
@@ -180,8 +173,10 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         bytes32 ethHash = ECDSA.toEthSignedMessageHash(userOpHash);
         address sessionKeySigner = ECDSA.recover(ethHash, userOp.signature);
 
-        if (!validateSessionKeyParams(sessionKeySigner, userOp))
-            return VALIDATION_FAILED;
+        if (
+            validateSessionKeyParams(sessionKeySigner, userOp) ==
+            VALIDATION_FAILED
+        ) return VALIDATION_FAILED;
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
@@ -271,7 +266,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
             }
             return (functionSelector, targetContract, to, from, amount);
         } else {
-            revert ERC20SKV_UnsupportedSelector(functionSelector);
+            return (0, address(0), address(0), address(0), 0);
         }
     }
 }

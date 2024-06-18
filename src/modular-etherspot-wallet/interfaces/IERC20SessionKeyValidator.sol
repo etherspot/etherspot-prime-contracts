@@ -78,11 +78,11 @@ interface IERC20SessionKeyValidator is IValidator {
     /// @notice Validates the parameters of a session key for a given user operation.
     /// @param _sessionKey The address of the session key.
     /// @param userOp The packed user operation containing the call data.
-    /// @return valid True if the session key parameters are valid for the user operation, false otherwise.
+    /// @return 0 = Validation succeeded, 1 = Validation failed.
     function validateSessionKeyParams(
         address _sessionKey,
         PackedUserOperation calldata userOp
-    ) external returns (bool valid);
+    ) external returns (uint256);
 
     /// @notice Returns the list of associated session keys for the caller's wallet.
     /// @return keys The array of associated session key addresses.
