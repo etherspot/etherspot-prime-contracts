@@ -133,7 +133,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     function validateSessionKeyParams(
         address _sessionKey,
         PackedUserOperation calldata userOp
-    ) public returns (uint256) {
+    ) public returns (bool) {
         bytes calldata callData = userOp.callData;
         (
             bytes4 selector,
@@ -144,13 +144,13 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         ) = _digest(callData);
 
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (target != sd.token) return VALIDATION_FAILED;
+        if (target != sd.token) return false;
         if (IERC165(target).supportsInterface(sd.interfaceId) == false)
-            return VALIDATION_FAILED;
-        if (selector != sd.funcSelector) return VALIDATION_FAILED;
-        if (amount > sd.spendingLimit) return VALIDATION_FAILED;
-        if (checkSessionKeyPaused(_sessionKey)) return VALIDATION_FAILED;
-        return VALIDATION_SUCCESS;
+            return false;
+        if (selector != sd.funcSelector) return false;
+        if (amount > sd.spendingLimit) return false;
+        if (checkSessionKeyPaused(_sessionKey)) return false;
+        return true;
     }
 
     // @inheritdoc IERC20SessionKeyValidator
@@ -173,10 +173,8 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         bytes32 ethHash = ECDSA.toEthSignedMessageHash(userOpHash);
         address sessionKeySigner = ECDSA.recover(ethHash, userOp.signature);
 
-        if (
-            validateSessionKeyParams(sessionKeySigner, userOp) ==
-            VALIDATION_FAILED
-        ) return VALIDATION_FAILED;
+        if (!validateSessionKeyParams(sessionKeySigner, userOp))
+            return VALIDATION_FAILED;
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
