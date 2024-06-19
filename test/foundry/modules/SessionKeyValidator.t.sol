@@ -3,13 +3,20 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../../../src/modular-etherspot-wallet/modules/validators/SessionKeyValidator.sol";
+import "../../../src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator.sol";
 import "../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import "../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import "../../../src/modular-etherspot-wallet/modules/executors/ERC20Actions.sol";
+import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 import {PackedUserOperation} from "../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {VALIDATION_FAILED} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../TestAdvancedUtils.t.sol";
 import "../../../src/modular-etherspot-wallet/utils/ERC4337Utils.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ISwapRouter} from "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import {Bootstrap} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol";
+import {IEntryPoint} from "../../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import {TestUniswapAction} from "../../../src/modular-etherspot-wallet/test/TestUniswapAction.sol";
 
 using ERC4337Utils for IEntryPoint;
 
@@ -20,12 +27,25 @@ contract GenericSessionKeyValidatorTest is TestAdvancedUtils {
     /*                  VARIABLES               */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
-    uint256 mainnetFork;
+    address constant ENTRYPOINT_ADDR =
+        0x0000000071727De22E5E9d8BAf0edAc6f37da032;
+    address public constant UNISWAP_SWAP_ROUTER =
+        0xE592427A0AEce92De3Edee1F18E0157C05861564;
+    address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+    address public constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address public constant MAINNET_DAI_HOLDER =
+        0x837c20D568Dfcd35E74E5CC0B8030f9Cebe10A28;
+    uint24 public constant POOL_FEE = 3000;
 
     ModularEtherspotWallet mew;
     SessionKeyValidator validator;
     TestERC20 erc20;
     ERC20Actions erc20Action;
+    ISwapRouter swapRouter;
+    IERC20 daiToken;
+    IERC20 wethToken;
+    IEntryPoint ep;
+    TestUniswapAction uniswapAction;
 
     address alice;
     uint256 aliceKey;
@@ -75,6 +95,10 @@ contract GenericSessionKeyValidatorTest is TestAdvancedUtils {
     function setUp() public override {
         super.setUp();
         mainnetFork = vm.createFork(vm.envString("ETHEREUM_RPC_URL"));
+        ep = EntryPoint(payable(ENTRYPOINT_ADDR));
+        swapRouter = ISwapRouter(UNISWAP_SWAP_ROUTER);
+        daiToken = IERC20(DAI);
+        wethToken = IERC20(WETH);
         validator = new SessionKeyValidator();
         (sessionKeyAddr, sessionKeyPrivate) = makeAddrAndKey("session_key");
         (sessionKey1Addr, sessionKey1Private) = makeAddrAndKey("session_key_1");
@@ -469,6 +493,7 @@ contract GenericSessionKeyValidatorTest is TestAdvancedUtils {
     /////////////////////////////////////
     /////////////////////////////////////
     /////////////////////////////////////
+    /// TESTS BELOW HERE ARE BROKEN  ////
     /////////////////////////////////////
     /////////////////////////////////////
     /////////////////////////////////////
@@ -490,28 +515,52 @@ contract GenericSessionKeyValidatorTest is TestAdvancedUtils {
     /////////////////////////////////////
     /////////////////////////////////////
     /////////////////////////////////////
-    /////////////////////////////////////
+
+    // Current status of test_pass_validateUserOp:
+    // transferring DAI tokens to the fallback handler (TestUniswapAction)
+    // from the wallet causes test to work
+    // not sure if this is exactly testing the validation of the UserOp though
+    // SwapRouter tries to transfer tokens from the TestUniswapAction contract
+    // if we dont transfer tokens, we get an STF error from Uniswap
+    // Also we dont check the target address in verifySessionKeyParams
 
     function test_pass_validateUserOp() public {
         // start fork
         vm.selectFork(mainnetFork);
-
-        mew = setupMEWWithGenericSessionKeys();
-        vm.deal(address(mew), 1 ether);
+        // roll fork to a block
+        vm.rollFork(20121000);
+        // setups up deploying all required contracts on fork and deploys new MEW
+        mew = setupMainnetForkDeployementAndCreateAccount();
+        // deploys fallback for Uniswap swap
+        uniswapAction = new TestUniswapAction();
+        // pranks holder of DAI on mainnet fork to transfer tokens to MEW
+        vm.prank(address(MAINNET_DAI_HOLDER));
+        daiToken.transferFrom(MAINNET_DAI_HOLDER, address(mew), 10 ether);
+        // check DAI tokens trasnferred successfully
+        uint256 mewDaiBalance = daiToken.balanceOf(address(mew));
+        console2.log("DAI balance (should be 10):", mewDaiBalance / 1e18);
+        // prank created MEW
         vm.startPrank(address(mew));
-
-        erc20.mint(address(mew), 10 ether);
-        assertEq(erc20.balanceOf(address(mew)), 10 ether);
-        erc20.approve(address(erc20Action), 5 ether);
-
+        // approve this contract to spend DAI
+        daiToken.approve(address(this), 2 ether);
+        vm.stopPrank();
+        // prank the TestUniswapAction contract to approve SwapRouter to transfer tokens from it
+        // transfer DAI from MEW to TestUniswapAction contract for swapping
+        // not sure about whether this approach is correct for testing
+        vm.prank(address(uniswapAction));
+        daiToken.approve(address(swapRouter), 2 ether);
+        IERC20(DAI).transferFrom(address(mew), address(uniswapAction), 2 ether);
+        // prank created MEW
+        vm.startPrank(address(mew));
+        // setup and install Uniswap Fallback handler
         address[] memory allowedCallers = new address[](1);
-        allowedCallers[0] = address(entrypoint);
+        allowedCallers[0] = address(ep);
 
         mew.installModule(
             MODULE_TYPE_FALLBACK,
-            address(erc20Action),
+            address(uniswapAction),
             abi.encode(
-                ERC20Actions.transferERC20Action.selector,
+                TestUniswapAction.swapSingle.selector,
                 CALLTYPE_SINGLE,
                 allowedCallers,
                 ""
@@ -521,88 +570,126 @@ contract GenericSessionKeyValidatorTest is TestAdvancedUtils {
         // Enable valid session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            dummyTarget,
-            ERC20Actions.transferERC20Action.selector,
-            uint256(5 ether),
+            address(swapRouter),
+            TestUniswapAction.swapSingle.selector,
+            uint256(1 ether),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         genericSessionKeyValidator.enableSessionKey(sessionData);
+
+        // generate Uniswap SwapRouter params
+        ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(daiToken),
+                tokenOut: address(wethToken),
+                fee: POOL_FEE,
+                recipient: address(mew),
+                deadline: block.timestamp + 50000,
+                amountIn: 1 ether,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            });
+
         // Construct user op data
         bytes memory data = abi.encodeWithSelector(
-            ERC20Actions.transferERC20Action.selector,
-            address(erc20),
-            address(bob),
-            uint256(5 ether)
+            TestUniswapAction.swapSingle.selector,
+            address(swapRouter),
+            swapParams
         );
-        PackedUserOperation memory userOp = entrypoint.fillUserOp(
-            address(mew),
-            data
-        );
+
+        PackedUserOperation memory userOp = getDefaultUserOp();
+        userOp.sender = address(mew);
+        userOp.callData = data;
         userOp.nonce = getNonce(
             address(mew),
             address(genericSessionKeyValidator)
         );
-        bytes32 hash = entrypoint.getUserOpHash(userOp);
-
+        bytes32 hash = ep.getUserOpHash(userOp);
+        // sign with session key private key
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             sessionKeyPrivate,
             ECDSA.toEthSignedMessageHash(hash)
         );
         bytes memory signature = abi.encodePacked(r, s, v);
-
         userOp.signature = signature;
 
         // Validation should succeed
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
-        entrypoint.handleOps(userOps, beneficiary);
-        assertEq(erc20.balanceOf(address(bob)), 5 ether);
+        ep.handleOps(userOps, beneficiary);
+        // check DAI and WETH tokens transferred successfully
+        uint256 mewDaiBalanceAfter = daiToken.balanceOf(address(mew));
+        uint256 mewWethBalance = wethToken.balanceOf(address(mew));
+        assertEq(mewDaiBalanceAfter, 8 ether);
+        assertGt(mewWethBalance, 0); // > 0 as not sure on amount of WETH received
+        // possibly can check using events emitted from Uniswap SwapRouter
     }
 
+    ////////////////////////////////////
+    ////////////////////////////////////
+    // TODO: BELOW STILL TO BE TESTED //
+    ////////////////////////////////////
+    ////////////////////////////////////
     function test_fail_validateUserOp_invalidSessionKey() public {
-        mew = setupMEWWithGenericSessionKeys();
-        vm.deal(address(mew), 1 ether);
+        // start fork
+        vm.selectFork(mainnetFork);
+        mew = setupMainnetForkDeployementAndCreateAccount();
+
+        vm.prank(address(MAINNET_DAI_HOLDER));
+        daiToken.transfer(address(mew), 100 ether);
+        uint256 mewDaiBalance = daiToken.balanceOf(address(mew));
+        console2.log("DAI balance (should be 100):", mewDaiBalance / 1e18);
         vm.startPrank(address(mew));
 
-        erc20.mint(address(mew), 10 ether);
-        assertEq(erc20.balanceOf(address(mew)), 10 ether);
-        erc20.approve(address(erc20Action), 5 ether);
+        // approve this contract to spend DAI
+        IERC20(DAI).approve(address(this), 50 ether);
 
-        address[] memory allowedCallers = new address[](2);
-        allowedCallers[0] = address(entrypoint);
-        allowedCallers[1] = address(mew);
+        // address[] memory allowedCallers = new address[](2);
+        // allowedCallers[0] = address(entrypoint);
+        // allowedCallers[1] = address(mew);
 
-        mew.installModule(
-            MODULE_TYPE_FALLBACK,
-            address(erc20Action),
-            abi.encode(
-                ERC20Actions.transferERC20Action.selector,
-                CALLTYPE_SINGLE,
-                allowedCallers,
-                ""
-            )
-        );
+        // mew.installModule(
+        //     MODULE_TYPE_FALLBACK,
+        //     address(erc20Action),
+        //     abi.encode(
+        //         ERC20Actions.transferERC20Action.selector,
+        //         CALLTYPE_SINGLE,
+        //         allowedCallers,
+        //         ""
+        //     )
+        // );
 
         // Enable valid session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            dummyTarget,
-            IERC20.transferFrom.selector,
-            uint256(5 ether),
+            address(swapRouter),
+            ISwapRouter.exactInputSingle.selector,
+            uint256(50 ether),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
 
         genericSessionKeyValidator.enableSessionKey(sessionData);
         // Construct user op data
+        // generate Uniswap SwapRouter params
+        ISwapRouter.ExactInputSingleParams memory swapParams = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(daiToken),
+                tokenOut: address(wethToken),
+                fee: POOL_FEE,
+                recipient: address(mew),
+                deadline: block.timestamp,
+                amountIn: 50 ether,
+                amountOutMinimum: 0,
+                sqrtPriceLimitX96: 0
+            });
+        // Construct user op data
         bytes memory data = abi.encodeWithSelector(
-            IERC20.transferFrom.selector,
-            address(erc20),
-            address(mew),
-            address(bob),
-            uint256(5 ether)
+            ISwapRouter.exactInputSingle.selector,
+            swapParams
         );
+
         PackedUserOperation memory userOp = entrypoint.fillUserOp(
             address(mew),
             data
@@ -627,24 +714,23 @@ contract GenericSessionKeyValidatorTest is TestAdvancedUtils {
         genericSessionKeyValidator.disableSessionKey(sessionKeyAddr);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IEntryPoint.FailedOpWithRevert.selector,
+                IEntryPoint.FailedOp.selector,
                 0,
-                "AA23 reverted",
-                abi.encodeWithSignature("SKV_InvalidSessionKey()")
+                "AA24 signature error"
             )
         );
         entrypoint.handleOps(userOps, beneficiary);
     }
 
     function test_fail_validateUserOp_invalidFunctionSelector() public {
-        mew = setupMEWWithGenericSessionKeys();
+        mew = setupMainnetForkDeployementAndCreateAccount();
         vm.startPrank(address(mew));
-        // Construct and enable session
+        // Enable valid session
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
-            dummyTarget,
-            IERC20.transfer.selector,
-            uint256(5 ether),
+            address(swapRouter),
+            ISwapRouter.exactInputSingle.selector,
+            uint256(50 ether),
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
@@ -677,13 +763,9 @@ contract GenericSessionKeyValidatorTest is TestAdvancedUtils {
         userOps[0] = userOp;
         vm.expectRevert(
             abi.encodeWithSelector(
-                IEntryPoint.FailedOpWithRevert.selector,
+                IEntryPoint.FailedOp.selector,
                 0,
-                "AA23 reverted",
-                abi.encodeWithSelector(
-                    SessionKeyValidator.SKV_UnsupportedSelector.selector,
-                    IERC20.transferFrom.selector
-                )
+                "AA24 signature error"
             )
         );
         entrypoint.handleOps(userOps, beneficiary);

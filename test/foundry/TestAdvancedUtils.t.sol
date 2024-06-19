@@ -19,26 +19,28 @@ import {ModularEtherspotWallet} from "../../src/modular-etherspot-wallet/wallet/
 import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator.sol";
 import {ERC20SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol";
 import {SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validators/SessionKeyValidator.sol";
+import {TestExecutor} from "../../src/modular-etherspot-wallet/test/TestExecutor.sol";
+import {Bootstrap} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/utils/Bootstrap.sol";
 
 contract TestAdvancedUtils is BootstrapUtil, Test {
     // singletons
     ModularEtherspotWallet implementation;
     ModularEtherspotWalletFactory factory;
     IEntryPoint entrypoint = IEntryPoint(ENTRYPOINT_ADDR);
-
     MockValidator defaultValidator;
     MockExecutor defaultExecutor;
     MockFallback fallbackHandler;
     MultipleOwnerECDSAValidator ecdsaValidator;
     ERC20SessionKeyValidator sessionKeyValidator;
     SessionKeyValidator genericSessionKeyValidator;
-
     ModularEtherspotWallet mewAccount;
     MockTarget target;
+    TestExecutor executor;
 
     address owner1;
     uint256 owner1Key;
 
+    uint256 mainnetFork;
     uint256 constant EXEC_SPEND_CAP = 10 ether;
 
     function setUp() public virtual {
@@ -286,6 +288,76 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         );
         BootstrapConfig[] memory executors = makeBootstrapConfig(
             address(defaultExecutor),
+            ""
+        );
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
+            ""
+        );
+
+        // Create owner
+        (owner1, owner1Key) = makeAddrAndKey("owner1");
+        vm.deal(owner1, 100 ether);
+
+        // Create initcode and salt to be sent to Factory
+        bytes memory _initCode = abi.encode(
+            owner1,
+            address(bootstrapSingleton),
+            abi.encodeCall(
+                bootstrapSingleton.initMSA,
+                (validators, executors, hook, fallbacks)
+            )
+        );
+        bytes32 salt = keccak256("1");
+
+        vm.startPrank(owner1);
+        // create account
+        mewAccount = ModularEtherspotWallet(
+            payable(factory.createAccount({salt: salt, initCode: _initCode}))
+        );
+        vm.deal(address(mewAccount), 100 ether);
+        vm.stopPrank();
+        return mewAccount;
+    }
+
+    function setupMainnetForkDeployementAndCreateAccount()
+        public
+        returns (ModularEtherspotWallet mew)
+    {
+        // // start fork
+        // vm.selectFork(mainnetFork);
+        // Set up MSA and Factory
+        implementation = new ModularEtherspotWallet();
+        factory = new ModularEtherspotWalletFactory(address(implementation));
+        bootstrapSingleton = new Bootstrap();
+
+        // Set up Modules
+        executor = new TestExecutor();
+        defaultValidator = new MockValidator();
+        fallbackHandler = new MockFallback();
+
+        // MultipleOwnerECDSAValidator for MEW
+        ecdsaValidator = new MultipleOwnerECDSAValidator();
+
+        // ERC20SessionKeyValidtor for MEW
+        sessionKeyValidator = new ERC20SessionKeyValidator();
+
+        // SessionKeyValidator for MEW
+        genericSessionKeyValidator = new SessionKeyValidator();
+        console2.log(
+            "address(genericSessionKeyValidator) - from test utils: ",
+            address(genericSessionKeyValidator)
+        );
+        // Create config for initial modules
+        BootstrapConfig[] memory validators = new BootstrapConfig[](2);
+        validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
+        validators[1] = _makeBootstrapConfig(
+            address(genericSessionKeyValidator),
+            ""
+        );
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(executor),
             ""
         );
         BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");

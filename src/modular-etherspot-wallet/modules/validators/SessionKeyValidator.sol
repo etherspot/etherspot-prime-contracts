@@ -5,11 +5,12 @@ import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
-
 import {IValidator} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
+
+import "forge-std/console2.sol";
 
 contract SessionKeyValidator is IValidator {
     using ModeLib for ModeCode;
@@ -65,6 +66,7 @@ contract SessionKeyValidator is IValidator {
     error SKV_UnsupportedInterface();
     error SKV_UnsupportedSelector(bytes4 selectorUsed);
     error SKV_SessionKeySpendLimitExceeded();
+    error SessionKeyPaused();
     error NotImplemented();
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
@@ -98,6 +100,7 @@ contract SessionKeyValidator is IValidator {
         uint48 validUntil = uint48(bytes6(_sessionData[82:88]));
         if (validUntil <= validAfter || validUntil == 0 || validAfter == 0)
             revert SKV_InvalidDuration(validAfter, validUntil);
+
         sessionData[sessionKey][msg.sender] = GenericSessionData(
             tar,
             sel,
@@ -150,18 +153,18 @@ contract SessionKeyValidator is IValidator {
         address _sessionKey,
         PackedUserOperation calldata userOp
     ) public returns (bool) {
+        console2.log("in validateSessionKeyParams fn");
         bytes calldata callData = userOp.callData;
 
         GenericSessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (address(bytes20(callData[4:24])) != sd.target)
-            revert SKV_UnsuportedTarget();
-        if (bytes4(callData[0:4]) != sd.selector)
-            revert SKV_UnsupportedSelector(bytes4(callData[0:4]));
+        // this is wrong - target address is not stored in userOp.calldata
+        // if (address(bytes20(callData[4:24])) != sd.target)
+        //     revert SKV_InvalidTarget();
+        if (bytes4(callData[0:4]) != sd.selector) return false;
         // check in backend
         // if (amount > sd.spendingLimit)
         //     revert SKV_SessionKeySpendLimitExceeded();
-        if (checkSessionKeyPaused(_sessionKey))
-            revert SKV_SessionPaused(_sessionKey);
+        if (checkSessionKeyPaused(_sessionKey)) return false;
         return true;
     }
 
@@ -179,11 +182,14 @@ contract SessionKeyValidator is IValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
+        console2.log("in validateUserOp fn");
         bytes32 ethHash = ECDSA.toEthSignedMessageHash(userOpHash);
         address sessionKeySigner = ECDSA.recover(ethHash, userOp.signature);
-
+        console2.log("before validateSessionKeyParams");
         if (!validateSessionKeyParams(sessionKeySigner, userOp))
             return VALIDATION_FAILED;
+        console2.log("after validateSessionKeyParams");
+
         GenericSessionData memory sd = sessionData[sessionKeySigner][
             msg.sender
         ];
