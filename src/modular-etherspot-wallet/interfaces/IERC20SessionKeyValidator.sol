@@ -40,7 +40,6 @@ interface IERC20SessionKeyValidator is IValidator {
     /// @notice Struct representing the data associated with a session key.
     struct SessionData {
         address token; // The ERC20 token contract address.
-        bytes4 interfaceId; // The interface ID of the ERC20 token contract.
         bytes4 funcSelector; // The function selector for the allowed operation (e.g., transfer, transferFrom).
         uint256 spendingLimit; // The maximum amount that can be spent with this session key.
         uint48 validAfter; // The timestamp after which the session key is valid.
