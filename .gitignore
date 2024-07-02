@@ -51,3 +51,5 @@ broadcast
 forge_cache/
 .gas-snapshot
 
+yarn-error.log
+yarn.lock

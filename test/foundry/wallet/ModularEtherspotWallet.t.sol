@@ -74,6 +74,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
     error OnlyOwnerOrGuardianOrSelf();
     error OnlyProxy();
     error RequiredModule();
+    error LinkedList_InvalidEntry(address entry);
 
     function setUp() public override {
         super.setUp();
@@ -883,6 +884,33 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         mewAccount.guardianPropose(owner2);
         vm.expectRevert(ProposalTimelocked.selector);
         mewAccount.discardCurrentProposal();
+    }
+
+    function test_PaginateExecutors() public {
+        mew = setupMEW();
+
+        // paginate from sentinel (start node) and expect the 1 default executor
+        (address[] memory results, address next) = mew.getExecutorsPaginated(address(0x1), 1);
+        assertTrue(results.length == 1);
+        assertEq(results[0], address(defaultExecutor));
+        assertEq(next, address(0x1));
+
+        // paginate from the default executor and expect no results
+        (address[] memory results2, address next2) = mew.getExecutorsPaginated(address(defaultExecutor), 1);
+        assertTrue(results2.length == 0);
+        assertEq(next2, address(0x1));
+
+
+        // Correctly encode the selector for the error signature and the argument
+        bytes memory encodedRevertReason = abi.encodeWithSelector(
+            bytes4(keccak256("LinkedList_InvalidEntry(address)")),
+            address(this)
+        );
+
+        // should assert on revert with error: revert LinkedList_InvalidEntry(start)
+        // Expect the revert with the encoded reason
+        vm.expectRevert(encodedRevertReason);
+        mew.getExecutorsPaginated(address(this), 1);
     }
 
     function test_fail_uninstallModule_RequiredModule() public {
