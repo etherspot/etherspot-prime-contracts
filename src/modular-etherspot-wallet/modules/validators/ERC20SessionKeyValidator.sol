@@ -3,10 +3,12 @@ pragma solidity 0.8.23;
 
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {EIP712} from "solady/src/utils/EIP712.sol";
-import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
+import {
+    MODULE_TYPE_VALIDATOR,
+    VALIDATION_FAILED,
+    VALIDATION_SUCCESS
+} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
@@ -14,7 +16,7 @@ import {IERC20SessionKeyValidator} from "../../interfaces/IERC20SessionKeyValida
 import {ERC20Actions} from "../executors/ERC20Actions.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
-contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
+contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
 
@@ -22,9 +24,6 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     /*                  CONSTANTS                */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
-    /// @dev `keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)")`.
-    bytes32 internal constant EIP712_DOMAIN_TYPEHASH =
-        0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f;
     string constant NAME = "ERC20SessionKeyValidator";
     string constant VERSION = "1.0.0";
 
@@ -36,17 +35,12 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
     error ERC20SKV_ModuleNotInstalled();
     error ERC20SKV_InvalidSessionKey();
     error ERC20SKV_InvalidToken();
-    error ERC20SKV_InvalidInterfaceId();
     error ERC20SKV_InvalidFunctionSelector();
     error ERC20SKV_InvalidSpendingLimit();
     error ERC20SKV_InvalidDuration(uint256 validAfter, uint256 validUntil);
     error ERC20SKV_SessionKeyAlreadyExists(address sessionKey);
     error ERC20SKV_SessionKeyDoesNotExist(address session);
     error ERC20SKV_SessionPaused(address sessionKey);
-    error ERC20SKV_UnsuportedToken();
-    error ERC20SKV_UnsupportedInterface();
-    error ERC20SKV_UnsupportedSelector(bytes4 selectorUsed);
-    error ERC20SKV_SessionKeySpendLimitExceeded();
     error NotImplemented();
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
@@ -73,20 +67,17 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
         ) revert ERC20SKV_SessionKeyAlreadyExists(sessionKey);
         address token = address(bytes20(_sessionData[20:40]));
         if (token == address(0)) revert ERC20SKV_InvalidToken();
-        bytes4 interfaceId = bytes4(_sessionData[40:44]);
-        if (interfaceId == bytes4(0)) revert ERC20SKV_InvalidInterfaceId();
-        bytes4 funcSelector = bytes4(_sessionData[44:48]);
+        bytes4 funcSelector = bytes4(_sessionData[40:44]);
         if (funcSelector == bytes4(0))
             revert ERC20SKV_InvalidFunctionSelector();
-        uint256 spendingLimit = uint256(bytes32(_sessionData[48:80]));
+        uint256 spendingLimit = uint256(bytes32(_sessionData[44:76]));
         if (spendingLimit == 0) revert ERC20SKV_InvalidSpendingLimit();
-        uint48 validAfter = uint48(bytes6(_sessionData[80:86]));
-        uint48 validUntil = uint48(bytes6(_sessionData[86:92]));
+        uint48 validAfter = uint48(bytes6(_sessionData[76:82]));
+        uint48 validUntil = uint48(bytes6(_sessionData[82:88]));
         if (validUntil <= validAfter || validUntil == 0 || validAfter == 0)
             revert ERC20SKV_InvalidDuration(validAfter, validUntil);
         sessionData[sessionKey][msg.sender] = SessionData(
             token,
-            interfaceId,
             funcSelector,
             spendingLimit,
             validAfter,
@@ -152,21 +143,10 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
         ) = _digest(callData);
 
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (
-            sd.validUntil == 0 ||
-            sd.validUntil < block.timestamp ||
-            sd.validAfter == 0 ||
-            sd.validAfter > block.timestamp
-        ) revert ERC20SKV_InvalidSessionKey();
-        if (target != sd.token) revert ERC20SKV_UnsuportedToken();
-        if (IERC165(target).supportsInterface(sd.interfaceId) == false)
-            revert ERC20SKV_UnsupportedInterface();
-        if (selector != sd.funcSelector)
-            revert ERC20SKV_UnsupportedSelector(selector);
-        if (amount > sd.spendingLimit)
-            revert ERC20SKV_SessionKeySpendLimitExceeded();
-        if (checkSessionKeyPaused(_sessionKey))
-            revert ERC20SKV_SessionPaused(_sessionKey);
+        if (target != sd.token) return false;
+        if (selector != sd.funcSelector) return false;
+        if (amount > sd.spendingLimit) return false;
+        if (checkSessionKeyPaused(_sessionKey)) return false;
         return true;
     }
 
@@ -187,12 +167,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        // EIP712
-        bytes32 domainSeparator = _domainSeparator();
-        bytes32 signedMessageHash = keccak256(
-            abi.encodePacked("\x19\x01", domainSeparator, userOpHash)
-        );
-        bytes32 ethHash = ECDSA.toEthSignedMessageHash(signedMessageHash);
+        bytes32 ethHash = ECDSA.toEthSignedMessageHash(userOpHash);
         address sessionKeySigner = ECDSA.recover(ethHash, userOp.signature);
 
         if (!validateSessionKeyParams(sessionKeySigner, userOp))
@@ -286,37 +261,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator, EIP712 {
             }
             return (functionSelector, targetContract, to, from, amount);
         } else {
-            revert ERC20SKV_UnsupportedSelector(functionSelector);
+            return (0, address(0), address(0), address(0), 0);
         }
-    }
-
-    function _domainSeparator() internal view override returns (bytes32) {
-        (string memory _name, string memory _version) = _domainNameAndVersion();
-        bytes32 nameHash = keccak256(bytes(_name));
-        bytes32 versionHash = keccak256(bytes(_version));
-        // Use the proxy address for the EIP-712 domain separator.
-        address proxyAddress = address(this);
-
-        // Construct the domain separator with name, version, chainId, and proxy address.
-        bytes32 typeHash = EIP712_DOMAIN_TYPEHASH;
-        return
-            keccak256(
-                abi.encode(
-                    typeHash,
-                    nameHash,
-                    versionHash,
-                    block.chainid,
-                    proxyAddress
-                )
-            );
-    }
-
-    function _domainNameAndVersion()
-        internal
-        pure
-        override
-        returns (string memory, string memory)
-    {
-        return (NAME, VERSION);
     }
 }

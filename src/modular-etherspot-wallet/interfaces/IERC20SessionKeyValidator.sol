@@ -40,7 +40,6 @@ interface IERC20SessionKeyValidator is IValidator {
     /// @notice Struct representing the data associated with a session key.
     struct SessionData {
         address token; // The ERC20 token contract address.
-        bytes4 interfaceId; // The interface ID of the ERC20 token contract.
         bytes4 funcSelector; // The function selector for the allowed operation (e.g., transfer, transferFrom).
         uint256 spendingLimit; // The maximum amount that can be spent with this session key.
         uint48 validAfter; // The timestamp after which the session key is valid.
@@ -78,11 +77,11 @@ interface IERC20SessionKeyValidator is IValidator {
     /// @notice Validates the parameters of a session key for a given user operation.
     /// @param _sessionKey The address of the session key.
     /// @param userOp The packed user operation containing the call data.
-    /// @return valid True if the session key parameters are valid for the user operation, false otherwise.
+    /// @return True if the session key parameters are valid for the user operation, false otherwise.
     function validateSessionKeyParams(
         address _sessionKey,
         PackedUserOperation calldata userOp
-    ) external returns (bool valid);
+    ) external returns (bool);
 
     /// @notice Returns the list of associated session keys for the caller's wallet.
     /// @return keys The array of associated session key addresses.
