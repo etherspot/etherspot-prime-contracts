@@ -75,6 +75,7 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
     error OnlyProxy();
     error RequiredModule();
     error LinkedList_InvalidEntry(address entry);
+    error AccountAccessUnauthorized();
 
     function setUp() public override {
         super.setUp();
@@ -911,6 +912,61 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         // Expect the revert with the encoded reason
         vm.expectRevert(encodedRevertReason);
         mew.getExecutorsPaginated(address(this), 1);
+    }
+
+    function test_GetAllExecutors() public {
+        mew = setupMEW();
+
+        address[] memory results0 = mew.getAllExecutors();
+        assertTrue(results0.length == 1);
+        assertEq(results0[0], address(defaultExecutor));
+
+        MockExecutor executor1 = new MockExecutor();
+        vm.startPrank(address(mewAccount));
+        mew.installModule(2, address(executor1), "");
+        vm.stopPrank();
+
+        // paginate from sentinel (start node) and expect the 1 default executor
+        address[] memory results = mew.getAllExecutors();
+        assertTrue(results.length == 2);
+        assertEq(results[1], address(defaultExecutor));
+        assertEq(results[0], address(executor1));
+    }
+
+    function test_getAllValidators() public {
+        mew = setupMEW();
+
+        address[] memory results0 = mew.getAllValidators();
+        assertTrue(results0.length == 1);
+        assertEq(results0[0], address(ecdsaValidator));
+
+        MockValidator validator1 = new MockValidator();
+        vm.startPrank(address(mewAccount));
+        mew.installModule(1, address(validator1), "");
+        vm.stopPrank();
+
+        // paginate from sentinel (start node) and expect the 1 default executor
+        address[] memory results = mew.getAllValidators();
+        assertTrue(results.length == 2);
+        assertEq(results[1], address(ecdsaValidator));
+        assertEq(results[0], address(validator1));
+    }
+
+    function test_installModule() public {
+        mew = setupMEW();
+        MockExecutor executor1 = new MockExecutor();
+        vm.startPrank(address(mewAccount));
+        mew.installModule(2, address(executor1), "");
+        vm.stopPrank();
+        assertTrue(mew.isModuleInstalled(2, address(executor1), ""));
+    }
+
+    function test_fail_installModule_OnlyOwnerOrEP() public {
+        mew = setupMEW();
+        MockExecutor executor1 = new MockExecutor();
+        vm.prank(badActor);
+        vm.expectRevert(AccountAccessUnauthorized.selector);
+        mew.installModule(2, address(executor1), "");
     }
 
     function test_fail_uninstallModule_RequiredModule() public {

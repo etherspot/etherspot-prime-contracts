@@ -108,4 +108,61 @@ library SentinelListLib {
             mstore(array, entryCount)
         }
     }
+
+    function getAllEntries(SentinelList storage self) internal view returns (address[] memory) {
+        uint totalEntries = 0;
+        address current = self.entries[SENTINEL];
+        // Count total entries
+        while(current != SENTINEL) {
+            totalEntries++;
+            current = self.entries[current];
+        }
+
+        // Allocate array for all entries
+        address[] memory allEntries = new address[](totalEntries);
+        current = self.entries[SENTINEL]; // Reset current to start from sentinel again
+
+        // Collect all entries
+        for(uint i = 0; i < totalEntries; i++) {
+            allEntries[i] = current;
+            current = self.entries[current];
+        }
+
+        return allEntries;
+    }
+
+    function getAllEntriesViaPagination(SentinelList storage self) internal view returns (address[] memory) {
+        uint256 pageSize = 50; // Example page size, adjust based on expected list sizes and gas considerations
+        address start = SENTINEL;
+        address[] memory tempArray;
+        address next;
+        uint256 totalEntries = 0;
+
+        // First, determine the total number of entries to allocate memory efficiently
+        (tempArray, next) = getEntriesPaginated(self, start, pageSize);
+        while (next != SENTINEL) {
+            totalEntries += tempArray.length;
+            (tempArray, next) = getEntriesPaginated(self, next, pageSize);
+        }
+        // Add the count of the last page
+        totalEntries += tempArray.length;
+
+        // Allocate memory for the final array
+        address[] memory allEntries = new address[](totalEntries);
+
+        // Reset for actual collection
+        start = SENTINEL;
+        uint256 currentIndex = 0;
+
+        // Collect all entries
+        do {
+            (tempArray, next) = getEntriesPaginated(self, start, pageSize);
+            for (uint256 i = 0; i < tempArray.length; i++) {
+                allEntries[currentIndex++] = tempArray[i];
+            }
+            start = next;
+        } while (next != SENTINEL);
+
+        return allEntries;
+    }
 }

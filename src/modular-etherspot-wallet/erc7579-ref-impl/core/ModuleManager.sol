@@ -8,6 +8,7 @@ import "../interfaces/IERC7579Module.sol";
 import "forge-std/interfaces/IERC165.sol";
 import "./Receiver.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
+import "forge-std/console.sol";
 
 /**
  * @title ModuleManager
@@ -126,10 +127,43 @@ abstract contract ModuleManager is AccountBase, Receiver {
     function getValidatorPaginated(
         address cursor,
         uint256 size
-    ) external view virtual returns (address[] memory array, address next) {
+    ) public view virtual returns (address[] memory array, address next) {
         SentinelListLib.SentinelList storage $validators = $moduleManager()
             .$validators;
         return $validators.getEntriesPaginated(cursor, size);
+    }
+
+    function getAllValidators() public view returns (address[] memory) {
+        uint256 pageSize = 50; // Optimal page size, adjust based on your needs
+        address[] memory tempValidators;
+        address lastAddress = SENTINEL; // Assuming 0 as the initial value for pagination
+        uint256 totalValidators = 0;
+
+        // First, determine the total number of executors to efficiently allocate memory
+        (tempValidators, lastAddress) = getValidatorPaginated(lastAddress, pageSize);
+        while (tempValidators.length > 0) {
+            totalValidators += tempValidators.length;
+            if (tempValidators.length < pageSize || lastAddress == SENTINEL || lastAddress == address(0)) {
+                // If less than pageSize, it was the last page
+                break;
+            }
+            (tempValidators, lastAddress) = getValidatorPaginated(lastAddress, pageSize);
+        }
+
+        // Allocate memory for the final array
+        address[] memory allValidators = new address[](totalValidators);
+
+        // Reset and collect all executors
+        lastAddress = SENTINEL;
+        uint256 currentIndex = 0;
+        do {
+            (tempValidators, lastAddress) = getValidatorPaginated(lastAddress, pageSize);
+            for (uint256 i = 0; i < tempValidators.length; i++) {
+                allValidators[currentIndex++] = tempValidators[i];
+            }
+        } while (tempValidators.length > 0 && tempValidators.length == pageSize);
+
+        return allValidators;
     }
 
     /////////////////////////////////////////////////////
@@ -172,10 +206,43 @@ abstract contract ModuleManager is AccountBase, Receiver {
     function getExecutorsPaginated(
         address cursor,
         uint256 size
-    ) external view virtual returns (address[] memory array, address next) {
+    ) public view virtual returns (address[] memory array, address next) {
         SentinelListLib.SentinelList storage $executors = $moduleManager()
             .$executors;
         return $executors.getEntriesPaginated(cursor, size);
+    }
+
+    function getAllExecutors() public view returns (address[] memory) {
+        uint256 pageSize = 50; // Optimal page size
+        address[] memory tempExecutors;
+        address lastAddress = SENTINEL; // Assuming 0x1 as the initial value for pagination
+        uint256 totalExecutors = 0;
+
+        // First, determine the total number of executors to efficiently allocate memory
+        (tempExecutors, lastAddress) = getExecutorsPaginated(lastAddress, pageSize);
+        while (tempExecutors.length > 0) {
+            totalExecutors += tempExecutors.length;
+            if (tempExecutors.length < pageSize || lastAddress == SENTINEL || lastAddress == address(0)) {
+                // If less than pageSize, it was the last page
+                break;
+            }
+            (tempExecutors, lastAddress) = getExecutorsPaginated(lastAddress, pageSize);
+        }
+
+        // Allocate memory for the final array
+        address[] memory allExecutors = new address[](totalExecutors);
+
+        // Reset and collect all executors
+        lastAddress = SENTINEL;
+        uint256 currentIndex = 0;
+        do {
+            (tempExecutors, lastAddress) = getExecutorsPaginated(lastAddress, pageSize);
+            for (uint256 i = 0; i < tempExecutors.length; i++) {
+                allExecutors[currentIndex++] = tempExecutors[i];
+            }
+        } while (tempExecutors.length > 0 && tempExecutors.length == pageSize);
+
+        return allExecutors;
     }
 
     /////////////////////////////////////////////////////

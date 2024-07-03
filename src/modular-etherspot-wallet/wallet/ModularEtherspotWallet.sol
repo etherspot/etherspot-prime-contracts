@@ -10,6 +10,7 @@ import {IModularEtherspotWallet} from "../interfaces/IModularEtherspotWallet.sol
 import {ModuleManager} from "../erc7579-ref-impl/core/ModuleManager.sol";
 import {HookManager} from "../erc7579-ref-impl/core/HookManager.sol";
 import {AccessController} from "../access/AccessController.sol";
+import "forge-std/console.sol";
 
 contract ModularEtherspotWallet is
     AccessController,
@@ -21,6 +22,17 @@ contract ModularEtherspotWallet is
     using ExecutionLib for bytes;
     using ModeLib for ModeCode;
     address public immutable implementation = address(this);
+
+    // Define a struct to hold all module information
+    struct ModuleInfo {
+        address[] executors;
+        address[] validators;
+    }
+
+    struct Fallback {
+        bytes4 selector;
+        address handlerAddress;
+    }
 
     /**
      * @dev modifier to restrict access to calling on implementation
@@ -329,6 +341,16 @@ contract ModularEtherspotWallet is
         else if (modulTypeId == MODULE_TYPE_FALLBACK) return true;
         else if (modulTypeId == MODULE_TYPE_HOOK) return true;
         else return false;
+    }
+
+    function getAllModules() public view returns (ModuleInfo memory) {
+        // Initialize the response struct
+        ModuleInfo memory moduleInfo;
+
+        // Populate executors and validators using ModuleManager
+        moduleInfo.executors = getAllExecutors();
+        moduleInfo.validators = getAllValidators();
+        return moduleInfo;
     }
 
     /**
