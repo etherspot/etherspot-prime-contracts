@@ -16,7 +16,7 @@ contract StakeModularWalletFactoryScript is Script {
     address constant ENTRY_POINT_07 =
         0x0000000071727De22E5E9d8BAf0edAc6f37da032;
     address constant EXPECTED_FACTORY =
-        0xf80D543Ca10B48AF07c65Ff508605c1737EFAF3F;
+        0x8077765eA56BAc86D5936329131308B93871F695;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");

@@ -21,9 +21,9 @@ contract ModularEtherspotWalletScript is Script {
         bytes32(abi.encodePacked("ModularEtherspotWallet:Create2:salt"));
     address constant DEPLOYER = 0x09FD4F6088f2025427AB1e89257A44747081Ed59;
     address constant EXPECTED_IMPLEMENTATION =
-        0x202A5598bDba2cE62bFfA13EcccB04969719Fad9;
+        0xfe5a3E9bDcF5B9c6b246773bdA35f9555C94D01e;
     address constant EXPECTED_FACTORY =
-        0xf80D543Ca10B48AF07c65Ff508605c1737EFAF3F;
+        0x8077765eA56BAc86D5936329131308B93871F695;
     address constant EXPECTED_BOOTSTRAP =
         0x1baCB2F1ef4fD02f02e32cCF70888D9Caeb5f066;
     address constant EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR =

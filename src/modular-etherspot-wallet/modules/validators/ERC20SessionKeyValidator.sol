@@ -82,7 +82,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
             spendingLimit,
             validAfter,
             validUntil,
-            false
+            true
         );
         walletSessionKeys[msg.sender].push(sessionKey);
         emit ERC20SKV_SessionKeyEnabled(sessionKey, msg.sender);
@@ -111,13 +111,13 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
 
     // @inheritdoc IERC20SessionKeyValidator
     function toggleSessionKeyPause(address _sessionKey) external {
-        SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (sd.paused) {
-            sessionData[_sessionKey][msg.sender].paused = false;
-            emit ERC20SKV_SessionKeyUnpaused(_sessionKey, msg.sender);
-        } else {
-            sessionData[_sessionKey][msg.sender].paused = true;
+        SessionData storage sd = sessionData[_sessionKey][msg.sender];
+        if (sd.live) {
+            sd.live = false;
             emit ERC20SKV_SessionKeyPaused(_sessionKey, msg.sender);
+        } else {
+            sd.live = true;
+            emit ERC20SKV_SessionKeyUnpaused(_sessionKey, msg.sender);
         }
     }
 
@@ -125,7 +125,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     function checkSessionKeyPaused(
         address _sessionKey
     ) public view returns (bool) {
-        return sessionData[_sessionKey][msg.sender].paused;
+        return !sessionData[_sessionKey][msg.sender].live;
     }
 
     // @inheritdoc IERC20SessionKeyValidator

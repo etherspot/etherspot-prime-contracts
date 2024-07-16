@@ -44,7 +44,7 @@ interface IERC20SessionKeyValidator is IValidator {
         uint256 spendingLimit; // The maximum amount that can be spent with this session key.
         uint48 validAfter; // The timestamp after which the session key is valid.
         uint48 validUntil; // The timestamp until which the session key is valid.
-        bool paused; // Flag indicating whether the session key is paused or not.
+        bool live; // Flag indicating whether the session key is paused or not.
     }
 
     /// @notice Enables a new session key for the caller's wallet.
