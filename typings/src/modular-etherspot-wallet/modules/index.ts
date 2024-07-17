@@ -7,3 +7,4 @@ import type * as hooks from "./hooks";
 export type { hooks };
 import type * as validators from "./validators";
 export type { validators };
+export type { MultipleOwnerECDSAValidator } from "./MultipleOwnerECDSAValidator";

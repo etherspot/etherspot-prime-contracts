@@ -5,6 +5,8 @@ import type * as access from "./access";
 export type { access };
 import type * as erc7579RefImpl from "./erc7579-ref-impl";
 export type { erc7579RefImpl };
+import type * as hooks from "./hooks";
+export type { hooks };
 import type * as interfaces from "./interfaces";
 export type { interfaces };
 import type * as libraries from "./libraries";

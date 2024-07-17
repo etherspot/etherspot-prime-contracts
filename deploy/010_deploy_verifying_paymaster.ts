@@ -12,7 +12,7 @@ const deployVerifyingPaymaster: DeployFunction = async function (
   console.log('starting deployment of verifying paymaster...');
 
   const entrypoint = '0x0000000071727De22E5E9d8BAf0edAc6f37da032';
-  const verifyingSigner = '';
+  const verifyingSigner = '0xaeAF09795d8C0e6fA4bB5f89dc9c15EC02021567';
   const ret = await deploy('VerifyingPaymaster', {
     from,
     args: [entrypoint, verifyingSigner],
@@ -36,6 +36,17 @@ const deployVerifyingPaymaster: DeployFunction = async function (
     },
     'addStake',
     1
+  );
+
+  await execute(
+    'VerifyingPaymaster',
+    {
+      from,
+      value: await ethers.utils.parseEther('100'),
+      log: true,
+      gasLimit: 6e6,
+    },
+    'deposit'
   );
   console.log('Done!');
 };
