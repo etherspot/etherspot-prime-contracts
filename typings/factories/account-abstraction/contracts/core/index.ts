@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export { BaseAccount__factory } from "./BaseAccount__factory";
+export { BasePaymaster__factory } from "./BasePaymaster__factory";
 export { EntryPoint__factory } from "./EntryPoint__factory";
 export { EntryPointSimulations__factory } from "./EntryPointSimulations__factory";
 export { NonceManager__factory } from "./NonceManager__factory";

@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export { IAccessController__factory } from "./IAccessController__factory";
+export { IERC20SessionKeyValidator__factory } from "./IERC20SessionKeyValidator__factory";
 export { IModularEtherspotWallet__factory } from "./IModularEtherspotWallet__factory";
