@@ -4,16 +4,13 @@ pragma solidity 0.8.23;
 import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
-import {
-    MODULE_TYPE_VALIDATOR,
-    VALIDATION_FAILED,
-    VALIDATION_SUCCESS
-} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import "../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
+import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED, VALIDATION_SUCCESS} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
+// import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
 import {IERC20SessionKeyValidator} from "../../interfaces/IERC20SessionKeyValidator.sol";
-import {ERC20Actions} from "../executors/ERC20Actions.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
 contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
@@ -112,6 +109,8 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     // @inheritdoc IERC20SessionKeyValidator
     function toggleSessionKeyPause(address _sessionKey) external {
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
+        if (sd.validUntil == 0)
+            revert ERC20SKV_SessionKeyDoesNotExist(_sessionKey);
         if (sd.live) {
             sd.live = false;
             emit ERC20SKV_SessionKeyPaused(_sessionKey, msg.sender);
@@ -133,21 +132,54 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         address _sessionKey,
         PackedUserOperation calldata userOp
     ) public returns (bool) {
-        bytes calldata callData = userOp.callData;
-        (
-            bytes4 selector,
-            address target,
-            address to,
-            address from,
-            uint256 amount
-        ) = _digest(callData);
-
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (target != sd.token) return false;
-        if (selector != sd.funcSelector) return false;
-        if (amount > sd.spendingLimit) return false;
         if (checkSessionKeyPaused(_sessionKey)) return false;
-        return true;
+        address target;
+        bytes calldata callData = userOp.callData;
+        bytes4 sel = bytes4(callData[:4]);
+        if (sel == IERC7579Account.execute.selector) {
+            ModeCode mode = ModeCode.wrap(bytes32(callData[4:36]));
+            (CallType calltype, , , ) = ModeLib.decode(mode);
+            if (calltype == CALLTYPE_SINGLE) {
+                bytes calldata execData;
+                // 0x00 ~ 0x04 : selector
+                // 0x04 ~ 0x24 : mode code
+                // 0x24 ~ 0x44 : execution target
+                // 0x44 ~0x64 : execution value
+                // 0x64 ~ : execution calldata
+                (target, , execData) = ExecutionLib.decodeSingle(
+                    callData[100:]
+                );
+                (
+                    bytes4 selector,
+                    address from,
+                    address to,
+                    uint256 amount
+                ) = _digest(execData);
+                if (target != sd.token) return false;
+                if (selector != sd.funcSelector) return false;
+                if (amount > sd.spendingLimit) return false;
+                return true;
+            }
+            if (calltype == CALLTYPE_BATCH) {
+                Execution[] calldata execs = ExecutionLib.decodeBatch(
+                    callData[100:]
+                );
+                for (uint256 i; i < execs.length; i++) {
+                    target = execs[i].target;
+                    (
+                        bytes4 selector,
+                        address from,
+                        address to,
+                        uint256 amount
+                    ) = _digest(execs[i].callData);
+                    if (target != sd.token) return false;
+                    if (selector != sd.funcSelector) return false;
+                    if (amount > sd.spendingLimit) return false;
+                }
+                return true;
+            }
+        }
     }
 
     // @inheritdoc IERC20SessionKeyValidator
@@ -167,9 +199,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        bytes32 ethHash = ECDSA.toEthSignedMessageHash(userOpHash);
-        address sessionKeySigner = ECDSA.recover(ethHash, userOp.signature);
-
+        address sessionKeySigner = ECDSA.recover(userOpHash, userOp.signature);
         if (!validateSessionKeyParams(sessionKeySigner, userOp))
             return VALIDATION_FAILED;
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
@@ -227,41 +257,24 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         bytes calldata _data
     )
         internal
-        pure
-        returns (
-            bytes4 selector,
-            address targetContract,
-            address to,
-            address from,
-            uint256 amount
-        )
+        view
+        returns (bytes4 selector, address from, address to, uint256 amount)
     {
-        bytes4 functionSelector;
-        assembly {
-            functionSelector := calldataload(_data.offset)
-            targetContract := calldataload(add(_data.offset, 0x04))
-        }
+        selector = bytes4(_data[0:4]);
         if (
-            functionSelector == IERC20.approve.selector ||
-            functionSelector == IERC20.transfer.selector ||
-            functionSelector == ERC20Actions.transferERC20Action.selector
+            selector == IERC20.approve.selector ||
+            selector == IERC20.transfer.selector
         ) {
-            assembly {
-                targetContract := calldataload(add(_data.offset, 0x04))
-                to := calldataload(add(_data.offset, 0x24))
-                amount := calldataload(add(_data.offset, 0x44))
-            }
-            return (functionSelector, targetContract, to, address(0), amount);
-        } else if (functionSelector == IERC20.transferFrom.selector) {
-            assembly {
-                targetContract := calldataload(add(_data.offset, 0x04))
-                from := calldataload(add(_data.offset, 0x24))
-                to := calldataload(add(_data.offset, 0x44))
-                amount := calldataload(add(_data.offset, 0x64))
-            }
-            return (functionSelector, targetContract, to, from, amount);
+            to = address(bytes20(_data[16:36]));
+            amount = uint256(bytes32(_data[36:68]));
+            return (selector, address(0), to, amount);
+        } else if (selector == IERC20.transferFrom.selector) {
+            from = address(bytes20(_data[16:36]));
+            to = address(bytes20(_data[48:68]));
+            amount = uint256(bytes32(_data[68:100]));
+            return (selector, from, to, amount);
         } else {
-            return (0, address(0), address(0), address(0), 0);
+            return (bytes4(0), address(0), address(0), 0);
         }
     }
 }
