@@ -179,6 +179,8 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
                 }
                 return true;
             }
+        } else {
+            return false;
         }
     }
 
