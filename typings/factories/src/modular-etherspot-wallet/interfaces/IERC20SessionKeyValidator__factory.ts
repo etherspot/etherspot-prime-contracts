@@ -146,6 +146,7 @@ const _abi = [
     type: "event",
   },
   {
+    anonymous: false,
     inputs: [
       {
         internalType: "address",
