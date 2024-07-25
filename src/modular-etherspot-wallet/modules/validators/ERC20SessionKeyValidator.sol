@@ -178,6 +178,8 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
                     if (amount > sd.spendingLimit) return false;
                 }
                 return true;
+            } else {
+                return false;
             }
         } else {
             return false;
