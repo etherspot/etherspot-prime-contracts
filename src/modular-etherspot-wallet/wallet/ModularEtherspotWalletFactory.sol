@@ -7,6 +7,11 @@ import {IModularEtherspotWallet} from "../interfaces/IModularEtherspotWallet.sol
 contract ModularEtherspotWalletFactory {
     address public immutable implementation;
 
+    event ModularAccountDeployed(
+        address indexed account,
+        address indexed owner
+    );
+
     constructor(address _implementation) {
         implementation = _implementation;
     }
@@ -21,6 +26,7 @@ contract ModularEtherspotWalletFactory {
 
         if (!alreadyDeployed) {
             IModularEtherspotWallet(account).initializeAccount(initCode);
+            emit ModularAccountDeployed(account, msg.sender);
         }
         return account;
     }
