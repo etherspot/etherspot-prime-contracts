@@ -205,6 +205,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.VmSafe__factory>;
     getContractFactory(
+      name: "Ownable",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Ownable__factory>;
+    getContractFactory(
       name: "ECDSA",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ECDSA__factory>;
@@ -369,10 +373,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Bootstrap__factory>;
     getContractFactory(
-      name: "ModuleIsolationHook",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ModuleIsolationHook__factory>;
-    getContractFactory(
       name: "IAccessController",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IAccessController__factory>;
@@ -397,10 +397,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ModuleIsolationHook__factory>;
     getContractFactory(
-      name: "MultipleOwnerECDSAValidator",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.MultipleOwnerECDSAValidator__factory>;
-    getContractFactory(
       name: "ERC20SessionKeyValidator",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC20SessionKeyValidator__factory>;
@@ -412,6 +408,10 @@ declare module "hardhat/types/runtime" {
       name: "TestERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestERC20__factory>;
+    getContractFactory(
+      name: "FactoryStaker",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.FactoryStaker__factory>;
     getContractFactory(
       name: "ModularEtherspotWallet",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -662,6 +662,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.VmSafe>;
     getContractAt(
+      name: "Ownable",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Ownable>;
+    getContractAt(
       name: "ECDSA",
       address: string,
       signer?: ethers.Signer
@@ -867,11 +872,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Bootstrap>;
     getContractAt(
-      name: "ModuleIsolationHook",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ModuleIsolationHook>;
-    getContractAt(
       name: "IAccessController",
       address: string,
       signer?: ethers.Signer
@@ -902,11 +902,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ModuleIsolationHook>;
     getContractAt(
-      name: "MultipleOwnerECDSAValidator",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.MultipleOwnerECDSAValidator>;
-    getContractAt(
       name: "ERC20SessionKeyValidator",
       address: string,
       signer?: ethers.Signer
@@ -921,6 +916,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.TestERC20>;
+    getContractAt(
+      name: "FactoryStaker",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.FactoryStaker>;
     getContractAt(
       name: "ModularEtherspotWallet",
       address: string,

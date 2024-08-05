@@ -28,16 +28,11 @@ import type {
   PromiseOrValue,
 } from "../../../common";
 
-export interface ModularEtherspotWalletFactoryInterface
-  extends utils.Interface {
+export interface FactoryStakerInterface extends utils.Interface {
   functions: {
-    "_getSalt(bytes32,bytes)": FunctionFragment;
     "addStake(address,uint32)": FunctionFragment;
     "cancelOwnershipHandover()": FunctionFragment;
     "completeOwnershipHandover(address)": FunctionFragment;
-    "createAccount(bytes32,bytes)": FunctionFragment;
-    "getAddress(bytes32,bytes)": FunctionFragment;
-    "implementation()": FunctionFragment;
     "owner()": FunctionFragment;
     "ownershipHandoverExpiresAt(address)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
@@ -49,13 +44,9 @@ export interface ModularEtherspotWalletFactoryInterface
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "_getSalt"
       | "addStake"
       | "cancelOwnershipHandover"
       | "completeOwnershipHandover"
-      | "createAccount"
-      | "getAddress"
-      | "implementation"
       | "owner"
       | "ownershipHandoverExpiresAt"
       | "renounceOwnership"
@@ -65,10 +56,6 @@ export interface ModularEtherspotWalletFactoryInterface
       | "withdrawStake"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "_getSalt",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
-  ): string;
   encodeFunctionData(
     functionFragment: "addStake",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
@@ -80,18 +67,6 @@ export interface ModularEtherspotWalletFactoryInterface
   encodeFunctionData(
     functionFragment: "completeOwnershipHandover",
     values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "createAccount",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getAddress",
-    values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "implementation",
-    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -119,7 +94,6 @@ export interface ModularEtherspotWalletFactoryInterface
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
 
-  decodeFunctionResult(functionFragment: "_getSalt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "addStake", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "cancelOwnershipHandover",
@@ -127,15 +101,6 @@ export interface ModularEtherspotWalletFactoryInterface
   ): Result;
   decodeFunctionResult(
     functionFragment: "completeOwnershipHandover",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "createAccount",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "getAddress", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "implementation",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -165,29 +130,15 @@ export interface ModularEtherspotWalletFactoryInterface
   ): Result;
 
   events: {
-    "ModularAccountDeployed(address,address)": EventFragment;
     "OwnershipHandoverCanceled(address)": EventFragment;
     "OwnershipHandoverRequested(address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "ModularAccountDeployed"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipHandoverCanceled"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipHandoverRequested"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
-
-export interface ModularAccountDeployedEventObject {
-  account: string;
-  owner: string;
-}
-export type ModularAccountDeployedEvent = TypedEvent<
-  [string, string],
-  ModularAccountDeployedEventObject
->;
-
-export type ModularAccountDeployedEventFilter =
-  TypedEventFilter<ModularAccountDeployedEvent>;
 
 export interface OwnershipHandoverCanceledEventObject {
   pendingOwner: string;
@@ -223,12 +174,12 @@ export type OwnershipTransferredEvent = TypedEvent<
 export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
-export interface ModularEtherspotWalletFactory extends BaseContract {
+export interface FactoryStaker extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: ModularEtherspotWalletFactoryInterface;
+  interface: FactoryStakerInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -250,12 +201,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    _getSalt(
-      _salt: PromiseOrValue<BytesLike>,
-      initCode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[string] & { salt: string }>;
-
     addStake(
       _epAddress: PromiseOrValue<string>,
       _unstakeDelaySec: PromiseOrValue<BigNumberish>,
@@ -270,20 +215,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
       pendingOwner: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    createAccount(
-      salt: PromiseOrValue<BytesLike>,
-      initCode: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<ContractTransaction>;
-
-    getAddress(
-      salt: PromiseOrValue<BytesLike>,
-      initcode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<[string]>;
-
-    implementation(overrides?: CallOverrides): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string] & { result: string }>;
 
@@ -317,12 +248,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  _getSalt(
-    _salt: PromiseOrValue<BytesLike>,
-    initCode: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
   addStake(
     _epAddress: PromiseOrValue<string>,
     _unstakeDelaySec: PromiseOrValue<BigNumberish>,
@@ -337,20 +262,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
     pendingOwner: PromiseOrValue<string>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-
-  createAccount(
-    salt: PromiseOrValue<BytesLike>,
-    initCode: PromiseOrValue<BytesLike>,
-    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-  ): Promise<ContractTransaction>;
-
-  getAddress(
-    salt: PromiseOrValue<BytesLike>,
-    initcode: PromiseOrValue<BytesLike>,
-    overrides?: CallOverrides
-  ): Promise<string>;
-
-  implementation(overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
@@ -384,12 +295,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    _getSalt(
-      _salt: PromiseOrValue<BytesLike>,
-      initCode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
     addStake(
       _epAddress: PromiseOrValue<string>,
       _unstakeDelaySec: PromiseOrValue<BigNumberish>,
@@ -402,20 +307,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
       pendingOwner: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    createAccount(
-      salt: PromiseOrValue<BytesLike>,
-      initCode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    getAddress(
-      salt: PromiseOrValue<BytesLike>,
-      initcode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<string>;
-
-    implementation(overrides?: CallOverrides): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -446,15 +337,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
   };
 
   filters: {
-    "ModularAccountDeployed(address,address)"(
-      account?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null
-    ): ModularAccountDeployedEventFilter;
-    ModularAccountDeployed(
-      account?: PromiseOrValue<string> | null,
-      owner?: PromiseOrValue<string> | null
-    ): ModularAccountDeployedEventFilter;
-
     "OwnershipHandoverCanceled(address)"(
       pendingOwner?: PromiseOrValue<string> | null
     ): OwnershipHandoverCanceledEventFilter;
@@ -480,12 +362,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
   };
 
   estimateGas: {
-    _getSalt(
-      _salt: PromiseOrValue<BytesLike>,
-      initCode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     addStake(
       _epAddress: PromiseOrValue<string>,
       _unstakeDelaySec: PromiseOrValue<BigNumberish>,
@@ -500,20 +376,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
       pendingOwner: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-
-    createAccount(
-      salt: PromiseOrValue<BytesLike>,
-      initCode: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<BigNumber>;
-
-    getAddress(
-      salt: PromiseOrValue<BytesLike>,
-      initcode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
-    implementation(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -548,12 +410,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
   };
 
   populateTransaction: {
-    _getSalt(
-      _salt: PromiseOrValue<BytesLike>,
-      initCode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     addStake(
       _epAddress: PromiseOrValue<string>,
       _unstakeDelaySec: PromiseOrValue<BigNumberish>,
@@ -568,20 +424,6 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
       pendingOwner: PromiseOrValue<string>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-
-    createAccount(
-      salt: PromiseOrValue<BytesLike>,
-      initCode: PromiseOrValue<BytesLike>,
-      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
-    ): Promise<PopulatedTransaction>;
-
-    getAddress(
-      salt: PromiseOrValue<BytesLike>,
-      initcode: PromiseOrValue<BytesLike>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
-    implementation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

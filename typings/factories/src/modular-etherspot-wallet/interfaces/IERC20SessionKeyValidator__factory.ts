@@ -49,6 +49,32 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+    ],
+    name: "ERC20SKV_ModuleInstalled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+    ],
+    name: "ERC20SKV_ModuleUninstalled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
         name: "sessionKey",
         type: "address",
       },
@@ -79,6 +105,44 @@ const _abi = [
       },
     ],
     name: "ERC20SKV_SessionKeyEnabled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sessionKey",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+    ],
+    name: "ERC20SKV_SessionKeyPaused",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "sessionKey",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+    ],
+    name: "ERC20SKV_SessionKeyUnpaused",
     type: "event",
   },
   {
