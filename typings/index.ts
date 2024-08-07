@@ -200,6 +200,8 @@ export type { MultipleOwnerECDSAValidator } from "./src/modular-etherspot-wallet
 export { MultipleOwnerECDSAValidator__factory } from "./factories/src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator__factory";
 export type { TestERC20 } from "./src/modular-etherspot-wallet/test/TestERC20";
 export { TestERC20__factory } from "./factories/src/modular-etherspot-wallet/test/TestERC20__factory";
+export type { TestUSDC } from "./src/modular-etherspot-wallet/test/TestUSDC";
+export { TestUSDC__factory } from "./factories/src/modular-etherspot-wallet/test/TestUSDC__factory";
 export type { FactoryStaker } from "./src/modular-etherspot-wallet/wallet/FactoryStaker";
 export { FactoryStaker__factory } from "./factories/src/modular-etherspot-wallet/wallet/FactoryStaker__factory";
 export type { ModularEtherspotWallet } from "./src/modular-etherspot-wallet/wallet/ModularEtherspotWallet";

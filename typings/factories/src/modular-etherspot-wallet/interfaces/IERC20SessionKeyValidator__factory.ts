@@ -146,26 +146,6 @@ const _abi = [
     type: "event",
   },
   {
-    anonymous: false,
-    inputs: [
-      {
-        internalType: "address",
-        name: "_sessionKey",
-        type: "address",
-      },
-    ],
-    name: "checkSessionKeyPaused",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "paused",
-        type: "bool",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "address",
@@ -223,11 +203,6 @@ const _abi = [
           },
           {
             internalType: "bytes4",
-            name: "interfaceId",
-            type: "bytes4",
-          },
-          {
-            internalType: "bytes4",
             name: "funcSelector",
             type: "bytes4",
           },
@@ -248,7 +223,7 @@ const _abi = [
           },
           {
             internalType: "bool",
-            name: "paused",
+            name: "live",
             type: "bool",
           },
         ],
@@ -296,6 +271,25 @@ const _abi = [
       },
     ],
     stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_sessionKey",
+        type: "address",
+      },
+    ],
+    name: "isSessionKeyLive",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "paused",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -448,7 +442,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "valid",
+        name: "",
         type: "bool",
       },
     ],

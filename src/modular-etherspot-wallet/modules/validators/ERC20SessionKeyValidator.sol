@@ -9,7 +9,6 @@ import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED, VALIDATION_SUCCESS} from "../.
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
-// import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
 import {IERC20SessionKeyValidator} from "../../interfaces/IERC20SessionKeyValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
@@ -34,7 +33,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     error ERC20SKV_InvalidToken();
     error ERC20SKV_InvalidFunctionSelector();
     error ERC20SKV_InvalidSpendingLimit();
-    error ERC20SKV_InvalidDuration(uint256 validAfter, uint256 validUntil);
+    error ERC20SKV_InvalidValidUntil(uint256 validUntil);
     error ERC20SKV_SessionKeyAlreadyExists(address sessionKey);
     error ERC20SKV_SessionKeyDoesNotExist(address session);
     error ERC20SKV_SessionPaused(address sessionKey);
@@ -69,15 +68,13 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
             revert ERC20SKV_InvalidFunctionSelector();
         uint256 spendingLimit = uint256(bytes32(_sessionData[44:76]));
         if (spendingLimit == 0) revert ERC20SKV_InvalidSpendingLimit();
-        uint48 validAfter = uint48(bytes6(_sessionData[76:82]));
-        uint48 validUntil = uint48(bytes6(_sessionData[82:88]));
-        if (validUntil <= validAfter || validUntil == 0 || validAfter == 0)
-            revert ERC20SKV_InvalidDuration(validAfter, validUntil);
+        uint48 validUntil = uint48(bytes6(_sessionData[76:82]));
+        if (validUntil == 0) revert ERC20SKV_InvalidValidUntil(validUntil);
         sessionData[sessionKey][msg.sender] = SessionData(
             token,
             funcSelector,
             spendingLimit,
-            validAfter,
+            0,
             validUntil,
             true
         );
@@ -121,19 +118,19 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     }
 
     // @inheritdoc IERC20SessionKeyValidator
-    function checkSessionKeyPaused(
-        address _sessionKey
-    ) public view returns (bool) {
-        return !sessionData[_sessionKey][msg.sender].live;
+    function isSessionKeyLive(address _sessionKey) public view returns (bool) {
+        return sessionData[_sessionKey][msg.sender].live;
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function validateSessionKeyParams(
         address _sessionKey,
         PackedUserOperation calldata userOp
-    ) public returns (bool) {
+    ) public view returns (bool) {
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (checkSessionKeyPaused(_sessionKey)) return false;
+        if (isSessionKeyLive(_sessionKey) == false) {
+            return false;
+        }
         address target;
         bytes calldata callData = userOp.callData;
         bytes4 sel = bytes4(callData[:4]);
@@ -203,10 +200,14 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        address sessionKeySigner = ECDSA.recover(userOpHash, userOp.signature);
+        address sessionKeySigner = ECDSA.recover(
+            ECDSA.toEthSignedMessageHash(userOpHash),
+            userOp.signature
+        );
         if (!validateSessionKeyParams(sessionKeySigner, userOp))
             return VALIDATION_FAILED;
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
+        // TODO: need to fix passing validUntil and validAfter
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
@@ -261,7 +262,7 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         bytes calldata _data
     )
         internal
-        view
+        pure
         returns (bytes4 selector, address from, address to, uint256 amount)
     {
         selector = bytes4(_data[0:4]);

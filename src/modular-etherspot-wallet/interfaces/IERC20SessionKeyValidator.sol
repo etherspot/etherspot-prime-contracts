@@ -70,7 +70,7 @@ interface IERC20SessionKeyValidator is IValidator {
     /// @notice Checks if a session key is paused for the caller's wallet.
     /// @param _sessionKey The address of the session key to check.
     /// @return paused True if the session key is paused, false otherwise.
-    function checkSessionKeyPaused(
+    function isSessionKeyLive(
         address _sessionKey
     ) external view returns (bool paused);
 
