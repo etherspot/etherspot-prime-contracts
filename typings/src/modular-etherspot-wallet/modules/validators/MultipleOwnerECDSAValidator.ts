@@ -59,7 +59,6 @@ export type PackedUserOperationStructOutput = [
 
 export interface MultipleOwnerECDSAValidatorInterface extends utils.Interface {
   functions: {
-    "eip712Domain()": FunctionFragment;
     "isInitialized(address)": FunctionFragment;
     "isModuleType(uint256)": FunctionFragment;
     "isValidSignatureWithSender(address,bytes32,bytes)": FunctionFragment;
@@ -70,7 +69,6 @@ export interface MultipleOwnerECDSAValidatorInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "eip712Domain"
       | "isInitialized"
       | "isModuleType"
       | "isValidSignatureWithSender"
@@ -79,10 +77,6 @@ export interface MultipleOwnerECDSAValidatorInterface extends utils.Interface {
       | "validateUserOp"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "eip712Domain",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "isInitialized",
     values: [PromiseOrValue<string>]
@@ -112,10 +106,6 @@ export interface MultipleOwnerECDSAValidatorInterface extends utils.Interface {
     values: [PackedUserOperationStruct, PromiseOrValue<BytesLike>]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "eip712Domain",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "isInitialized",
     data: BytesLike
@@ -168,20 +158,6 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    eip712Domain(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, string, BigNumber, string, string, BigNumber[]] & {
-        fields: string;
-        name: string;
-        version: string;
-        chainId: BigNumber;
-        verifyingContract: string;
-        salt: string;
-        extensions: BigNumber[];
-      }
-    >;
-
     isInitialized(
       smartAccount: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -215,20 +191,6 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
-
-  eip712Domain(
-    overrides?: CallOverrides
-  ): Promise<
-    [string, string, string, BigNumber, string, string, BigNumber[]] & {
-      fields: string;
-      name: string;
-      version: string;
-      chainId: BigNumber;
-      verifyingContract: string;
-      salt: string;
-      extensions: BigNumber[];
-    }
-  >;
 
   isInitialized(
     smartAccount: PromiseOrValue<string>,
@@ -264,20 +226,6 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    eip712Domain(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, string, BigNumber, string, string, BigNumber[]] & {
-        fields: string;
-        name: string;
-        version: string;
-        chainId: BigNumber;
-        verifyingContract: string;
-        salt: string;
-        extensions: BigNumber[];
-      }
-    >;
-
     isInitialized(
       smartAccount: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -315,8 +263,6 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
   filters: {};
 
   estimateGas: {
-    eip712Domain(overrides?: CallOverrides): Promise<BigNumber>;
-
     isInitialized(
       smartAccount: PromiseOrValue<string>,
       overrides?: CallOverrides
@@ -352,8 +298,6 @@ export interface MultipleOwnerECDSAValidator extends BaseContract {
   };
 
   populateTransaction: {
-    eip712Domain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     isInitialized(
       smartAccount: PromiseOrValue<string>,
       overrides?: CallOverrides

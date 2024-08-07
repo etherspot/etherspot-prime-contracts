@@ -49,6 +49,32 @@ const _abi = [
       {
         indexed: false,
         internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+    ],
+    name: "ERC20SKV_ModuleInstalled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+    ],
+    name: "ERC20SKV_ModuleUninstalled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
         name: "sessionKey",
         type: "address",
       },
@@ -82,23 +108,42 @@ const _abi = [
     type: "event",
   },
   {
+    anonymous: false,
     inputs: [
       {
+        indexed: false,
         internalType: "address",
-        name: "_sessionKey",
+        name: "sessionKey",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "wallet",
         type: "address",
       },
     ],
-    name: "checkSessionKeyPaused",
-    outputs: [
+    name: "ERC20SKV_SessionKeyPaused",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
       {
-        internalType: "bool",
-        name: "paused",
-        type: "bool",
+        indexed: false,
+        internalType: "address",
+        name: "sessionKey",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "wallet",
+        type: "address",
       },
     ],
-    stateMutability: "view",
-    type: "function",
+    name: "ERC20SKV_SessionKeyUnpaused",
+    type: "event",
   },
   {
     inputs: [
@@ -158,11 +203,6 @@ const _abi = [
           },
           {
             internalType: "bytes4",
-            name: "interfaceId",
-            type: "bytes4",
-          },
-          {
-            internalType: "bytes4",
             name: "funcSelector",
             type: "bytes4",
           },
@@ -183,7 +223,7 @@ const _abi = [
           },
           {
             internalType: "bool",
-            name: "paused",
+            name: "live",
             type: "bool",
           },
         ],
@@ -231,6 +271,25 @@ const _abi = [
       },
     ],
     stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_sessionKey",
+        type: "address",
+      },
+    ],
+    name: "isSessionKeyLive",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "paused",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {
@@ -383,7 +442,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "valid",
+        name: "",
         type: "bool",
       },
     ],

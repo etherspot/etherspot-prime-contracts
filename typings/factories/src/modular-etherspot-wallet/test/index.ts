@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export { TestERC20__factory } from "./TestERC20__factory";
+export { TestUSDC__factory } from "./TestUSDC__factory";
