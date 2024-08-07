@@ -131,7 +131,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
-            uint48(block.timestamp + 1),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -169,7 +169,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
-            uint48(block.timestamp + 1),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         // Check emitted event
@@ -192,7 +192,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
-            uint48(block.timestamp + 1),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         vm.expectRevert(
@@ -210,7 +210,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
-            uint48(block.timestamp + 1),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         validator.enableSessionKey(sessionData);
@@ -232,7 +232,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(0),
             IERC20.transferFrom.selector,
             uint256(100),
-            uint48(block.timestamp + 1),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         vm.expectRevert(
@@ -250,7 +250,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             bytes4(0),
             uint256(100),
-            uint48(block.timestamp + 1),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         vm.expectRevert(
@@ -270,12 +270,31 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(0),
-            uint48(block.timestamp + 1),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         vm.expectRevert(
             abi.encodeWithSelector(
                 ERC20SessionKeyValidator.ERC20SKV_InvalidSpendingLimit.selector
+            )
+        );
+        validator.enableSessionKey(sessionData);
+    }
+
+    function test_fail_enableSessionKey_invalidValidAfter() public {
+        // Enable session
+        bytes memory sessionData = abi.encodePacked(
+            sessionKeyAddr,
+            address(erc20),
+            IERC20.transferFrom.selector,
+            uint256(100),
+            uint48(0),
+            uint48(block.timestamp + 1 days)
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC20SessionKeyValidator.ERC20SKV_InvalidValidAfter.selector,
+                uint48(0)
             )
         );
         validator.enableSessionKey(sessionData);
@@ -288,12 +307,13 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
+            uint48(block.timestamp + 1),
             uint48(0)
         );
         vm.expectRevert(
             abi.encodeWithSelector(
                 ERC20SessionKeyValidator.ERC20SKV_InvalidValidUntil.selector,
-                0
+                uint48(0)
             )
         );
         validator.enableSessionKey(sessionData);
@@ -307,6 +327,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         validator.enableSessionKey(sessionData);
@@ -333,6 +354,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         validator.enableSessionKey(sessionData);
@@ -345,6 +367,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(2),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         validator.rotateSessionKey(sessionKeyAddr, newSessionData);
@@ -360,6 +383,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         validator.enableSessionKey(sessionData);
@@ -382,6 +406,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         vm.expectRevert(
@@ -403,6 +428,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         validator.enableSessionKey(sessionData);
@@ -438,6 +464,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         bytes memory sessionData2 = abi.encodePacked(
@@ -445,6 +472,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(2),
+            uint48(block.timestamp),
             uint48(block.timestamp + 3 days)
         );
         validator.enableSessionKey(sessionData1);
@@ -460,6 +488,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100),
+            uint48(block.timestamp),
             validUntil
         );
         validator.enableSessionKey(sessionData);
@@ -483,6 +512,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -531,8 +561,10 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
+
         sessionKeyValidator.enableSessionKey(sessionData);
         // Construct user op data
         bytes memory data = abi.encodeWithSelector(
@@ -580,6 +612,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transfer.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -628,6 +661,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(1 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -679,6 +713,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -727,6 +762,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(2 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -794,6 +830,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.approve.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(approvalSessionData);
@@ -803,6 +840,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transfer.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(transferSessionData);
@@ -888,6 +926,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -897,6 +936,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transfer.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(anotherSessionData);
@@ -951,6 +991,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -1005,6 +1046,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(5 ether),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -1061,6 +1103,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(100000000000000),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -1142,6 +1185,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(usdc),
             IERC20.transferFrom.selector,
             uint256(10000000),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -1191,6 +1235,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(usdc),
             IERC20.transferFrom.selector,
             uint256(10000000),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);
@@ -1246,6 +1291,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(erc20),
             IERC20.transferFrom.selector,
             uint256(2000000000000000000),
+            uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
         sessionKeyValidator.enableSessionKey(sessionData);

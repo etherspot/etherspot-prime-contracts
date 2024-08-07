@@ -33,7 +33,8 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
     error ERC20SKV_InvalidToken();
     error ERC20SKV_InvalidFunctionSelector();
     error ERC20SKV_InvalidSpendingLimit();
-    error ERC20SKV_InvalidValidUntil(uint256 validUntil);
+    error ERC20SKV_InvalidValidAfter(uint48 validAfter);
+    error ERC20SKV_InvalidValidUntil(uint48 validUntil);
     error ERC20SKV_SessionKeyAlreadyExists(address sessionKey);
     error ERC20SKV_SessionKeyDoesNotExist(address session);
     error ERC20SKV_SessionPaused(address sessionKey);
@@ -68,13 +69,15 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
             revert ERC20SKV_InvalidFunctionSelector();
         uint256 spendingLimit = uint256(bytes32(_sessionData[44:76]));
         if (spendingLimit == 0) revert ERC20SKV_InvalidSpendingLimit();
-        uint48 validUntil = uint48(bytes6(_sessionData[76:82]));
+        uint48 validAfter = uint48(bytes6(_sessionData[76:82]));
+        if (validAfter == 0) revert ERC20SKV_InvalidValidAfter(validAfter);
+        uint48 validUntil = uint48(bytes6(_sessionData[82:88]));
         if (validUntil == 0) revert ERC20SKV_InvalidValidUntil(validUntil);
         sessionData[sessionKey][msg.sender] = SessionData(
             token,
             funcSelector,
             spendingLimit,
-            0,
+            validAfter,
             validUntil,
             true
         );
@@ -207,7 +210,6 @@ contract ERC20SessionKeyValidator is IERC20SessionKeyValidator {
         if (!validateSessionKeyParams(sessionKeySigner, userOp))
             return VALIDATION_FAILED;
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
-        // TODO: need to fix passing validUntil and validAfter
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
