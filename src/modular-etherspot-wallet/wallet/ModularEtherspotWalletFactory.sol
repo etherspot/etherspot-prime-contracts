@@ -7,6 +7,11 @@ import {FactoryStaker} from "./FactoryStaker.sol";
 
 contract ModularEtherspotWalletFactory is FactoryStaker {
     address public immutable implementation;
+    
+    event ModularAccountDeployed(
+        address indexed account,
+        address indexed owner
+    );
 
     constructor(address _implementation, address _owner) FactoryStaker(_owner) {
         implementation = _implementation;
@@ -22,6 +27,7 @@ contract ModularEtherspotWalletFactory is FactoryStaker {
 
         if (!alreadyDeployed) {
             IModularEtherspotWallet(account).initializeAccount(initCode);
+            emit ModularAccountDeployed(account, msg.sender);
         }
         return account;
     }
