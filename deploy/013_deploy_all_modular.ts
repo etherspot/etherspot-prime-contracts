@@ -9,11 +9,15 @@ const deployAllModular: DeployFunction = async function (
   const { deploy, execute, read } = deployments;
   const { from } = await getNamedAccounts();
   const ENTRYPOINT_07 = '0x0000000071727De22E5E9d8BAf0edAc6f37da032';
+  // bytes32(abi.encodePacked("ModularEtherspotWallet:Create2:salt"));
+  const SALT =
+    '0x4d6f64756c6172457468657273706f7457616c6c65743a437265617465323a73';
 
   console.log('starting deployments...');
 
   console.log('deploying ModularEtherspotWallet...');
   const implementation = await deploy('ModularEtherspotWallet', {
+    deterministicDeployment: SALT,
     from,
     args: [],
     gasLimit: 6e6,
@@ -27,6 +31,7 @@ const deployAllModular: DeployFunction = async function (
 
   console.log('deploying ModularEtherspotWalletFactory...');
   const factory = await deploy('ModularEtherspotWalletFactory', {
+    deterministicDeployment: SALT,
     from,
     args: [implementation.address, from],
     log: true,
@@ -52,6 +57,7 @@ const deployAllModular: DeployFunction = async function (
 
   console.log('deploying Bootstrap...');
   const bootstrap = await deploy('Bootstrap', {
+    deterministicDeployment: SALT,
     from,
     args: [],
     log: true,
@@ -64,6 +70,7 @@ const deployAllModular: DeployFunction = async function (
 
   console.log('deploying MultipleOwnerECDSAValidator...');
   const ecdsaValidator = await deploy('MultipleOwnerECDSAValidator', {
+    deterministicDeployment: SALT,
     from,
     args: [],
     log: true,

@@ -196,13 +196,13 @@ export type { ModuleIsolationHook } from "./src/modular-etherspot-wallet/modules
 export { ModuleIsolationHook__factory } from "./factories/src/modular-etherspot-wallet/modules/hooks/ModuleIsolationHook__factory";
 export type { ERC20SessionKeyValidator } from "./src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator";
 export { ERC20SessionKeyValidator__factory } from "./factories/src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator__factory";
-export type { MultipleOwnerECDSAValidator } from "./src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator";
-export { MultipleOwnerECDSAValidator__factory } from "./factories/src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator__factory";
+export type { ModularEtherspotWallet } from "./src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator_flattened.sol/ModularEtherspotWallet";
+export { ModularEtherspotWallet__factory } from "./factories/src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator_flattened.sol/ModularEtherspotWallet__factory";
+export type { MultipleOwnerECDSAValidator } from "./src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator_flattened.sol/MultipleOwnerECDSAValidator";
+export { MultipleOwnerECDSAValidator__factory } from "./factories/src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator_flattened.sol/MultipleOwnerECDSAValidator__factory";
 export type { TestERC20 } from "./src/modular-etherspot-wallet/test/TestERC20";
 export { TestERC20__factory } from "./factories/src/modular-etherspot-wallet/test/TestERC20__factory";
 export type { FactoryStaker } from "./src/modular-etherspot-wallet/wallet/FactoryStaker";
 export { FactoryStaker__factory } from "./factories/src/modular-etherspot-wallet/wallet/FactoryStaker__factory";
-export type { ModularEtherspotWallet } from "./src/modular-etherspot-wallet/wallet/ModularEtherspotWallet";
-export { ModularEtherspotWallet__factory } from "./factories/src/modular-etherspot-wallet/wallet/ModularEtherspotWallet__factory";
 export type { ModularEtherspotWalletFactory } from "./src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory";
 export { ModularEtherspotWalletFactory__factory } from "./factories/src/modular-etherspot-wallet/wallet/ModularEtherspotWalletFactory__factory";
