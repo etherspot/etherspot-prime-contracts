@@ -14,10 +14,78 @@ gas_reports = [
 
 
 [rpc_endpoints]
-goerli = "${GOERLI_RPC_URL}"
+# mainnets
+ancient8 = "${ANCIENT8_RPC_URL}"
+arbitrum = "${ARBITRUM_RPC_URL}"
+avalanche = "${AVALANCHE_RPC_URL}"
+base = "${BASE_RPC_URL}"
+bifrost = "${BIFROST_RPC_URL}"
+binance_smart_chain = "${BINANCE_RPC_URL}"
+ethereum = "${ETHEREUM_RPC_URL}"
+flare = "https://flare-api-tracer.flare.network/ext/C/rpc?auth=${FLARE_RPC_KEY}"
+fuse = "${FUSE_RPC_URL}"
+gnosis = "${GNOSIS_RPC_URL}"
+klaytn = "${KLAYTN_RPC_URL}"
+linea = "${LINEA_RPC_URL}"
+mantle = "${MANTLE_RPC_URL}"
+optimism = "${OPTIMISM_RPC_URL}"
+polygon = "${POLYGON_RPC_URL}"
+rootstock = "${ROOTSTOCK_RPC_URL}"
+scroll = "${SCROLL_RPC_URL}"
+xdc = "${XDC_RPC_URL}"
+
+# testnets
+amoy = "${AMOY_RPC_URL}"
+ancient8_testnet = "${ANCIENT8_TESTNET_RPC_URL}"
+arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
+base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
+binance_smart_chain_testnet = "${BINANCE_TESTNET_RPC_URL}"
+chiado = "${CHIADO_RPC_URL}"
+flare_coston2 = "${FLARE_COSTON2_RPC_URL}"
+fuji = "${FUJI_RPC_URL}"
+fuse_sparknet = "${FUSE_SPARKNET_RPC_URL}"
+kroma_sepolia = "${KROMA_SEPOLIA_RPC_URL}"
+linea_sepolia = "${LINEA_SEPOLIA_RPC_URL}"
+mantle_sepolia = "${MANTLE_SEPOLIA_RPC_URL}"
+optimism_sepolia = "${OPTIMISM_SEPOLIA_RPC_URL}"
+rootstock_testnet = "${ROOTSTOCK_TESTNET_RPC_URL}"
+scroll_sepolia = "${SCROLL_SEPOLIA_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
+xdc_apothem = "${XDC_APOTHEM_RPC_URL}"
+
 
 [etherscan]
+# mainnets
+ancient8 = { key = "${BASEGOERLI_BLOCKSCOUT_API_KEY}" }
+arbitrum = { key = "${ARBISCAN_API_KEY}" }
+avalanche = { key = "${AVALANCHE_EXPLORER_API_KEY}" }
+base = { key = "${BASESCAN_API_KEY}" }
+binance_smart_chain = { key = "${BSC_EXPLORER_API_KEY}" }
+ethereum = { key = "${ETHERSCAN_API_KEY}" }
+flare = { key = "${FLARESCAN_API_KEY}" }
+fuse = { key = "$FUSE_EXPLORER_API_KEY" }
+gnosis = { key = "${GNOSISSCAN_API_KEY}" }
+linea = { key = "${LINEASCAN_API_KEY}" }
+mantle = { key = "${BASESCAN_API_KEY}" }
+optimism = { key = "${OPTIMISM_EXPLORER_API_KEY}" }
+polygon = { key = "${POLYSCAN_API_KEY}" }
+scroll = { key = "${SCROLLSCAN_API_KEY}" }
+
+# testnets
+amoy = { key = "${POLYSCAN_API_KEY}" }
+ancient8_testnet = { key = "${BASESCAN_API_KEY}" }
+arbitrum_sepolia = { key = "${ARBISCAN_API_KEY}" }
+base_sepolia = { key = "${BASESCAN_API_KEY}" }
+binance_smart_chain_testnet = { key = "${BSC_EXPLORER_API_KEY}" }
+chiado = { key = "${CHIADO_EXPLORER_API_KEY}" }
+flare_coston2 = { key = "${FLARESCAN_API_KEY}" }
+fuji = { key = "${AVALANCHE_EXPLORER_API_KEY}" }
+fuse_sparknet = { key = "${FUSE_EXPLORER_API_KEY}" }
 goerli = { key = "${ETHERSCAN_API_KEY}" }
+linea_testnet = { key = "${LINEASCAN_API_KEY}" }
+mantle_sepolia = { key = "${BASEGOERLI_BLOCKSCOUT_API_KEY}" }
+optimism_sepolia = { key = "${OPTIMISM_EXPLORER_API_KEY}" }
+scroll_sepolia = { key = "${BASEGOERLI_BLOCKSCOUT_API_KEY}" }
 sepolia = { key = "${ETHERSCAN_API_KEY}" }
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
