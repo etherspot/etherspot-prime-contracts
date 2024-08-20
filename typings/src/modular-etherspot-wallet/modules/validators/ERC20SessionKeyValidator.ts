@@ -283,15 +283,47 @@ export interface ERC20SessionKeyValidatorInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "ERC20SKV_ModuleInstalled(address)": EventFragment;
+    "ERC20SKV_ModuleUninstalled(address)": EventFragment;
     "ERC20SKV_SessionKeyDisabled(address,address)": EventFragment;
     "ERC20SKV_SessionKeyEnabled(address,address)": EventFragment;
+    "ERC20SKV_SessionKeyPaused(address,address)": EventFragment;
+    "ERC20SKV_SessionKeyUnpaused(address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "ERC20SKV_ModuleInstalled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ERC20SKV_ModuleUninstalled"): EventFragment;
   getEvent(
     nameOrSignatureOrTopic: "ERC20SKV_SessionKeyDisabled"
   ): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ERC20SKV_SessionKeyEnabled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ERC20SKV_SessionKeyPaused"): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: "ERC20SKV_SessionKeyUnpaused"
+  ): EventFragment;
 }
+
+export interface ERC20SKV_ModuleInstalledEventObject {
+  wallet: string;
+}
+export type ERC20SKV_ModuleInstalledEvent = TypedEvent<
+  [string],
+  ERC20SKV_ModuleInstalledEventObject
+>;
+
+export type ERC20SKV_ModuleInstalledEventFilter =
+  TypedEventFilter<ERC20SKV_ModuleInstalledEvent>;
+
+export interface ERC20SKV_ModuleUninstalledEventObject {
+  wallet: string;
+}
+export type ERC20SKV_ModuleUninstalledEvent = TypedEvent<
+  [string],
+  ERC20SKV_ModuleUninstalledEventObject
+>;
+
+export type ERC20SKV_ModuleUninstalledEventFilter =
+  TypedEventFilter<ERC20SKV_ModuleUninstalledEvent>;
 
 export interface ERC20SKV_SessionKeyDisabledEventObject {
   sessionKey: string;
@@ -316,6 +348,30 @@ export type ERC20SKV_SessionKeyEnabledEvent = TypedEvent<
 
 export type ERC20SKV_SessionKeyEnabledEventFilter =
   TypedEventFilter<ERC20SKV_SessionKeyEnabledEvent>;
+
+export interface ERC20SKV_SessionKeyPausedEventObject {
+  sessionKey: string;
+  wallet: string;
+}
+export type ERC20SKV_SessionKeyPausedEvent = TypedEvent<
+  [string, string],
+  ERC20SKV_SessionKeyPausedEventObject
+>;
+
+export type ERC20SKV_SessionKeyPausedEventFilter =
+  TypedEventFilter<ERC20SKV_SessionKeyPausedEvent>;
+
+export interface ERC20SKV_SessionKeyUnpausedEventObject {
+  sessionKey: string;
+  wallet: string;
+}
+export type ERC20SKV_SessionKeyUnpausedEvent = TypedEvent<
+  [string, string],
+  ERC20SKV_SessionKeyUnpausedEventObject
+>;
+
+export type ERC20SKV_SessionKeyUnpausedEventFilter =
+  TypedEventFilter<ERC20SKV_SessionKeyUnpausedEvent>;
 
 export interface ERC20SessionKeyValidator extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -347,7 +403,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
     checkSessionKeyPaused(
       _sessionKey: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<[boolean] & { paused: boolean }>;
+    ): Promise<[boolean]>;
 
     disableSessionKey(
       _session: PromiseOrValue<string>,
@@ -373,18 +429,12 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    getAssociatedSessionKeys(
-      overrides?: CallOverrides
-    ): Promise<[string[]] & { keys: string[] }>;
+    getAssociatedSessionKeys(overrides?: CallOverrides): Promise<[string[]]>;
 
     getSessionKeyData(
       _sessionKey: PromiseOrValue<string>,
       overrides?: CallOverrides
-    ): Promise<
-      [IERC20SessionKeyValidator.SessionDataStructOutput] & {
-        data: IERC20SessionKeyValidator.SessionDataStructOutput;
-      }
-    >;
+    ): Promise<[IERC20SessionKeyValidator.SessionDataStructOutput]>;
 
     initialized(
       arg0: PromiseOrValue<string>,
@@ -693,6 +743,20 @@ export interface ERC20SessionKeyValidator extends BaseContract {
   };
 
   filters: {
+    "ERC20SKV_ModuleInstalled(address)"(
+      wallet?: null
+    ): ERC20SKV_ModuleInstalledEventFilter;
+    ERC20SKV_ModuleInstalled(
+      wallet?: null
+    ): ERC20SKV_ModuleInstalledEventFilter;
+
+    "ERC20SKV_ModuleUninstalled(address)"(
+      wallet?: null
+    ): ERC20SKV_ModuleUninstalledEventFilter;
+    ERC20SKV_ModuleUninstalled(
+      wallet?: null
+    ): ERC20SKV_ModuleUninstalledEventFilter;
+
     "ERC20SKV_SessionKeyDisabled(address,address)"(
       sessionKey?: null,
       wallet?: null
@@ -710,6 +774,24 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyEnabledEventFilter;
+
+    "ERC20SKV_SessionKeyPaused(address,address)"(
+      sessionKey?: null,
+      wallet?: null
+    ): ERC20SKV_SessionKeyPausedEventFilter;
+    ERC20SKV_SessionKeyPaused(
+      sessionKey?: null,
+      wallet?: null
+    ): ERC20SKV_SessionKeyPausedEventFilter;
+
+    "ERC20SKV_SessionKeyUnpaused(address,address)"(
+      sessionKey?: null,
+      wallet?: null
+    ): ERC20SKV_SessionKeyUnpausedEventFilter;
+    ERC20SKV_SessionKeyUnpaused(
+      sessionKey?: null,
+      wallet?: null
+    ): ERC20SKV_SessionKeyUnpausedEventFilter;
   };
 
   estimateGas: {

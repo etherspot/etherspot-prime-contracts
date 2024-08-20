@@ -19,6 +19,8 @@ import {Bootstrap} from "../src/modular-etherspot-wallet/erc7579-ref-impl/utils/
 contract ModularEtherspotWalletScript is Script {
     bytes32 immutable SALT =
         bytes32(abi.encodePacked("ModularEtherspotWallet:Create2:salt"));
+    address constant DEPLOYER =
+        address(0x09FD4F6088f2025427AB1e89257A44747081Ed59);
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -42,7 +44,7 @@ contract ModularEtherspotWalletScript is Script {
         console2.log("Deploying ModularEtherspotWalletFactory...");
         ModularEtherspotWalletFactory factory = new ModularEtherspotWalletFactory{
                 salt: SALT
-            }(address(implementation));
+            }(address(implementation), DEPLOYER);
         console2.log("Wallet factory deployed at address", address(factory));
         // bytes memory factCode = address(factory).code;
         // console2.logBytes(factCode);

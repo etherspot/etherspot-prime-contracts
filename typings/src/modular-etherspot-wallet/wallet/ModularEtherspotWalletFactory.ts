@@ -4,15 +4,21 @@
 import type {
   BaseContract,
   BigNumber,
+  BigNumberish,
   BytesLike,
   CallOverrides,
   ContractTransaction,
+  Overrides,
   PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
 } from "ethers";
-import type { FunctionFragment, Result } from "@ethersproject/abi";
+import type {
+  FunctionFragment,
+  Result,
+  EventFragment,
+} from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -26,22 +32,54 @@ export interface ModularEtherspotWalletFactoryInterface
   extends utils.Interface {
   functions: {
     "_getSalt(bytes32,bytes)": FunctionFragment;
+    "addStake(address,uint32)": FunctionFragment;
+    "cancelOwnershipHandover()": FunctionFragment;
+    "completeOwnershipHandover(address)": FunctionFragment;
     "createAccount(bytes32,bytes)": FunctionFragment;
     "getAddress(bytes32,bytes)": FunctionFragment;
     "implementation()": FunctionFragment;
+    "owner()": FunctionFragment;
+    "ownershipHandoverExpiresAt(address)": FunctionFragment;
+    "renounceOwnership()": FunctionFragment;
+    "requestOwnershipHandover()": FunctionFragment;
+    "transferOwnership(address)": FunctionFragment;
+    "unlockStake(address)": FunctionFragment;
+    "withdrawStake(address,address)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "_getSalt"
+      | "addStake"
+      | "cancelOwnershipHandover"
+      | "completeOwnershipHandover"
       | "createAccount"
       | "getAddress"
       | "implementation"
+      | "owner"
+      | "ownershipHandoverExpiresAt"
+      | "renounceOwnership"
+      | "requestOwnershipHandover"
+      | "transferOwnership"
+      | "unlockStake"
+      | "withdrawStake"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "_getSalt",
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "addStake",
+    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "cancelOwnershipHandover",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "completeOwnershipHandover",
+    values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
     functionFragment: "createAccount",
@@ -55,8 +93,42 @@ export interface ModularEtherspotWalletFactoryInterface
     functionFragment: "implementation",
     values?: undefined
   ): string;
+  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "ownershipHandoverExpiresAt",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "renounceOwnership",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "requestOwnershipHandover",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "transferOwnership",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "unlockStake",
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "withdrawStake",
+    values: [PromiseOrValue<string>, PromiseOrValue<string>]
+  ): string;
 
   decodeFunctionResult(functionFragment: "_getSalt", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "addStake", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "cancelOwnershipHandover",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "completeOwnershipHandover",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "createAccount",
     data: BytesLike
@@ -66,9 +138,90 @@ export interface ModularEtherspotWalletFactoryInterface
     functionFragment: "implementation",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "ownershipHandoverExpiresAt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "renounceOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "requestOwnershipHandover",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferOwnership",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "unlockStake",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "withdrawStake",
+    data: BytesLike
+  ): Result;
 
-  events: {};
+  events: {
+    "ModularAccountDeployed(address,address)": EventFragment;
+    "OwnershipHandoverCanceled(address)": EventFragment;
+    "OwnershipHandoverRequested(address)": EventFragment;
+    "OwnershipTransferred(address,address)": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "ModularAccountDeployed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipHandoverCanceled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipHandoverRequested"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
+
+export interface ModularAccountDeployedEventObject {
+  account: string;
+  owner: string;
+}
+export type ModularAccountDeployedEvent = TypedEvent<
+  [string, string],
+  ModularAccountDeployedEventObject
+>;
+
+export type ModularAccountDeployedEventFilter =
+  TypedEventFilter<ModularAccountDeployedEvent>;
+
+export interface OwnershipHandoverCanceledEventObject {
+  pendingOwner: string;
+}
+export type OwnershipHandoverCanceledEvent = TypedEvent<
+  [string],
+  OwnershipHandoverCanceledEventObject
+>;
+
+export type OwnershipHandoverCanceledEventFilter =
+  TypedEventFilter<OwnershipHandoverCanceledEvent>;
+
+export interface OwnershipHandoverRequestedEventObject {
+  pendingOwner: string;
+}
+export type OwnershipHandoverRequestedEvent = TypedEvent<
+  [string],
+  OwnershipHandoverRequestedEventObject
+>;
+
+export type OwnershipHandoverRequestedEventFilter =
+  TypedEventFilter<OwnershipHandoverRequestedEvent>;
+
+export interface OwnershipTransferredEventObject {
+  oldOwner: string;
+  newOwner: string;
+}
+export type OwnershipTransferredEvent = TypedEvent<
+  [string, string],
+  OwnershipTransferredEventObject
+>;
+
+export type OwnershipTransferredEventFilter =
+  TypedEventFilter<OwnershipTransferredEvent>;
 
 export interface ModularEtherspotWalletFactory extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -103,6 +256,21 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string] & { salt: string }>;
 
+    addStake(
+      _epAddress: PromiseOrValue<string>,
+      _unstakeDelaySec: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    cancelOwnershipHandover(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    completeOwnershipHandover(
+      pendingOwner: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
     createAccount(
       salt: PromiseOrValue<BytesLike>,
       initCode: PromiseOrValue<BytesLike>,
@@ -116,6 +284,37 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
     ): Promise<[string]>;
 
     implementation(overrides?: CallOverrides): Promise<[string]>;
+
+    owner(overrides?: CallOverrides): Promise<[string] & { result: string }>;
+
+    ownershipHandoverExpiresAt(
+      pendingOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { result: BigNumber }>;
+
+    renounceOwnership(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    requestOwnershipHandover(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    unlockStake(
+      _epAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
+
+    withdrawStake(
+      _epAddress: PromiseOrValue<string>,
+      _withdrawTo: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<ContractTransaction>;
   };
 
   _getSalt(
@@ -123,6 +322,21 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
     initCode: PromiseOrValue<BytesLike>,
     overrides?: CallOverrides
   ): Promise<string>;
+
+  addStake(
+    _epAddress: PromiseOrValue<string>,
+    _unstakeDelaySec: PromiseOrValue<BigNumberish>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  cancelOwnershipHandover(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  completeOwnershipHandover(
+    pendingOwner: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
 
   createAccount(
     salt: PromiseOrValue<BytesLike>,
@@ -138,12 +352,56 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
 
   implementation(overrides?: CallOverrides): Promise<string>;
 
+  owner(overrides?: CallOverrides): Promise<string>;
+
+  ownershipHandoverExpiresAt(
+    pendingOwner: PromiseOrValue<string>,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  renounceOwnership(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  requestOwnershipHandover(
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  transferOwnership(
+    newOwner: PromiseOrValue<string>,
+    overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  unlockStake(
+    _epAddress: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
+  withdrawStake(
+    _epAddress: PromiseOrValue<string>,
+    _withdrawTo: PromiseOrValue<string>,
+    overrides?: Overrides & { from?: PromiseOrValue<string> }
+  ): Promise<ContractTransaction>;
+
   callStatic: {
     _getSalt(
       _salt: PromiseOrValue<BytesLike>,
       initCode: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    addStake(
+      _epAddress: PromiseOrValue<string>,
+      _unstakeDelaySec: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    cancelOwnershipHandover(overrides?: CallOverrides): Promise<void>;
+
+    completeOwnershipHandover(
+      pendingOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     createAccount(
       salt: PromiseOrValue<BytesLike>,
@@ -158,15 +416,89 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
     ): Promise<string>;
 
     implementation(overrides?: CallOverrides): Promise<string>;
+
+    owner(overrides?: CallOverrides): Promise<string>;
+
+    ownershipHandoverExpiresAt(
+      pendingOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    renounceOwnership(overrides?: CallOverrides): Promise<void>;
+
+    requestOwnershipHandover(overrides?: CallOverrides): Promise<void>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    unlockStake(
+      _epAddress: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    withdrawStake(
+      _epAddress: PromiseOrValue<string>,
+      _withdrawTo: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<void>;
   };
 
-  filters: {};
+  filters: {
+    "ModularAccountDeployed(address,address)"(
+      account?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null
+    ): ModularAccountDeployedEventFilter;
+    ModularAccountDeployed(
+      account?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null
+    ): ModularAccountDeployedEventFilter;
+
+    "OwnershipHandoverCanceled(address)"(
+      pendingOwner?: PromiseOrValue<string> | null
+    ): OwnershipHandoverCanceledEventFilter;
+    OwnershipHandoverCanceled(
+      pendingOwner?: PromiseOrValue<string> | null
+    ): OwnershipHandoverCanceledEventFilter;
+
+    "OwnershipHandoverRequested(address)"(
+      pendingOwner?: PromiseOrValue<string> | null
+    ): OwnershipHandoverRequestedEventFilter;
+    OwnershipHandoverRequested(
+      pendingOwner?: PromiseOrValue<string> | null
+    ): OwnershipHandoverRequestedEventFilter;
+
+    "OwnershipTransferred(address,address)"(
+      oldOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+    OwnershipTransferred(
+      oldOwner?: PromiseOrValue<string> | null,
+      newOwner?: PromiseOrValue<string> | null
+    ): OwnershipTransferredEventFilter;
+  };
 
   estimateGas: {
     _getSalt(
       _salt: PromiseOrValue<BytesLike>,
       initCode: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    addStake(
+      _epAddress: PromiseOrValue<string>,
+      _unstakeDelaySec: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    cancelOwnershipHandover(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    completeOwnershipHandover(
+      pendingOwner: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     createAccount(
@@ -182,6 +514,37 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
     ): Promise<BigNumber>;
 
     implementation(overrides?: CallOverrides): Promise<BigNumber>;
+
+    owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    ownershipHandoverExpiresAt(
+      pendingOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    renounceOwnership(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    requestOwnershipHandover(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    unlockStake(
+      _epAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
+
+    withdrawStake(
+      _epAddress: PromiseOrValue<string>,
+      _withdrawTo: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -189,6 +552,21 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
       _salt: PromiseOrValue<BytesLike>,
       initCode: PromiseOrValue<BytesLike>,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    addStake(
+      _epAddress: PromiseOrValue<string>,
+      _unstakeDelaySec: PromiseOrValue<BigNumberish>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    cancelOwnershipHandover(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    completeOwnershipHandover(
+      pendingOwner: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     createAccount(
@@ -204,5 +582,36 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     implementation(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    ownershipHandoverExpiresAt(
+      pendingOwner: PromiseOrValue<string>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    renounceOwnership(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    requestOwnershipHandover(
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    transferOwnership(
+      newOwner: PromiseOrValue<string>,
+      overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    unlockStake(
+      _epAddress: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
+
+    withdrawStake(
+      _epAddress: PromiseOrValue<string>,
+      _withdrawTo: PromiseOrValue<string>,
+      overrides?: Overrides & { from?: PromiseOrValue<string> }
+    ): Promise<PopulatedTransaction>;
   };
 }
