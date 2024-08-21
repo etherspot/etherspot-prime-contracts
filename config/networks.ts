@@ -230,7 +230,7 @@ const networks: HardhatUserConfig['networks'] = {
   },
   xdc: {
     chainId: 50,
-    url: 'https://rpc.xdc.org',
+    url: 'https://erpc.xinfin.network',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
   dev: { url: 'http://localhost:8545' },
