@@ -55,6 +55,7 @@
 | `EtherspotPaymaster` | `ancient8` | [0x810FA4C915015b703db0878CF2B9344bEB254a40](https://scan.ancient8.gg/address/0x810FA4C915015b703db0878CF2B9344bEB254a40) | [0x260ce714dd8a570d1cb9c68d2c3b22f2451ec2222c1e8ca4b34a051eea44c70e](https://scan.ancient8.gg/tx/0x260ce714dd8a570d1cb9c68d2c3b22f2451ec2222c1e8ca4b34a051eea44c70e) |
 | `EtherspotWalletFactory` | `ancient8` | [0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E](https://scan.ancient8.gg/address/0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E) | [0x82087ff28ee62c4aa6973297f359efaa8e7f2b4018778c3c9625aa86ee2a5eff](https://scan.ancient8.gg/tx/0x82087ff28ee62c4aa6973297f359efaa8e7f2b4018778c3c9625aa86ee2a5eff) |
 | `EtherspotWallet` | `ancient8` | [0xfB32cef50CfB0A0F9f6d37A05828b2F56EfdfE20](https://scan.ancient8.gg/address/0xfB32cef50CfB0A0F9f6d37A05828b2F56EfdfE20) | [0x40e94d0fa1323a2d7f52327ee71140xe8794c27e8460820816946c0223bfb17b583fd8061b6d222d37e0b59a31580ccb3aa880e0293a3031da53b4811d0e8a4a04](https://scan.ancient8.gg/tx/0xe8794c27e8460820816946c0223bfb17b583fd8061b6d222d37e0b59a31580cc) |
+| `VerifyingPaymaster` | `xdc` | [0xABA00E929d66119A4A7F4B2E27150fC387ee801c](https://observer.xdc.org/address/0xABA00E929d66119A4A7F4B2E27150fC387ee801c#transactions) | [0x0992c38f010b9f4e492b9ebf4b82315f1c6a9038e0cebc7df973d47fb09c6999](https://observer.xdc.org/txs/0x0992c38f010b9f4e492b9ebf4b82315f1c6a9038e0cebc7df973d47fb09c6999#overview) |
 
 
 ## Testnets
