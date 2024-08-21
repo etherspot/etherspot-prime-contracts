@@ -12,20 +12,20 @@ import type {
   PopulatedTransaction,
   Signer,
   utils,
-} from "ethers";
+} from 'ethers';
 import type {
   FunctionFragment,
   Result,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+} from '@ethersproject/abi';
+import type { Listener, Provider } from '@ethersproject/providers';
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../../../../common";
+} from '../../../../common';
 
 export type PackedUserOperationStruct = {
   sender: PromiseOrValue<string>;
@@ -64,16 +64,14 @@ export type PackedUserOperationStructOutput = [
 export declare namespace IERC20SessionKeyValidator {
   export type SessionDataStruct = {
     token: PromiseOrValue<string>;
-    interfaceId: PromiseOrValue<BytesLike>;
     funcSelector: PromiseOrValue<BytesLike>;
     spendingLimit: PromiseOrValue<BigNumberish>;
     validAfter: PromiseOrValue<BigNumberish>;
     validUntil: PromiseOrValue<BigNumberish>;
-    paused: PromiseOrValue<boolean>;
+    live: PromiseOrValue<boolean>;
   };
 
   export type SessionDataStructOutput = [
-    string,
     string,
     string,
     BigNumber,
@@ -82,97 +80,90 @@ export declare namespace IERC20SessionKeyValidator {
     boolean
   ] & {
     token: string;
-    interfaceId: string;
     funcSelector: string;
     spendingLimit: BigNumber;
     validAfter: number;
     validUntil: number;
-    paused: boolean;
+    live: boolean;
   };
 }
 
 export interface ERC20SessionKeyValidatorInterface extends utils.Interface {
   functions: {
-    "checkSessionKeyPaused(address)": FunctionFragment;
-    "disableSessionKey(address)": FunctionFragment;
-    "eip712Domain()": FunctionFragment;
-    "enableSessionKey(bytes)": FunctionFragment;
-    "getAssociatedSessionKeys()": FunctionFragment;
-    "getSessionKeyData(address)": FunctionFragment;
-    "initialized(address)": FunctionFragment;
-    "isInitialized(address)": FunctionFragment;
-    "isModuleType(uint256)": FunctionFragment;
-    "isValidSignatureWithSender(address,bytes32,bytes)": FunctionFragment;
-    "onInstall(bytes)": FunctionFragment;
-    "onUninstall(bytes)": FunctionFragment;
-    "rotateSessionKey(address,bytes)": FunctionFragment;
-    "sessionData(address,address)": FunctionFragment;
-    "toggleSessionKeyPause(address)": FunctionFragment;
-    "validateSessionKeyParams(address,(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes))": FunctionFragment;
-    "validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)": FunctionFragment;
-    "walletSessionKeys(address,uint256)": FunctionFragment;
+    'disableSessionKey(address)': FunctionFragment;
+    'enableSessionKey(bytes)': FunctionFragment;
+    'getAssociatedSessionKeys()': FunctionFragment;
+    'getSessionKeyData(address)': FunctionFragment;
+    'initialized(address)': FunctionFragment;
+    'isInitialized(address)': FunctionFragment;
+    'isModuleType(uint256)': FunctionFragment;
+    'isSessionKeyLive(address)': FunctionFragment;
+    'isValidSignatureWithSender(address,bytes32,bytes)': FunctionFragment;
+    'onInstall(bytes)': FunctionFragment;
+    'onUninstall(bytes)': FunctionFragment;
+    'rotateSessionKey(address,bytes)': FunctionFragment;
+    'sessionData(address,address)': FunctionFragment;
+    'toggleSessionKeyPause(address)': FunctionFragment;
+    'validateSessionKeyParams(address,(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes))': FunctionFragment;
+    'validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)': FunctionFragment;
+    'walletSessionKeys(address,uint256)': FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "checkSessionKeyPaused"
-      | "disableSessionKey"
-      | "eip712Domain"
-      | "enableSessionKey"
-      | "getAssociatedSessionKeys"
-      | "getSessionKeyData"
-      | "initialized"
-      | "isInitialized"
-      | "isModuleType"
-      | "isValidSignatureWithSender"
-      | "onInstall"
-      | "onUninstall"
-      | "rotateSessionKey"
-      | "sessionData"
-      | "toggleSessionKeyPause"
-      | "validateSessionKeyParams"
-      | "validateUserOp"
-      | "walletSessionKeys"
+      | 'disableSessionKey'
+      | 'enableSessionKey'
+      | 'getAssociatedSessionKeys'
+      | 'getSessionKeyData'
+      | 'initialized'
+      | 'isInitialized'
+      | 'isModuleType'
+      | 'isSessionKeyLive'
+      | 'isValidSignatureWithSender'
+      | 'onInstall'
+      | 'onUninstall'
+      | 'rotateSessionKey'
+      | 'sessionData'
+      | 'toggleSessionKeyPause'
+      | 'validateSessionKeyParams'
+      | 'validateUserOp'
+      | 'walletSessionKeys'
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "checkSessionKeyPaused",
+    functionFragment: 'disableSessionKey',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "disableSessionKey",
-    values: [PromiseOrValue<string>]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "eip712Domain",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "enableSessionKey",
+    functionFragment: 'enableSessionKey',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getAssociatedSessionKeys",
+    functionFragment: 'getAssociatedSessionKeys',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getSessionKeyData",
+    functionFragment: 'getSessionKeyData',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "initialized",
+    functionFragment: 'initialized',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isInitialized",
+    functionFragment: 'isInitialized',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isModuleType",
+    functionFragment: 'isModuleType',
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isValidSignatureWithSender",
+    functionFragment: 'isSessionKeyLive',
+    values: [PromiseOrValue<string>]
+  ): string;
+  encodeFunctionData(
+    functionFragment: 'isValidSignatureWithSender',
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<BytesLike>,
@@ -180,126 +171,142 @@ export interface ERC20SessionKeyValidatorInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "onInstall",
+    functionFragment: 'onInstall',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "onUninstall",
+    functionFragment: 'onUninstall',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "rotateSessionKey",
+    functionFragment: 'rotateSessionKey',
     values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "sessionData",
+    functionFragment: 'sessionData',
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "toggleSessionKeyPause",
+    functionFragment: 'toggleSessionKeyPause',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "validateSessionKeyParams",
+    functionFragment: 'validateSessionKeyParams',
     values: [PromiseOrValue<string>, PackedUserOperationStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "validateUserOp",
+    functionFragment: 'validateUserOp',
     values: [PackedUserOperationStruct, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "walletSessionKeys",
+    functionFragment: 'walletSessionKeys',
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "checkSessionKeyPaused",
+    functionFragment: 'disableSessionKey',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "disableSessionKey",
+    functionFragment: 'enableSessionKey',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "eip712Domain",
+    functionFragment: 'getAssociatedSessionKeys',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "enableSessionKey",
+    functionFragment: 'getSessionKeyData',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAssociatedSessionKeys",
+    functionFragment: 'initialized',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getSessionKeyData",
+    functionFragment: 'isInitialized',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "initialized",
+    functionFragment: 'isModuleType',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isInitialized",
+    functionFragment: 'isSessionKeyLive',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isModuleType",
+    functionFragment: 'isValidSignatureWithSender',
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: 'onInstall', data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: 'onUninstall',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isValidSignatureWithSender",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(functionFragment: "onInstall", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "onUninstall",
+    functionFragment: 'rotateSessionKey',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "rotateSessionKey",
+    functionFragment: 'sessionData',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "sessionData",
+    functionFragment: 'toggleSessionKeyPause',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "toggleSessionKeyPause",
+    functionFragment: 'validateSessionKeyParams',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "validateSessionKeyParams",
+    functionFragment: 'validateUserOp',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "validateUserOp",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "walletSessionKeys",
+    functionFragment: 'walletSessionKeys',
     data: BytesLike
   ): Result;
 
   events: {
-    "ERC20SKV_ModuleInstalled(address)": EventFragment;
-    "ERC20SKV_ModuleUninstalled(address)": EventFragment;
-    "ERC20SKV_SessionKeyDisabled(address,address)": EventFragment;
-    "ERC20SKV_SessionKeyEnabled(address,address)": EventFragment;
-    "ERC20SKV_SessionKeyPaused(address,address)": EventFragment;
-    "ERC20SKV_SessionKeyUnpaused(address,address)": EventFragment;
+    'ERC20SKV_ModuleInstalled(address)': EventFragment;
+    'ERC20SKV_ModuleUninstalled(address)': EventFragment;
+    'ERC20SKV_NotUsingExecuteFunction(bytes4)': EventFragment;
+    'ERC20SKV_SelectorError(bytes4,bytes4)': EventFragment;
+    'ERC20SKV_SessionKeyDisabled(address,address)': EventFragment;
+    'ERC20SKV_SessionKeyEnabled(address,address)': EventFragment;
+    'ERC20SKV_SessionKeyIsNotLive(address)': EventFragment;
+    'ERC20SKV_SessionKeyPaused(address,address)': EventFragment;
+    'ERC20SKV_SessionKeyUnpaused(address,address)': EventFragment;
+    'ERC20SKV_SpendingLimitError(uint256,uint256)': EventFragment;
+    'ERC20SKV_TokenError(address,address)': EventFragment;
+    'ERC20SKV_UnsupportedCallType(bytes1)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_ModuleInstalled"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_ModuleUninstalled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_ModuleInstalled'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_ModuleUninstalled'): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "ERC20SKV_SessionKeyDisabled"
+    nameOrSignatureOrTopic: 'ERC20SKV_NotUsingExecuteFunction'
   ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_SessionKeyEnabled"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_SessionKeyPaused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_SelectorError'): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "ERC20SKV_SessionKeyUnpaused"
+    nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyDisabled'
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyEnabled'): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyIsNotLive'
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyPaused'): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyUnpaused'
+  ): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: 'ERC20SKV_SpendingLimitError'
+  ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_TokenError'): EventFragment;
+  getEvent(
+    nameOrSignatureOrTopic: 'ERC20SKV_UnsupportedCallType'
   ): EventFragment;
 }
 
@@ -325,6 +332,29 @@ export type ERC20SKV_ModuleUninstalledEvent = TypedEvent<
 export type ERC20SKV_ModuleUninstalledEventFilter =
   TypedEventFilter<ERC20SKV_ModuleUninstalledEvent>;
 
+export interface ERC20SKV_NotUsingExecuteFunctionEventObject {
+  sel: string;
+}
+export type ERC20SKV_NotUsingExecuteFunctionEvent = TypedEvent<
+  [string],
+  ERC20SKV_NotUsingExecuteFunctionEventObject
+>;
+
+export type ERC20SKV_NotUsingExecuteFunctionEventFilter =
+  TypedEventFilter<ERC20SKV_NotUsingExecuteFunctionEvent>;
+
+export interface ERC20SKV_SelectorErrorEventObject {
+  selector: string;
+  sessionSelector: string;
+}
+export type ERC20SKV_SelectorErrorEvent = TypedEvent<
+  [string, string],
+  ERC20SKV_SelectorErrorEventObject
+>;
+
+export type ERC20SKV_SelectorErrorEventFilter =
+  TypedEventFilter<ERC20SKV_SelectorErrorEvent>;
+
 export interface ERC20SKV_SessionKeyDisabledEventObject {
   sessionKey: string;
   wallet: string;
@@ -349,6 +379,17 @@ export type ERC20SKV_SessionKeyEnabledEvent = TypedEvent<
 export type ERC20SKV_SessionKeyEnabledEventFilter =
   TypedEventFilter<ERC20SKV_SessionKeyEnabledEvent>;
 
+export interface ERC20SKV_SessionKeyIsNotLiveEventObject {
+  _sessionKey: string;
+}
+export type ERC20SKV_SessionKeyIsNotLiveEvent = TypedEvent<
+  [string],
+  ERC20SKV_SessionKeyIsNotLiveEventObject
+>;
+
+export type ERC20SKV_SessionKeyIsNotLiveEventFilter =
+  TypedEventFilter<ERC20SKV_SessionKeyIsNotLiveEvent>;
+
 export interface ERC20SKV_SessionKeyPausedEventObject {
   sessionKey: string;
   wallet: string;
@@ -372,6 +413,41 @@ export type ERC20SKV_SessionKeyUnpausedEvent = TypedEvent<
 
 export type ERC20SKV_SessionKeyUnpausedEventFilter =
   TypedEventFilter<ERC20SKV_SessionKeyUnpausedEvent>;
+
+export interface ERC20SKV_SpendingLimitErrorEventObject {
+  amount: BigNumber;
+  sessionSpendingLimit: BigNumber;
+}
+export type ERC20SKV_SpendingLimitErrorEvent = TypedEvent<
+  [BigNumber, BigNumber],
+  ERC20SKV_SpendingLimitErrorEventObject
+>;
+
+export type ERC20SKV_SpendingLimitErrorEventFilter =
+  TypedEventFilter<ERC20SKV_SpendingLimitErrorEvent>;
+
+export interface ERC20SKV_TokenErrorEventObject {
+  target: string;
+  sessionToken: string;
+}
+export type ERC20SKV_TokenErrorEvent = TypedEvent<
+  [string, string],
+  ERC20SKV_TokenErrorEventObject
+>;
+
+export type ERC20SKV_TokenErrorEventFilter =
+  TypedEventFilter<ERC20SKV_TokenErrorEvent>;
+
+export interface ERC20SKV_UnsupportedCallTypeEventObject {
+  calltype: string;
+}
+export type ERC20SKV_UnsupportedCallTypeEvent = TypedEvent<
+  [string],
+  ERC20SKV_UnsupportedCallTypeEventObject
+>;
+
+export type ERC20SKV_UnsupportedCallTypeEventFilter =
+  TypedEventFilter<ERC20SKV_UnsupportedCallTypeEvent>;
 
 export interface ERC20SessionKeyValidator extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -400,29 +476,10 @@ export interface ERC20SessionKeyValidator extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    checkSessionKeyPaused(
-      _sessionKey: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
     disableSessionKey(
       _session: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
-
-    eip712Domain(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, string, BigNumber, string, string, BigNumber[]] & {
-        fields: string;
-        name: string;
-        version: string;
-        chainId: BigNumber;
-        verifyingContract: string;
-        salt: string;
-        extensions: BigNumber[];
-      }
-    >;
 
     enableSessionKey(
       _sessionData: PromiseOrValue<BytesLike>,
@@ -448,6 +505,11 @@ export interface ERC20SessionKeyValidator extends BaseContract {
 
     isModuleType(
       moduleTypeId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
+    isSessionKeyLive(
+      _sessionKey: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
@@ -479,14 +541,13 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, string, BigNumber, number, number, boolean] & {
+      [string, string, BigNumber, number, number, boolean] & {
         token: string;
-        interfaceId: string;
         funcSelector: string;
         spendingLimit: BigNumber;
         validAfter: number;
         validUntil: number;
-        paused: boolean;
+        live: boolean;
       }
     >;
 
@@ -514,29 +575,10 @@ export interface ERC20SessionKeyValidator extends BaseContract {
     ): Promise<[string] & { assocSessionKeys: string }>;
   };
 
-  checkSessionKeyPaused(
-    _sessionKey: PromiseOrValue<string>,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
-
   disableSessionKey(
     _session: PromiseOrValue<string>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
-
-  eip712Domain(
-    overrides?: CallOverrides
-  ): Promise<
-    [string, string, string, BigNumber, string, string, BigNumber[]] & {
-      fields: string;
-      name: string;
-      version: string;
-      chainId: BigNumber;
-      verifyingContract: string;
-      salt: string;
-      extensions: BigNumber[];
-    }
-  >;
 
   enableSessionKey(
     _sessionData: PromiseOrValue<BytesLike>,
@@ -562,6 +604,11 @@ export interface ERC20SessionKeyValidator extends BaseContract {
 
   isModuleType(
     moduleTypeId: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
+  isSessionKeyLive(
+    _sessionKey: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<boolean>;
 
@@ -593,14 +640,13 @@ export interface ERC20SessionKeyValidator extends BaseContract {
     wallet: PromiseOrValue<string>,
     overrides?: CallOverrides
   ): Promise<
-    [string, string, string, BigNumber, number, number, boolean] & {
+    [string, string, BigNumber, number, number, boolean] & {
       token: string;
-      interfaceId: string;
       funcSelector: string;
       spendingLimit: BigNumber;
       validAfter: number;
       validUntil: number;
-      paused: boolean;
+      live: boolean;
     }
   >;
 
@@ -628,29 +674,10 @@ export interface ERC20SessionKeyValidator extends BaseContract {
   ): Promise<string>;
 
   callStatic: {
-    checkSessionKeyPaused(
-      _sessionKey: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     disableSessionKey(
       _session: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<void>;
-
-    eip712Domain(
-      overrides?: CallOverrides
-    ): Promise<
-      [string, string, string, BigNumber, string, string, BigNumber[]] & {
-        fields: string;
-        name: string;
-        version: string;
-        chainId: BigNumber;
-        verifyingContract: string;
-        salt: string;
-        extensions: BigNumber[];
-      }
-    >;
 
     enableSessionKey(
       _sessionData: PromiseOrValue<BytesLike>,
@@ -676,6 +703,11 @@ export interface ERC20SessionKeyValidator extends BaseContract {
 
     isModuleType(
       moduleTypeId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
+    isSessionKeyLive(
+      _sessionKey: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
@@ -707,14 +739,13 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<
-      [string, string, string, BigNumber, number, number, boolean] & {
+      [string, string, BigNumber, number, number, boolean] & {
         token: string;
-        interfaceId: string;
         funcSelector: string;
         spendingLimit: BigNumber;
         validAfter: number;
         validUntil: number;
-        paused: boolean;
+        live: boolean;
       }
     >;
 
@@ -743,21 +774,37 @@ export interface ERC20SessionKeyValidator extends BaseContract {
   };
 
   filters: {
-    "ERC20SKV_ModuleInstalled(address)"(
+    'ERC20SKV_ModuleInstalled(address)'(
       wallet?: null
     ): ERC20SKV_ModuleInstalledEventFilter;
     ERC20SKV_ModuleInstalled(
       wallet?: null
     ): ERC20SKV_ModuleInstalledEventFilter;
 
-    "ERC20SKV_ModuleUninstalled(address)"(
+    'ERC20SKV_ModuleUninstalled(address)'(
       wallet?: null
     ): ERC20SKV_ModuleUninstalledEventFilter;
     ERC20SKV_ModuleUninstalled(
       wallet?: null
     ): ERC20SKV_ModuleUninstalledEventFilter;
 
-    "ERC20SKV_SessionKeyDisabled(address,address)"(
+    'ERC20SKV_NotUsingExecuteFunction(bytes4)'(
+      sel?: null
+    ): ERC20SKV_NotUsingExecuteFunctionEventFilter;
+    ERC20SKV_NotUsingExecuteFunction(
+      sel?: null
+    ): ERC20SKV_NotUsingExecuteFunctionEventFilter;
+
+    'ERC20SKV_SelectorError(bytes4,bytes4)'(
+      selector?: null,
+      sessionSelector?: null
+    ): ERC20SKV_SelectorErrorEventFilter;
+    ERC20SKV_SelectorError(
+      selector?: null,
+      sessionSelector?: null
+    ): ERC20SKV_SelectorErrorEventFilter;
+
+    'ERC20SKV_SessionKeyDisabled(address,address)'(
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyDisabledEventFilter;
@@ -766,7 +813,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet?: null
     ): ERC20SKV_SessionKeyDisabledEventFilter;
 
-    "ERC20SKV_SessionKeyEnabled(address,address)"(
+    'ERC20SKV_SessionKeyEnabled(address,address)'(
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyEnabledEventFilter;
@@ -775,7 +822,14 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet?: null
     ): ERC20SKV_SessionKeyEnabledEventFilter;
 
-    "ERC20SKV_SessionKeyPaused(address,address)"(
+    'ERC20SKV_SessionKeyIsNotLive(address)'(
+      _sessionKey?: null
+    ): ERC20SKV_SessionKeyIsNotLiveEventFilter;
+    ERC20SKV_SessionKeyIsNotLive(
+      _sessionKey?: null
+    ): ERC20SKV_SessionKeyIsNotLiveEventFilter;
+
+    'ERC20SKV_SessionKeyPaused(address,address)'(
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyPausedEventFilter;
@@ -784,7 +838,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet?: null
     ): ERC20SKV_SessionKeyPausedEventFilter;
 
-    "ERC20SKV_SessionKeyUnpaused(address,address)"(
+    'ERC20SKV_SessionKeyUnpaused(address,address)'(
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyUnpausedEventFilter;
@@ -792,20 +846,38 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyUnpausedEventFilter;
+
+    'ERC20SKV_SpendingLimitError(uint256,uint256)'(
+      amount?: null,
+      sessionSpendingLimit?: null
+    ): ERC20SKV_SpendingLimitErrorEventFilter;
+    ERC20SKV_SpendingLimitError(
+      amount?: null,
+      sessionSpendingLimit?: null
+    ): ERC20SKV_SpendingLimitErrorEventFilter;
+
+    'ERC20SKV_TokenError(address,address)'(
+      target?: null,
+      sessionToken?: null
+    ): ERC20SKV_TokenErrorEventFilter;
+    ERC20SKV_TokenError(
+      target?: null,
+      sessionToken?: null
+    ): ERC20SKV_TokenErrorEventFilter;
+
+    'ERC20SKV_UnsupportedCallType(bytes1)'(
+      calltype?: null
+    ): ERC20SKV_UnsupportedCallTypeEventFilter;
+    ERC20SKV_UnsupportedCallType(
+      calltype?: null
+    ): ERC20SKV_UnsupportedCallTypeEventFilter;
   };
 
   estimateGas: {
-    checkSessionKeyPaused(
-      _sessionKey: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     disableSessionKey(
       _session: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
-
-    eip712Domain(overrides?: CallOverrides): Promise<BigNumber>;
 
     enableSessionKey(
       _sessionData: PromiseOrValue<BytesLike>,
@@ -831,6 +903,11 @@ export interface ERC20SessionKeyValidator extends BaseContract {
 
     isModuleType(
       moduleTypeId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    isSessionKeyLive(
+      _sessionKey: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -888,17 +965,10 @@ export interface ERC20SessionKeyValidator extends BaseContract {
   };
 
   populateTransaction: {
-    checkSessionKeyPaused(
-      _sessionKey: PromiseOrValue<string>,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     disableSessionKey(
       _session: PromiseOrValue<string>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
-
-    eip712Domain(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     enableSessionKey(
       _sessionData: PromiseOrValue<BytesLike>,
@@ -926,6 +996,11 @@ export interface ERC20SessionKeyValidator extends BaseContract {
 
     isModuleType(
       moduleTypeId: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isSessionKeyLive(
+      _sessionKey: PromiseOrValue<string>,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
