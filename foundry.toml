@@ -32,6 +32,7 @@ optimism = "${OPTIMISM_RPC_URL}"
 polygon = "${POLYGON_RPC_URL}"
 rootstock = "${ROOTSTOCK_RPC_URL}"
 scroll = "${SCROLL_RPC_URL}"
+xdc = "${XDC_RPC_URL}"
 
 # testnets
 amoy = "${AMOY_RPC_URL}"

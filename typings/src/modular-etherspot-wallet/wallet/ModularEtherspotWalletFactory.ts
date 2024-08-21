@@ -13,167 +13,181 @@ import type {
   PopulatedTransaction,
   Signer,
   utils,
-} from "ethers";
+} from 'ethers';
 import type {
   FunctionFragment,
   Result,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+} from '@ethersproject/abi';
+import type { Listener, Provider } from '@ethersproject/providers';
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../../../common";
+} from '../../../common';
 
 export interface ModularEtherspotWalletFactoryInterface
   extends utils.Interface {
   functions: {
-    "_getSalt(bytes32,bytes)": FunctionFragment;
-    "addStake(address,uint32)": FunctionFragment;
-    "cancelOwnershipHandover()": FunctionFragment;
-    "completeOwnershipHandover(address)": FunctionFragment;
-    "createAccount(bytes32,bytes)": FunctionFragment;
-    "getAddress(bytes32,bytes)": FunctionFragment;
-    "implementation()": FunctionFragment;
-    "owner()": FunctionFragment;
-    "ownershipHandoverExpiresAt(address)": FunctionFragment;
-    "renounceOwnership()": FunctionFragment;
-    "requestOwnershipHandover()": FunctionFragment;
-    "transferOwnership(address)": FunctionFragment;
-    "unlockStake(address)": FunctionFragment;
-    "withdrawStake(address,address)": FunctionFragment;
+    '_getSalt(bytes32,bytes)': FunctionFragment;
+    'addStake(address,uint32)': FunctionFragment;
+    'cancelOwnershipHandover()': FunctionFragment;
+    'completeOwnershipHandover(address)': FunctionFragment;
+    'createAccount(bytes32,bytes)': FunctionFragment;
+    'getAddress(bytes32,bytes)': FunctionFragment;
+    'implementation()': FunctionFragment;
+    'owner()': FunctionFragment;
+    'ownershipHandoverExpiresAt(address)': FunctionFragment;
+    'renounceOwnership()': FunctionFragment;
+    'requestOwnershipHandover()': FunctionFragment;
+    'transferOwnership(address)': FunctionFragment;
+    'unlockStake(address)': FunctionFragment;
+    'withdrawStake(address,address)': FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "_getSalt"
-      | "addStake"
-      | "cancelOwnershipHandover"
-      | "completeOwnershipHandover"
-      | "createAccount"
-      | "getAddress"
-      | "implementation"
-      | "owner"
-      | "ownershipHandoverExpiresAt"
-      | "renounceOwnership"
-      | "requestOwnershipHandover"
-      | "transferOwnership"
-      | "unlockStake"
-      | "withdrawStake"
+      | '_getSalt'
+      | 'addStake'
+      | 'cancelOwnershipHandover'
+      | 'completeOwnershipHandover'
+      | 'createAccount'
+      | 'getAddress'
+      | 'implementation'
+      | 'owner'
+      | 'ownershipHandoverExpiresAt'
+      | 'renounceOwnership'
+      | 'requestOwnershipHandover'
+      | 'transferOwnership'
+      | 'unlockStake'
+      | 'withdrawStake'
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "_getSalt",
+    functionFragment: '_getSalt',
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "addStake",
+    functionFragment: 'addStake',
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "cancelOwnershipHandover",
+    functionFragment: 'cancelOwnershipHandover',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "completeOwnershipHandover",
+    functionFragment: 'completeOwnershipHandover',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "createAccount",
+    functionFragment: 'createAccount',
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getAddress",
+    functionFragment: 'getAddress',
     values: [PromiseOrValue<BytesLike>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "implementation",
+    functionFragment: 'implementation',
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(functionFragment: 'owner', values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "ownershipHandoverExpiresAt",
+    functionFragment: 'ownershipHandoverExpiresAt',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
+    functionFragment: 'renounceOwnership',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "requestOwnershipHandover",
+    functionFragment: 'requestOwnershipHandover',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
+    functionFragment: 'transferOwnership',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "unlockStake",
+    functionFragment: 'unlockStake',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "withdrawStake",
+    functionFragment: 'withdrawStake',
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
 
-  decodeFunctionResult(functionFragment: "_getSalt", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "addStake", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: '_getSalt', data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'addStake', data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "cancelOwnershipHandover",
+    functionFragment: 'cancelOwnershipHandover',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "completeOwnershipHandover",
+    functionFragment: 'completeOwnershipHandover',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "createAccount",
+    functionFragment: 'createAccount',
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getAddress", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'getAddress', data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "implementation",
+    functionFragment: 'implementation',
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'owner', data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "ownershipHandoverExpiresAt",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: 'ownershipHandoverExpiresAt',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "requestOwnershipHandover",
+    functionFragment: 'renounceOwnership',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "transferOwnership",
+    functionFragment: 'requestOwnershipHandover',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "unlockStake",
+    functionFragment: 'transferOwnership',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "withdrawStake",
+    functionFragment: 'unlockStake',
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: 'withdrawStake',
     data: BytesLike
   ): Result;
 
   events: {
-    "OwnershipHandoverCanceled(address)": EventFragment;
-    "OwnershipHandoverRequested(address)": EventFragment;
-    "OwnershipTransferred(address,address)": EventFragment;
+    'ModularAccountDeployed(address,address)': EventFragment;
+    'OwnershipHandoverCanceled(address)': EventFragment;
+    'OwnershipHandoverRequested(address)': EventFragment;
+    'OwnershipTransferred(address,address)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "OwnershipHandoverCanceled"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipHandoverRequested"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ModularAccountDeployed'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'OwnershipHandoverCanceled'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'OwnershipHandoverRequested'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'OwnershipTransferred'): EventFragment;
 }
+
+export interface ModularAccountDeployedEventObject {
+  account: string;
+  owner: string;
+}
+export type ModularAccountDeployedEvent = TypedEvent<
+  [string, string],
+  ModularAccountDeployedEventObject
+>;
+
+export type ModularAccountDeployedEventFilter =
+  TypedEventFilter<ModularAccountDeployedEvent>;
 
 export interface OwnershipHandoverCanceledEventObject {
   pendingOwner: string;
@@ -432,21 +446,30 @@ export interface ModularEtherspotWalletFactory extends BaseContract {
   };
 
   filters: {
-    "OwnershipHandoverCanceled(address)"(
+    'ModularAccountDeployed(address,address)'(
+      account?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null
+    ): ModularAccountDeployedEventFilter;
+    ModularAccountDeployed(
+      account?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null
+    ): ModularAccountDeployedEventFilter;
+
+    'OwnershipHandoverCanceled(address)'(
       pendingOwner?: PromiseOrValue<string> | null
     ): OwnershipHandoverCanceledEventFilter;
     OwnershipHandoverCanceled(
       pendingOwner?: PromiseOrValue<string> | null
     ): OwnershipHandoverCanceledEventFilter;
 
-    "OwnershipHandoverRequested(address)"(
+    'OwnershipHandoverRequested(address)'(
       pendingOwner?: PromiseOrValue<string> | null
     ): OwnershipHandoverRequestedEventFilter;
     OwnershipHandoverRequested(
       pendingOwner?: PromiseOrValue<string> | null
     ): OwnershipHandoverRequestedEventFilter;
 
-    "OwnershipTransferred(address,address)"(
+    'OwnershipTransferred(address,address)'(
       oldOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null
     ): OwnershipTransferredEventFilter;

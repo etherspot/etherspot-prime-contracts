@@ -12,20 +12,20 @@ import type {
   PopulatedTransaction,
   Signer,
   utils,
-} from "ethers";
+} from 'ethers';
 import type {
   FunctionFragment,
   Result,
   EventFragment,
-} from "@ethersproject/abi";
-import type { Listener, Provider } from "@ethersproject/providers";
+} from '@ethersproject/abi';
+import type { Listener, Provider } from '@ethersproject/providers';
 import type {
   TypedEventFilter,
   TypedEvent,
   TypedListener,
   OnEvent,
   PromiseOrValue,
-} from "../../../../common";
+} from '../../../../common';
 
 export type PackedUserOperationStruct = {
   sender: PromiseOrValue<string>;
@@ -90,80 +90,80 @@ export declare namespace IERC20SessionKeyValidator {
 
 export interface ERC20SessionKeyValidatorInterface extends utils.Interface {
   functions: {
-    "disableSessionKey(address)": FunctionFragment;
-    "enableSessionKey(bytes)": FunctionFragment;
-    "getAssociatedSessionKeys()": FunctionFragment;
-    "getSessionKeyData(address)": FunctionFragment;
-    "initialized(address)": FunctionFragment;
-    "isInitialized(address)": FunctionFragment;
-    "isModuleType(uint256)": FunctionFragment;
-    "isSessionKeyLive(address)": FunctionFragment;
-    "isValidSignatureWithSender(address,bytes32,bytes)": FunctionFragment;
-    "onInstall(bytes)": FunctionFragment;
-    "onUninstall(bytes)": FunctionFragment;
-    "rotateSessionKey(address,bytes)": FunctionFragment;
-    "sessionData(address,address)": FunctionFragment;
-    "toggleSessionKeyPause(address)": FunctionFragment;
-    "validateSessionKeyParams(address,(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes))": FunctionFragment;
-    "validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)": FunctionFragment;
-    "walletSessionKeys(address,uint256)": FunctionFragment;
+    'disableSessionKey(address)': FunctionFragment;
+    'enableSessionKey(bytes)': FunctionFragment;
+    'getAssociatedSessionKeys()': FunctionFragment;
+    'getSessionKeyData(address)': FunctionFragment;
+    'initialized(address)': FunctionFragment;
+    'isInitialized(address)': FunctionFragment;
+    'isModuleType(uint256)': FunctionFragment;
+    'isSessionKeyLive(address)': FunctionFragment;
+    'isValidSignatureWithSender(address,bytes32,bytes)': FunctionFragment;
+    'onInstall(bytes)': FunctionFragment;
+    'onUninstall(bytes)': FunctionFragment;
+    'rotateSessionKey(address,bytes)': FunctionFragment;
+    'sessionData(address,address)': FunctionFragment;
+    'toggleSessionKeyPause(address)': FunctionFragment;
+    'validateSessionKeyParams(address,(address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes))': FunctionFragment;
+    'validateUserOp((address,uint256,bytes,bytes,bytes32,uint256,bytes32,bytes,bytes),bytes32)': FunctionFragment;
+    'walletSessionKeys(address,uint256)': FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "disableSessionKey"
-      | "enableSessionKey"
-      | "getAssociatedSessionKeys"
-      | "getSessionKeyData"
-      | "initialized"
-      | "isInitialized"
-      | "isModuleType"
-      | "isSessionKeyLive"
-      | "isValidSignatureWithSender"
-      | "onInstall"
-      | "onUninstall"
-      | "rotateSessionKey"
-      | "sessionData"
-      | "toggleSessionKeyPause"
-      | "validateSessionKeyParams"
-      | "validateUserOp"
-      | "walletSessionKeys"
+      | 'disableSessionKey'
+      | 'enableSessionKey'
+      | 'getAssociatedSessionKeys'
+      | 'getSessionKeyData'
+      | 'initialized'
+      | 'isInitialized'
+      | 'isModuleType'
+      | 'isSessionKeyLive'
+      | 'isValidSignatureWithSender'
+      | 'onInstall'
+      | 'onUninstall'
+      | 'rotateSessionKey'
+      | 'sessionData'
+      | 'toggleSessionKeyPause'
+      | 'validateSessionKeyParams'
+      | 'validateUserOp'
+      | 'walletSessionKeys'
   ): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "disableSessionKey",
+    functionFragment: 'disableSessionKey',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "enableSessionKey",
+    functionFragment: 'enableSessionKey',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "getAssociatedSessionKeys",
+    functionFragment: 'getAssociatedSessionKeys',
     values?: undefined
   ): string;
   encodeFunctionData(
-    functionFragment: "getSessionKeyData",
+    functionFragment: 'getSessionKeyData',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "initialized",
+    functionFragment: 'initialized',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isInitialized",
+    functionFragment: 'isInitialized',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isModuleType",
+    functionFragment: 'isModuleType',
     values: [PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isSessionKeyLive",
+    functionFragment: 'isSessionKeyLive',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "isValidSignatureWithSender",
+    functionFragment: 'isValidSignatureWithSender',
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<BytesLike>,
@@ -171,142 +171,142 @@ export interface ERC20SessionKeyValidatorInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "onInstall",
+    functionFragment: 'onInstall',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "onUninstall",
+    functionFragment: 'onUninstall',
     values: [PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "rotateSessionKey",
+    functionFragment: 'rotateSessionKey',
     values: [PromiseOrValue<string>, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "sessionData",
+    functionFragment: 'sessionData',
     values: [PromiseOrValue<string>, PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "toggleSessionKeyPause",
+    functionFragment: 'toggleSessionKeyPause',
     values: [PromiseOrValue<string>]
   ): string;
   encodeFunctionData(
-    functionFragment: "validateSessionKeyParams",
+    functionFragment: 'validateSessionKeyParams',
     values: [PromiseOrValue<string>, PackedUserOperationStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "validateUserOp",
+    functionFragment: 'validateUserOp',
     values: [PackedUserOperationStruct, PromiseOrValue<BytesLike>]
   ): string;
   encodeFunctionData(
-    functionFragment: "walletSessionKeys",
+    functionFragment: 'walletSessionKeys',
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "disableSessionKey",
+    functionFragment: 'disableSessionKey',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "enableSessionKey",
+    functionFragment: 'enableSessionKey',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getAssociatedSessionKeys",
+    functionFragment: 'getAssociatedSessionKeys',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getSessionKeyData",
+    functionFragment: 'getSessionKeyData',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "initialized",
+    functionFragment: 'initialized',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isInitialized",
+    functionFragment: 'isInitialized',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isModuleType",
+    functionFragment: 'isModuleType',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isSessionKeyLive",
+    functionFragment: 'isSessionKeyLive',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isValidSignatureWithSender",
+    functionFragment: 'isValidSignatureWithSender',
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "onInstall", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: 'onInstall', data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "onUninstall",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "rotateSessionKey",
+    functionFragment: 'onUninstall',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "sessionData",
+    functionFragment: 'rotateSessionKey',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "toggleSessionKeyPause",
+    functionFragment: 'sessionData',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "validateSessionKeyParams",
+    functionFragment: 'toggleSessionKeyPause',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "validateUserOp",
+    functionFragment: 'validateSessionKeyParams',
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "walletSessionKeys",
+    functionFragment: 'validateUserOp',
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: 'walletSessionKeys',
     data: BytesLike
   ): Result;
 
   events: {
-    "ERC20SKV_ModuleInstalled(address)": EventFragment;
-    "ERC20SKV_ModuleUninstalled(address)": EventFragment;
-    "ERC20SKV_NotUsingExecuteFunction(bytes4)": EventFragment;
-    "ERC20SKV_SelectorError(bytes4,bytes4)": EventFragment;
-    "ERC20SKV_SessionKeyDisabled(address,address)": EventFragment;
-    "ERC20SKV_SessionKeyEnabled(address,address)": EventFragment;
-    "ERC20SKV_SessionKeyIsNotLive(address)": EventFragment;
-    "ERC20SKV_SessionKeyPaused(address,address)": EventFragment;
-    "ERC20SKV_SessionKeyUnpaused(address,address)": EventFragment;
-    "ERC20SKV_SpendingLimitError(uint256,uint256)": EventFragment;
-    "ERC20SKV_TokenError(address,address)": EventFragment;
-    "ERC20SKV_UnsupportedCallType(bytes1)": EventFragment;
+    'ERC20SKV_ModuleInstalled(address)': EventFragment;
+    'ERC20SKV_ModuleUninstalled(address)': EventFragment;
+    'ERC20SKV_NotUsingExecuteFunction(bytes4)': EventFragment;
+    'ERC20SKV_SelectorError(bytes4,bytes4)': EventFragment;
+    'ERC20SKV_SessionKeyDisabled(address,address)': EventFragment;
+    'ERC20SKV_SessionKeyEnabled(address,address)': EventFragment;
+    'ERC20SKV_SessionKeyIsNotLive(address)': EventFragment;
+    'ERC20SKV_SessionKeyPaused(address,address)': EventFragment;
+    'ERC20SKV_SessionKeyUnpaused(address,address)': EventFragment;
+    'ERC20SKV_SpendingLimitError(uint256,uint256)': EventFragment;
+    'ERC20SKV_TokenError(address,address)': EventFragment;
+    'ERC20SKV_UnsupportedCallType(bytes1)': EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_ModuleInstalled"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_ModuleUninstalled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_ModuleInstalled'): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_ModuleUninstalled'): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "ERC20SKV_NotUsingExecuteFunction"
+    nameOrSignatureOrTopic: 'ERC20SKV_NotUsingExecuteFunction'
   ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_SelectorError"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_SelectorError'): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "ERC20SKV_SessionKeyDisabled"
+    nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyDisabled'
   ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_SessionKeyEnabled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyEnabled'): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "ERC20SKV_SessionKeyIsNotLive"
+    nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyIsNotLive'
   ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_SessionKeyPaused"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyPaused'): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "ERC20SKV_SessionKeyUnpaused"
+    nameOrSignatureOrTopic: 'ERC20SKV_SessionKeyUnpaused'
   ): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "ERC20SKV_SpendingLimitError"
+    nameOrSignatureOrTopic: 'ERC20SKV_SpendingLimitError'
   ): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "ERC20SKV_TokenError"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: 'ERC20SKV_TokenError'): EventFragment;
   getEvent(
-    nameOrSignatureOrTopic: "ERC20SKV_UnsupportedCallType"
+    nameOrSignatureOrTopic: 'ERC20SKV_UnsupportedCallType'
   ): EventFragment;
 }
 
@@ -774,28 +774,28 @@ export interface ERC20SessionKeyValidator extends BaseContract {
   };
 
   filters: {
-    "ERC20SKV_ModuleInstalled(address)"(
+    'ERC20SKV_ModuleInstalled(address)'(
       wallet?: null
     ): ERC20SKV_ModuleInstalledEventFilter;
     ERC20SKV_ModuleInstalled(
       wallet?: null
     ): ERC20SKV_ModuleInstalledEventFilter;
 
-    "ERC20SKV_ModuleUninstalled(address)"(
+    'ERC20SKV_ModuleUninstalled(address)'(
       wallet?: null
     ): ERC20SKV_ModuleUninstalledEventFilter;
     ERC20SKV_ModuleUninstalled(
       wallet?: null
     ): ERC20SKV_ModuleUninstalledEventFilter;
 
-    "ERC20SKV_NotUsingExecuteFunction(bytes4)"(
+    'ERC20SKV_NotUsingExecuteFunction(bytes4)'(
       sel?: null
     ): ERC20SKV_NotUsingExecuteFunctionEventFilter;
     ERC20SKV_NotUsingExecuteFunction(
       sel?: null
     ): ERC20SKV_NotUsingExecuteFunctionEventFilter;
 
-    "ERC20SKV_SelectorError(bytes4,bytes4)"(
+    'ERC20SKV_SelectorError(bytes4,bytes4)'(
       selector?: null,
       sessionSelector?: null
     ): ERC20SKV_SelectorErrorEventFilter;
@@ -804,7 +804,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       sessionSelector?: null
     ): ERC20SKV_SelectorErrorEventFilter;
 
-    "ERC20SKV_SessionKeyDisabled(address,address)"(
+    'ERC20SKV_SessionKeyDisabled(address,address)'(
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyDisabledEventFilter;
@@ -813,7 +813,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet?: null
     ): ERC20SKV_SessionKeyDisabledEventFilter;
 
-    "ERC20SKV_SessionKeyEnabled(address,address)"(
+    'ERC20SKV_SessionKeyEnabled(address,address)'(
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyEnabledEventFilter;
@@ -822,14 +822,14 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet?: null
     ): ERC20SKV_SessionKeyEnabledEventFilter;
 
-    "ERC20SKV_SessionKeyIsNotLive(address)"(
+    'ERC20SKV_SessionKeyIsNotLive(address)'(
       _sessionKey?: null
     ): ERC20SKV_SessionKeyIsNotLiveEventFilter;
     ERC20SKV_SessionKeyIsNotLive(
       _sessionKey?: null
     ): ERC20SKV_SessionKeyIsNotLiveEventFilter;
 
-    "ERC20SKV_SessionKeyPaused(address,address)"(
+    'ERC20SKV_SessionKeyPaused(address,address)'(
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyPausedEventFilter;
@@ -838,7 +838,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet?: null
     ): ERC20SKV_SessionKeyPausedEventFilter;
 
-    "ERC20SKV_SessionKeyUnpaused(address,address)"(
+    'ERC20SKV_SessionKeyUnpaused(address,address)'(
       sessionKey?: null,
       wallet?: null
     ): ERC20SKV_SessionKeyUnpausedEventFilter;
@@ -847,7 +847,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       wallet?: null
     ): ERC20SKV_SessionKeyUnpausedEventFilter;
 
-    "ERC20SKV_SpendingLimitError(uint256,uint256)"(
+    'ERC20SKV_SpendingLimitError(uint256,uint256)'(
       amount?: null,
       sessionSpendingLimit?: null
     ): ERC20SKV_SpendingLimitErrorEventFilter;
@@ -856,7 +856,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       sessionSpendingLimit?: null
     ): ERC20SKV_SpendingLimitErrorEventFilter;
 
-    "ERC20SKV_TokenError(address,address)"(
+    'ERC20SKV_TokenError(address,address)'(
       target?: null,
       sessionToken?: null
     ): ERC20SKV_TokenErrorEventFilter;
@@ -865,7 +865,7 @@ export interface ERC20SessionKeyValidator extends BaseContract {
       sessionToken?: null
     ): ERC20SKV_TokenErrorEventFilter;
 
-    "ERC20SKV_UnsupportedCallType(bytes1)"(
+    'ERC20SKV_UnsupportedCallType(bytes1)'(
       calltype?: null
     ): ERC20SKV_UnsupportedCallTypeEventFilter;
     ERC20SKV_UnsupportedCallType(
