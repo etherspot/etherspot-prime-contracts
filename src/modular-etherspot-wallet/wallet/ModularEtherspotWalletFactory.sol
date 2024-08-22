@@ -3,11 +3,16 @@ pragma solidity ^0.8.21;
 
 import {LibClone} from "solady/src/utils/LibClone.sol";
 import {IModularEtherspotWallet} from "../interfaces/IModularEtherspotWallet.sol";
-
-contract ModularEtherspotWalletFactory {
+import {FactoryStaker} from "./FactoryStaker.sol";
+contract ModularEtherspotWalletFactory is FactoryStaker {
     address public immutable implementation;
 
-    constructor(address _implementation) {
+    event ModularAccountDeployed(
+        address indexed account,
+        address indexed owner
+    );
+
+    constructor(address _implementation, address _owner) FactoryStaker(_owner) {
         implementation = _implementation;
     }
 
@@ -21,6 +26,7 @@ contract ModularEtherspotWalletFactory {
 
         if (!alreadyDeployed) {
             IModularEtherspotWallet(account).initializeAccount(initCode);
+            emit ModularAccountDeployed(account, msg.sender);
         }
         return account;
     }

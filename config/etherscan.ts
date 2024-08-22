@@ -43,6 +43,7 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     ancient8TestnetV2: process.env.BASESCAN_API_KEY!, // works with same key
     amoy: process.env.POLYSCAN_API_KEY!,
     mantleSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
+    xdcApothem: process.env.XDC_API_KEY!,
   },
   customChains: [
     {
@@ -259,6 +260,14 @@ const etherscan: HardhatUserConfig['etherscan'] = {
       urls: {
         apiURL: 'https://rootstock-testnet.blockscout.com/api',
         browserURL: 'https://rootstock-testnet.blockscout.com/',
+      },
+    },
+    {
+      network: 'xdcApothem',
+      chainId: 51,
+      urls: {
+        apiURL: 'https://abapi.blocksscan.io/',
+        browserURL: 'https://explorer.apothem.network/',
       },
     },
   ],

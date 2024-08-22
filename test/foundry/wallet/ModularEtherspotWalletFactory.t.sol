@@ -24,17 +24,27 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
     address owner1;
     uint256 owner1Key;
 
+    event ModularAccountDeployed(
+        address indexed account,
+        address indexed owner
+    );
+
     function setUp() public virtual {
+        (owner1, owner1Key) = makeAddrAndKey("owner1");
+
+        vm.startPrank(owner1);
         etchEntrypoint();
         implementation = new ModularEtherspotWallet();
-        factory = new ModularEtherspotWalletFactory(address(implementation));
+        factory = new ModularEtherspotWalletFactory(
+            address(implementation),
+            owner1
+        );
+        vm.stopPrank();
 
         // setup module singletons
         defaultExecutor = new MockExecutor();
         defaultValidator = new MockValidator();
         target = new MockTarget();
-
-        (owner1, owner1Key) = makeAddrAndKey("owner1");
     }
 
     function test_setUpState() public {
@@ -180,5 +190,57 @@ contract ModularEtherspotWalletFactoryTest is BootstrapUtil, Test {
         );
         vm.stopPrank();
         assertFalse(address(account) == address(account2));
+    }
+
+    function test_emitEvent_createAccount() public {
+        // setup account init config
+        BootstrapConfig[] memory validators = makeBootstrapConfig(
+            address(defaultValidator),
+            ""
+        );
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
+            ""
+        );
+
+        bytes memory initCode = abi.encode(
+            owner1,
+            address(bootstrapSingleton),
+            abi.encodeCall(
+                Bootstrap.initMSA,
+                (validators, executors, hook, fallbacks)
+            )
+        );
+
+        vm.startPrank(owner1);
+        address expectedAddress = factory.getAddress({
+            salt: SALT,
+            initcode: initCode
+        });
+
+        // emit event
+        vm.expectEmit(true, true, true, true);
+        emit ModularAccountDeployed(expectedAddress, owner1);
+        // create account
+        account = ModularEtherspotWallet(
+            payable(factory.createAccount({salt: SALT, initCode: initCode}))
+        );
+        assertEq(
+            address(account),
+            expectedAddress,
+            "Computed wallet address should always equal wallet address created"
+        );
+        // should not emit event if address already exists
+        // checked using -vvvv stack trace
+        account = ModularEtherspotWallet(
+            payable(factory.createAccount({salt: SALT, initCode: initCode}))
+        );
+
+        vm.stopPrank();
     }
 }

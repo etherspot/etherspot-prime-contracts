@@ -44,12 +44,17 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     uint256 constant EXEC_SPEND_CAP = 10 ether;
 
     function setUp() public virtual {
+        (owner1, owner1Key) = makeAddrAndKey("owner1");
+
         // Set up EntryPoint
         etchEntrypoint();
-
+        vm.startPrank(owner1);
         // Set up MSA and Factory
         implementation = new ModularEtherspotWallet();
-        factory = new ModularEtherspotWalletFactory(address(implementation));
+        factory = new ModularEtherspotWalletFactory(
+            address(implementation),
+            owner1
+        );
 
         // Set up Modules
         defaultExecutor = new MockExecutor();
@@ -67,6 +72,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
 
         // Set up Target for testing
         target = new MockTarget();
+        vm.stopPrank();
     }
 
     function getAccountAndInitCode()

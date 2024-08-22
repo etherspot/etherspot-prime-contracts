@@ -55,3 +55,5 @@ forge_cache/
 # Solidity
 soljson*
 
+yarn-error.log
+yarn.lock
