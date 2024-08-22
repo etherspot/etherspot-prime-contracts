@@ -335,7 +335,10 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         // vm.selectFork(mainnetFork);
         // Set up MSA and Factory
         implementation = new ModularEtherspotWallet();
-        factory = new ModularEtherspotWalletFactory(address(implementation));
+        factory = new ModularEtherspotWalletFactory(
+            address(implementation),
+            owner1
+        );
         bootstrapSingleton = new Bootstrap();
 
         // Set up Modules
