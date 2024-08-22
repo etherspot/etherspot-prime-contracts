@@ -11,7 +11,7 @@ import {MockExecutor} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/
 import {MockTarget} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockTarget.sol";
 import {MockFallback} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/mocks/MockFallbackHandler.sol";
 import {ExecutionLib} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
-import {ModeLib, ModeCode, CallType, ExecType, ModeSelector, ModePayload, CALLTYPE_STATIC} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
+import {ModeLib, ModeCode, CallType, ExecType, ModeSelector, ModePayload, CALLTYPE_STATIC, EXECTYPE_DEFAULT, MODE_DEFAULT} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
 import {PackedUserOperation} from "../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 
@@ -31,8 +31,8 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     MockExecutor defaultExecutor;
     MockFallback fallbackHandler;
     MultipleOwnerECDSAValidator ecdsaValidator;
-    ERC20SessionKeyValidator sessionKeyValidator;
-    SessionKeyValidator genericSessionKeyValidator;
+    ERC20SessionKeyValidator erc20SessionKeyValidator;
+    SessionKeyValidator sessionKeyValidator;
     ModularEtherspotWallet mewAccount;
     MockTarget target;
     TestExecutor executor;
@@ -60,10 +60,10 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         ecdsaValidator = new MultipleOwnerECDSAValidator();
 
         // ERC20SessionKeyValidtor for MEW
-        sessionKeyValidator = new ERC20SessionKeyValidator();
+        erc20SessionKeyValidator = new ERC20SessionKeyValidator();
 
         // SessionKeyValidator for MEW
-        genericSessionKeyValidator = new SessionKeyValidator();
+        sessionKeyValidator = new SessionKeyValidator();
 
         // Set up Target for testing
         target = new MockTarget();
@@ -232,14 +232,17 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return mewAccount;
     }
 
-    function setupMEWWithSessionKeys()
+    function setupMEWWithERC20SessionKeys()
         internal
         returns (ModularEtherspotWallet mew)
     {
         // Create config for initial modules
         BootstrapConfig[] memory validators = new BootstrapConfig[](2);
         validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
-        validators[1] = _makeBootstrapConfig(address(sessionKeyValidator), "");
+        validators[1] = _makeBootstrapConfig(
+            address(erc20SessionKeyValidator),
+            ""
+        );
         BootstrapConfig[] memory executors = makeBootstrapConfig(
             address(defaultExecutor),
             ""
@@ -275,17 +278,14 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return mewAccount;
     }
 
-    function setupMEWWithGenericSessionKeys()
+    function setupMEWWithSessionKeys()
         internal
         returns (ModularEtherspotWallet mew)
     {
         // Create config for initial modules
         BootstrapConfig[] memory validators = new BootstrapConfig[](2);
         validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
-        validators[1] = _makeBootstrapConfig(
-            address(genericSessionKeyValidator),
-            ""
-        );
+        validators[1] = _makeBootstrapConfig(address(sessionKeyValidator), "");
         BootstrapConfig[] memory executors = makeBootstrapConfig(
             address(defaultExecutor),
             ""
@@ -341,21 +341,18 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         ecdsaValidator = new MultipleOwnerECDSAValidator();
 
         // ERC20SessionKeyValidtor for MEW
-        sessionKeyValidator = new ERC20SessionKeyValidator();
+        erc20SessionKeyValidator = new ERC20SessionKeyValidator();
 
         // SessionKeyValidator for MEW
-        genericSessionKeyValidator = new SessionKeyValidator();
+        sessionKeyValidator = new SessionKeyValidator();
         console2.log(
-            "address(genericSessionKeyValidator) - from test utils: ",
-            address(genericSessionKeyValidator)
+            "address(sessionKeyValidator) - from test utils: ",
+            address(sessionKeyValidator)
         );
         // Create config for initial modules
         BootstrapConfig[] memory validators = new BootstrapConfig[](2);
         validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
-        validators[1] = _makeBootstrapConfig(
-            address(genericSessionKeyValidator),
-            ""
-        );
+        validators[1] = _makeBootstrapConfig(address(sessionKeyValidator), "");
         BootstrapConfig[] memory executors = makeBootstrapConfig(
             address(executor),
             ""

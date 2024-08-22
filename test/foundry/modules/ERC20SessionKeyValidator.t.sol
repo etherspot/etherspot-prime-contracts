@@ -99,7 +99,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         batchCall1[0].callData = abi.encodeWithSelector(
             ModularEtherspotWallet.installModule.selector,
             uint256(1),
-            address(sessionKeyValidator),
+            address(erc20SessionKeyValidator),
             hex""
         );
         // check emitted event
@@ -107,11 +107,13 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         emit ERC20SKV_ModuleInstalled(address(mew));
         defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
         // should be 3 validator modules installed
-        assertTrue(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
+        assertTrue(
+            mew.isModuleInstalled(1, address(erc20SessionKeyValidator), "")
+        );
     }
 
     function test_uninstallModule() public {
-        mew = setupMEWWithSessionKeys();
+        mew = setupMEWWithERC20SessionKeys();
         vm.startPrank(address(mew));
         // install another validator module for total of 3
         Execution[] memory batchCall1 = new Execution[](1);
@@ -126,7 +128,9 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
         // should be 3 validator modules installed
         assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
-        assertTrue(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
+        assertTrue(
+            mew.isModuleInstalled(1, address(erc20SessionKeyValidator), "")
+        );
         assertTrue(mew.isModuleInstalled(1, address(defaultValidator), ""));
         // check associated session keys == 1
         bytes memory sessionData = abi.encodePacked(
@@ -138,11 +142,13 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp + 1),
             uint48(block.timestamp + 1 days)
         );
-        sessionKeyValidator.enableSessionKey(sessionData);
-        assertEq(sessionKeyValidator.getAssociatedSessionKeys().length, 1);
+        erc20SessionKeyValidator.enableSessionKey(sessionData);
+        assertEq(erc20SessionKeyValidator.getAssociatedSessionKeys().length, 1);
         // get previous validator to pass into uninstall
         // required for linked list
-        address prevValidator = _getPrevValidator(address(sessionKeyValidator));
+        address prevValidator = _getPrevValidator(
+            address(erc20SessionKeyValidator)
+        );
         // uninstall session key validator
         Execution[] memory batchCall2 = new Execution[](1);
         batchCall2[0].target = address(mew);
@@ -150,7 +156,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         batchCall2[0].callData = abi.encodeWithSelector(
             ModularEtherspotWallet.uninstallModule.selector,
             uint256(1),
-            address(sessionKeyValidator),
+            address(erc20SessionKeyValidator),
             abi.encode(prevValidator, hex"")
         );
         // check emitted event
@@ -159,10 +165,12 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         defaultExecutor.execBatch(IERC7579Account(mew), batchCall2);
         // check session key validator is uninstalled
         assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
-        assertFalse(mew.isModuleInstalled(1, address(sessionKeyValidator), ""));
+        assertFalse(
+            mew.isModuleInstalled(1, address(erc20SessionKeyValidator), "")
+        );
         assertTrue(mew.isModuleInstalled(1, address(defaultValidator), ""));
-        assertFalse(sessionKeyValidator.isInitialized(address(mew)));
-        assertEq(sessionKeyValidator.getAssociatedSessionKeys().length, 0);
+        assertFalse(erc20SessionKeyValidator.isInitialized(address(mew)));
+        assertEq(erc20SessionKeyValidator.getAssociatedSessionKeys().length, 0);
         vm.stopPrank();
     }
 
@@ -470,7 +478,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     }
 
     function test_pass_validateUserOp() public {
-        mew = setupMEWWithSessionKeys();
+        mew = setupMEWWithERC20SessionKeys();
         vm.deal(address(mew), 1 ether);
         vm.startPrank(address(mew));
 
@@ -502,7 +510,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
-        sessionKeyValidator.enableSessionKey(sessionData);
+        erc20SessionKeyValidator.enableSessionKey(sessionData);
         // Construct user op data
         bytes memory data = abi.encodeWithSelector(
             ERC20Actions.transferERC20Action.selector,
@@ -514,7 +522,10 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(mew),
             data
         );
-        userOp.nonce = getNonce(address(mew), address(sessionKeyValidator));
+        userOp.nonce = getNonce(
+            address(mew),
+            address(erc20SessionKeyValidator)
+        );
         bytes32 hash = entrypoint.getUserOpHash(userOp);
 
         // EIP712
@@ -527,7 +538,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
                     nameHash,
                     versionHash,
                     block.chainid,
-                    address(sessionKeyValidator)
+                    address(erc20SessionKeyValidator)
                 )
             );
             bytes32 signedMessageHash = keccak256(
@@ -550,7 +561,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     }
 
     function test_fail_validateUserOp_invalidSessionKey() public {
-        mew = setupMEWWithSessionKeys();
+        mew = setupMEWWithERC20SessionKeys();
         vm.deal(address(mew), 1 ether);
         vm.startPrank(address(mew));
 
@@ -584,7 +595,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp + 1 days)
         );
 
-        sessionKeyValidator.enableSessionKey(sessionData);
+        erc20SessionKeyValidator.enableSessionKey(sessionData);
         // Construct user op data
         bytes memory data = abi.encodeWithSelector(
             IERC20.transferFrom.selector,
@@ -597,7 +608,10 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(mew),
             data
         );
-        userOp.nonce = getNonce(address(mew), address(sessionKeyValidator));
+        userOp.nonce = getNonce(
+            address(mew),
+            address(erc20SessionKeyValidator)
+        );
         bytes32 hash = entrypoint.getUserOpHash(userOp);
 
         // EIP712
@@ -610,7 +624,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
                     nameHash,
                     versionHash,
                     block.chainid,
-                    address(sessionKeyValidator)
+                    address(erc20SessionKeyValidator)
                 )
             );
             bytes32 signedMessageHash = keccak256(
@@ -628,7 +642,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         // Validation should fail
-        sessionKeyValidator.disableSessionKey(sessionKeyAddr);
+        erc20SessionKeyValidator.disableSessionKey(sessionKeyAddr);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IEntryPoint.FailedOpWithRevert.selector,
@@ -641,7 +655,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     }
 
     function test_fail_validateUserOp_invalidFunctionSelector() public {
-        mew = setupMEWWithSessionKeys();
+        mew = setupMEWWithERC20SessionKeys();
         vm.startPrank(address(mew));
         // Construct and enable session
         bytes memory sessionData = abi.encodePacked(
@@ -653,7 +667,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
-        sessionKeyValidator.enableSessionKey(sessionData);
+        erc20SessionKeyValidator.enableSessionKey(sessionData);
         // Construct invalid selector user op data
         bytes memory data = abi.encodeWithSelector(
             IERC20.transferFrom.selector,
@@ -666,7 +680,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(mew),
             data
         );
-        address sessionKeyValidatorAddr = address(sessionKeyValidator);
+        address sessionKeyValidatorAddr = address(erc20SessionKeyValidator);
         userOp.nonce = uint256(uint160(sessionKeyValidatorAddr)) << 96;
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         // EIP712
@@ -679,7 +693,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
                     nameHash,
                     versionHash,
                     block.chainid,
-                    address(sessionKeyValidator)
+                    address(erc20SessionKeyValidator)
                 )
             );
             bytes32 signedMessageHash = keccak256(
@@ -713,7 +727,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
     }
 
     function test_fail_validateUserOp_sessionKeySpentLimitExceeded() public {
-        mew = setupMEWWithSessionKeys();
+        mew = setupMEWWithERC20SessionKeys();
         vm.startPrank(address(mew));
         // Construct and enable session
         bytes memory sessionData = abi.encodePacked(
@@ -725,7 +739,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             uint48(block.timestamp),
             uint48(block.timestamp + 1 days)
         );
-        sessionKeyValidator.enableSessionKey(sessionData);
+        erc20SessionKeyValidator.enableSessionKey(sessionData);
         // Construct invalid selector user op data
         bytes memory data = abi.encodeWithSelector(
             IERC20.transferFrom.selector,
@@ -738,7 +752,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
             address(mew),
             data
         );
-        address sessionKeyValidatorAddr = address(sessionKeyValidator);
+        address sessionKeyValidatorAddr = address(erc20SessionKeyValidator);
         userOp.nonce = uint256(uint160(sessionKeyValidatorAddr)) << 96;
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         // EIP712
@@ -751,7 +765,7 @@ contract ERC20SessionKeyValidatorTest is TestAdvancedUtils {
                     nameHash,
                     versionHash,
                     block.chainid,
-                    address(sessionKeyValidator)
+                    address(erc20SessionKeyValidator)
                 )
             );
             bytes32 signedMessageHash = keccak256(

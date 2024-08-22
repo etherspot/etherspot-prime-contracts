@@ -68,3 +68,26 @@
 | createAccount         | 1754            | 243094 | 249694 | 249694 | 55      |
 | getAddress            | 1644            | 1654   | 1656   | 1656   | 7       |
 | implementation        | 216             | 216    | 216    | 216    | 1       |
+
+| SessionKeyValidator.sol       |                 |        |        |         |         |
+|-------------------------------|-----------------|--------|--------|---------|---------|
+| Deployment Cost               | Deployment Size |        |        |         |         |
+| 2912129                       | 13270           |        |        |         |         |
+| Function Name                 | min             | avg    | median | max     | # calls |
+| addPermission                 | 26801           | 160379 | 169980 | 170544  | 268     |
+| disableSessionKey             | 24171           | 66488  | 80594  | 80594   | 4       |
+| enableSessionKey              | 26961           | 388750 | 364043 | 1532971 | 3992    |
+| getSessionKeyData             | 1346            | 1346   | 1346   | 1346    | 1546    |
+| getSessionKeyPermissions      | 730             | 4343   | 4019   | 20783   | 2060    |
+| getSessionKeysByWallet        | 758             | 1430   | 1103   | 3570    | 517     |
+| getUsesLeft                   | 682             | 682    | 682    | 682     | 259     |
+| isInitialized                 | 574             | 1240   | 574    | 2574    | 3       |
+| isModuleType                  | 347             | 347    | 347    | 347     | 3       |
+| isSessionLive                 | 715             | 715    | 715    | 715     | 6195    |
+| isValidSignatureWithSender    | 733             | 733    | 733    | 733     | 1       |
+| modifyPermission              | 25262           | 64480  | 64544  | 66363   | 261     |
+| removePermission              | 24148           | 63992  | 64220  | 82468   | 261     |
+| rotateSessionKey              | 233698          | 249491 | 249695 | 249944  | 257     |
+| toggleSessionKeyPause         | 24174           | 36677  | 25982  | 47882   | 6196    |
+| updateUses                    | 24389           | 31047  | 31122  | 31434   | 259     |
+| updateValidUntil              | 24289           | 29313  | 29336  | 29360   | 261     |

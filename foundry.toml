@@ -2,6 +2,9 @@
 src = "src"
 out = "out"
 libs = ["node_modules", "lib"]
+solc_version = '0.8.23'
+optimizer = true
+runs = 1000000
 test = "test/foundry"
 cache_path = "forge_cache"
 gas_reports = [
@@ -10,8 +13,11 @@ gas_reports = [
   "MultipleOwnerECDSAValidator",
   "ERC20SessionKeyValidator",
   "ModuleIsolationHook",
+  "SessionKeyValidator",
 ]
 
+[fuzz]
+runs = 1000
 
 [rpc_endpoints]
 goerli = "${GOERLI_RPC_URL}"
