@@ -190,8 +190,6 @@ export type { IModularEtherspotWallet } from './src/modular-etherspot-wallet/int
 export { IModularEtherspotWallet__factory } from './factories/src/modular-etherspot-wallet/interfaces/IModularEtherspotWallet__factory';
 export type { ErrorsLib } from './src/modular-etherspot-wallet/libraries/ErrorsLib';
 export { ErrorsLib__factory } from './factories/src/modular-etherspot-wallet/libraries/ErrorsLib__factory';
-export type { ERC20Actions } from './src/modular-etherspot-wallet/modules/executors/ERC20Actions';
-export { ERC20Actions__factory } from './factories/src/modular-etherspot-wallet/modules/executors/ERC20Actions__factory';
 export type { ModuleIsolationHook } from './src/modular-etherspot-wallet/modules/hooks/ModuleIsolationHook';
 export { ModuleIsolationHook__factory } from './factories/src/modular-etherspot-wallet/modules/hooks/ModuleIsolationHook__factory';
 export type { ERC20SessionKeyValidator } from './src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator';
