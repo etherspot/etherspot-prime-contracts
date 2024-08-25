@@ -11,31 +11,31 @@ import {PackedUserOperation} from "../../../account-abstraction/contracts/interf
 interface IMultiTokenSessionKeyValidator is IValidator {
     /// @notice Emitted when the MultiToken Session Key Validator module is installed for a wallet.
     /// @param wallet The address of the wallet for which the module is installed.
-    event ERC20SKV_ModuleInstalled(address wallet);
+    event MTSKV_ModuleInstalled(address wallet);
 
     /// @notice Emitted when the MultiToken Session Key Validator module is uninstalled from a wallet.
     /// @param wallet The address of the wallet from which the module is uninstalled.
-    event ERC20SKV_ModuleUninstalled(address wallet);
+    event MTSKV_ModuleUninstalled(address wallet);
 
     /// @notice Emitted when a new session key is enabled for a wallet.
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is enabled.
-    event ERC20SKV_SessionKeyEnabled(address sessionKey, address wallet);
+    event MTSKV_SessionKeyEnabled(address sessionKey, address wallet);
 
     /// @notice Emitted when a session key is disabled for a wallet.
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is disabled.
-    event ERC20SKV_SessionKeyDisabled(address sessionKey, address wallet);
+    event MTSKV_SessionKeyDisabled(address sessionKey, address wallet);
 
     /// @notice Emitted when a session key is paused for a wallet.
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is paused.
-    event ERC20SKV_SessionKeyPaused(address sessionKey, address wallet);
+    event MTSKV_SessionKeyPaused(address sessionKey, address wallet);
 
     /// @notice Emitted when a session key is unpaused for a wallet.
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is unpaused.
-    event ERC20SKV_SessionKeyUnpaused(address sessionKey, address wallet);
+    event MTSKV_SessionKeyUnpaused(address sessionKey, address wallet);
 
     /// @notice Struct representing the data associated with a session key.
     struct MultiTokenSessionData {

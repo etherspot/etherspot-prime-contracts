@@ -14,11 +14,15 @@ import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {IMultiTokenSessionKeyValidator} from "../../interfaces/IMultiTokenSessionKeyValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
+import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
+
+contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownable {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
     using ArrayLib for address[];
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*                  CONSTANTS                */
@@ -31,17 +35,17 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
     /*                    ERRORS                 */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
-    error ERC20SKV_ModuleAlreadyInstalled();
-    error ERC20SKV_ModuleNotInstalled();
-    error ERC20SKV_InvalidSessionKey();
-    error ERC20SKV_InvalidToken();
-    error ERC20SKV_InvalidFunctionSelector();
-    error ERC20SKV_InvalidSpendingLimit();
-    error ERC20SKV_InvalidValidAfter(uint48 validAfter);
-    error ERC20SKV_InvalidValidUntil(uint48 validUntil);
-    error ERC20SKV_SessionKeyAlreadyExists(address sessionKey);
-    error ERC20SKV_SessionKeyDoesNotExist(address session);
-    error ERC20SKV_SessionPaused(address sessionKey);
+    error MTSKV_ModuleAlreadyInstalled();
+    error MTSKV_ModuleNotInstalled();
+    error MTSKV_InvalidSessionKey();
+    error MTSKV_InvalidToken();
+    error MTSKV_InvalidFunctionSelector();
+    error MTSKV_InvalidSpendingLimit();
+    error MTSKV_InvalidValidAfter(uint48 validAfter);
+    error MTSKV_InvalidValidUntil(uint48 validUntil);
+    error MTSKV_SessionKeyAlreadyExists(address sessionKey);
+    error MTSKV_SessionKeyDoesNotExist(address session);
+    error MTSKV_SessionPaused(address sessionKey);
     error NotImplemented();
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
@@ -49,17 +53,53 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
     mapping(address => bool) public initialized;
-    mapping(address => mapping(address => MultiTokenSessionData)) public multiTokenSessionData;
-    mapping(address wallet => address[] assocSessionKeys) public walletSessionKeys;
-    // tokenAddress to spentAmount
-    mapping(address => mapping(address => uint256)) spentAmounts;
-    
-    IAggregatorV3Interface internal priceFeed;
 
-    constructor(address _priceFeed) {
-        priceFeed = IAggregatorV3Interface(_priceFeed);
+    mapping(address => mapping(address => MultiTokenSessionData)) public multiTokenSessionData;
+    
+    mapping(address wallet => address[] assocSessionKeys) public walletSessionKeys;
+    
+    // session-key to tokenAddress to spentAmount
+    mapping(address => mapping(address => uint256)) public spentAmounts;
+
+    EnumerableSet.AddressSet private allowedTokens;
+    
+    mapping(address token => IAggregatorV3Interface) internal priceFeeds;
+
+    constructor(address[] memory tokens, address[] memory _priceFeeds) Ownable(msg.sender) {
+        _addAllowedTokens(tokens, _priceFeeds);
     }
 
+    function addAllowedTokens(address[] memory _tokens, address[] memory _priceFeeds) external onlyOwner {
+        _addAllowedTokens(_tokens, _priceFeeds);
+    }
+
+    function _addAllowedTokens(address[] memory _tokens, address[] memory _priceFeeds) internal {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            allowedTokens.add(_tokens[i]);
+            priceFeeds[_tokens[i]] = IAggregatorV3Interface(_priceFeeds[i]);
+        }
+    }
+
+    function removeAllowedTokens(address[] memory _tokens) external onlyOwner {
+        _removeAllowedTokens(_tokens);
+    }
+
+    function _removeAllowedTokens(address[] memory _tokens) internal {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            allowedTokens.remove(_tokens[i]);
+            delete priceFeeds[_tokens[i]];
+        }
+    }
+
+    function updatePriceFeeds(address[] memory _tokens, address[] memory _priceFeeds) external onlyOwner {
+        _updatePriceFeeds(_tokens, _priceFeeds);
+    }
+
+    function _updatePriceFeeds(address[] memory _tokens, address[] memory _priceFeeds) internal {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            priceFeeds[_tokens[i]] = IAggregatorV3Interface(_priceFeeds[i]);
+        }
+    }
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*               PUBLIC/EXTERNAL             */
@@ -68,30 +108,30 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
     // @inheritdoc IMultiTokenSessionKeyValidator
     function enableSessionKey(bytes calldata _sessionData) public {
         address sessionKey = address(bytes20(_sessionData[0:20]));
-        if (sessionKey == address(0)) revert ERC20SKV_InvalidSessionKey();
+        if (sessionKey == address(0)) revert MTSKV_InvalidSessionKey();
         if (
             multiTokenSessionData[sessionKey][msg.sender].validUntil != 0 &&
             ArrayLib._contains(getAssociatedSessionKeys(), sessionKey)
-        ) revert ERC20SKV_SessionKeyAlreadyExists(sessionKey);
+        ) revert MTSKV_SessionKeyAlreadyExists(sessionKey);
 
         uint256 numTokens = uint256(uint8(_sessionData[20]));
         address[] memory tokens = new address[](numTokens);
         for (uint256 i = 0; i < numTokens; i++) {
             tokens[i] = address(bytes20(_sessionData[21 + i * 20:41 + i * 20]));
-            if (tokens[i] == address(0)) revert ERC20SKV_InvalidToken();
+            if (tokens[i] == address(0)) revert MTSKV_InvalidToken();
         }
 
         bytes4 funcSelector = bytes4(_sessionData[21 + numTokens * 20:25 + numTokens * 20]);
-        if (funcSelector == bytes4(0)) revert ERC20SKV_InvalidFunctionSelector();
+        if (funcSelector == bytes4(0)) revert MTSKV_InvalidFunctionSelector();
 
         uint256 cumulativeSpendingLimitUSD = uint256(bytes32(_sessionData[25 + numTokens * 20:57 + numTokens * 20]));
-        if (cumulativeSpendingLimitUSD == 0) revert ERC20SKV_InvalidSpendingLimit();
+        if (cumulativeSpendingLimitUSD == 0) revert MTSKV_InvalidSpendingLimit();
 
         uint48 validAfter = uint48(bytes6(_sessionData[57 + numTokens * 20:63 + numTokens * 20]));
-        if (validAfter == 0) revert ERC20SKV_InvalidValidAfter(validAfter);
+        if (validAfter == 0) revert MTSKV_InvalidValidAfter(validAfter);
 
         uint48 validUntil = uint48(bytes6(_sessionData[63 + numTokens * 20:69 + numTokens * 20]));
-        if (validUntil == 0) revert ERC20SKV_InvalidValidUntil(validUntil);
+        if (validUntil == 0) revert MTSKV_InvalidValidUntil(validUntil);
 
         multiTokenSessionData[sessionKey][msg.sender] = MultiTokenSessionData(
             tokens,
@@ -102,18 +142,19 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
             true
         );
         walletSessionKeys[msg.sender].push(sessionKey);
+        emit MTSKV_SessionKeyEnabled(sessionKey, msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function disableSessionKey(address _session) public {
         if (multiTokenSessionData[_session][msg.sender].validUntil == 0)
-            revert ERC20SKV_SessionKeyDoesNotExist(_session);
+            revert MTSKV_SessionKeyDoesNotExist(_session);
         delete multiTokenSessionData[_session][msg.sender];
         walletSessionKeys[msg.sender] = ArrayLib._removeElement(
             getAssociatedSessionKeys(),
             _session
         );
-        emit ERC20SKV_SessionKeyDisabled(_session, msg.sender);
+        emit MTSKV_SessionKeyDisabled(_session, msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
@@ -129,27 +170,25 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
     function toggleSessionKeyPause(address _sessionKey) external {
         MultiTokenSessionData storage sd = multiTokenSessionData[_sessionKey][msg.sender];
         if (sd.validUntil == 0)
-            revert ERC20SKV_SessionKeyDoesNotExist(_sessionKey);
+            revert MTSKV_SessionKeyDoesNotExist(_sessionKey);
         if (sd.live) {
             sd.live = false;
-            emit ERC20SKV_SessionKeyPaused(_sessionKey, msg.sender);
+            emit MTSKV_SessionKeyPaused(_sessionKey, msg.sender);
         } else {
             sd.live = true;
-            emit ERC20SKV_SessionKeyUnpaused(_sessionKey, msg.sender);
+            emit MTSKV_SessionKeyUnpaused(_sessionKey, msg.sender);
         }
     }
 
-
-
-    function isSessionKeyLive(address sessionKey) public view returns (bool) {
-        MultiTokenSessionData storage data = multiTokenSessionData[sessionKey][msg.sender];
+    function isSessionKeyLive(address _sessionKey) public view returns (bool) {
+        MultiTokenSessionData storage data = multiTokenSessionData[_sessionKey][msg.sender];
         return (data.validAfter <= block.timestamp && data.validUntil >= block.timestamp);
     }
 
 
     function validateSessionKeyParams(
         address _sessionKey,
-        PackedUserOperation calldata userOp
+        PackedUserOperation calldata _userOp
     ) public view returns (bool) {
         MultiTokenSessionData storage sd = multiTokenSessionData[_sessionKey][msg.sender];
 
@@ -158,7 +197,7 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
             return false;
         }
 
-        bytes calldata callData = userOp.callData;
+        bytes calldata callData = _userOp.callData;
         bytes4 sel = bytes4(callData[:4]);
 
         // Validate function selector (e.g., execute function)
@@ -179,24 +218,21 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
 
     function _validateSingleCall(
         address _sessionKey,
-        MultiTokenSessionData storage sd,
-        bytes calldata callData
+        MultiTokenSessionData storage _mtsd,
+        bytes calldata _callData
     ) internal view returns (bool) {
-        (, , bytes calldata execData) = ExecutionLib.decodeSingle(callData[100:]);
+        (, , bytes calldata execData) = ExecutionLib.decodeSingle(_callData[100:]);
 
         (bytes4 selector, address target, , uint256 amount) = _digest(execData);
 
-        // Ensure the target token is in the allowed tokens
-        if (!ArrayLib._contains(sd.tokens, target)) {
+        if (!ArrayLib._contains(_mtsd.tokens, target)) {
             return false;
         }
 
-        // Ensure the function selector matches
-        if (selector != sd.funcSelector) {
+        if (selector != _mtsd.funcSelector) {
             return false;
         }
 
-        // Ensure the amount doesn't exceed the spending limit
         if (!checkSpendingLimit(_sessionKey, msg.sender, target, amount)) {
             return false;
         }
@@ -206,25 +242,22 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
 
     function _validateBatchCall(
         address _sessionKey,
-        MultiTokenSessionData storage sd,
-        bytes calldata callData
+        MultiTokenSessionData storage _mtsd,
+        bytes calldata _callData
     ) internal view returns (bool) {
-        Execution[] calldata execs = ExecutionLib.decodeBatch(callData[100:]);
+        Execution[] calldata execs = ExecutionLib.decodeBatch(_callData[100:]);
 
         for (uint256 i; i < execs.length; i++) {
             (bytes4 selector, address target, , uint256 amount) = _digest(execs[i].callData);
 
-            // Ensure the target token is in the allowed tokens
-            if (!ArrayLib._contains(sd.tokens, target)) {
+            if (!ArrayLib._contains(_mtsd.tokens, target)) {
                 return false;
             }
 
-            // Ensure the function selector matches
-            if (selector != sd.funcSelector) {
+            if (selector != _mtsd.funcSelector) {
                 return false;
             }
 
-            // Ensure the amount doesn't exceed the spending limit
             if (!checkSpendingLimit(_sessionKey, msg.sender, target, amount)) {
                 return false;
             }
@@ -277,17 +310,17 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
     }
 
     // @inheritdoc IERC20SessionKeyValidator
-    function onInstall(bytes calldata data) external override {
+    function onInstall(bytes calldata) external override {
         if (initialized[msg.sender] == true)
-            revert ERC20SKV_ModuleAlreadyInstalled();
+            revert MTSKV_ModuleAlreadyInstalled();
         initialized[msg.sender] = true;
-        emit ERC20SKV_ModuleInstalled(msg.sender);
+        emit MTSKV_ModuleInstalled(msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
-    function onUninstall(bytes calldata data) external override {
+    function onUninstall(bytes calldata) external override {
         if (initialized[msg.sender] == false)
-            revert ERC20SKV_ModuleNotInstalled();
+            revert MTSKV_ModuleNotInstalled();
         address[] memory sessionKeys = getAssociatedSessionKeys();
         uint256 sessionKeysLength = sessionKeys.length;
         for (uint256 i; i < sessionKeysLength; i++) {
@@ -295,14 +328,14 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
         }
         delete walletSessionKeys[msg.sender];
         initialized[msg.sender] = false;
-        emit ERC20SKV_ModuleUninstalled(msg.sender);
+        emit MTSKV_ModuleUninstalled(msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function isValidSignatureWithSender(
-        address sender,
-        bytes32 hash,
-        bytes calldata data
+        address,
+        bytes32,
+        bytes memory
     ) external view returns (bytes4) {
         revert NotImplemented();
     }
@@ -348,7 +381,7 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator {
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
     function getTokenPriceUSD(address token) internal view returns (uint256) {
-        (, int256 price, , , ) = priceFeed.latestRoundData();
+        (, int256 price, , , ) = priceFeeds[token].latestRoundData();
         require(price > 0, "Invalid price from oracle");
         return uint256(price);
     }
