@@ -55,6 +55,7 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
     /*                   MAPPINGS                */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
+    
     mapping(address => bool) public initialized;
 
     mapping(address sessionKey => mapping(address wallet => MultiTokenSessionData)) public multiTokenSessionData;
@@ -76,38 +77,6 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
             revert MTSKV_InvalidStalenessThreshold();
         }
         stalenessThresholdInSeconds = _stalenessThresholdInSeconds;
-    }
-
-    function addAllowedTokens(address[] memory _tokens, address[] memory _priceFeeds) external onlyOwner {
-        _addAllowedTokens(_tokens, _priceFeeds);
-    }
-
-    function _addAllowedTokens(address[] memory _tokens, address[] memory _priceFeeds) internal {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            allowedTokens.add(_tokens[i]);
-            priceFeeds[_tokens[i]] = IAggregatorV3Interface(_priceFeeds[i]);
-        }
-    }
-
-    function removeAllowedTokens(address[] memory _tokens) external onlyOwner {
-        _removeAllowedTokens(_tokens);
-    }
-
-    function _removeAllowedTokens(address[] memory _tokens) internal {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            allowedTokens.remove(_tokens[i]);
-            delete priceFeeds[_tokens[i]];
-        }
-    }
-
-    function updatePriceFeeds(address[] memory _tokens, address[] memory _priceFeeds) external onlyOwner {
-        _updatePriceFeeds(_tokens, _priceFeeds);
-    }
-
-    function _updatePriceFeeds(address[] memory _tokens, address[] memory _priceFeeds) internal {
-        for (uint256 i = 0; i < _tokens.length; i++) {
-            priceFeeds[_tokens[i]] = IAggregatorV3Interface(_priceFeeds[i]);
-        }
     }
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
@@ -354,6 +323,22 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
         return initialized[smartAccount];
     }
 
+    function addAllowedTokens(address[] memory _tokens, address[] memory _priceFeeds) external onlyOwner {
+        _addAllowedTokens(_tokens, _priceFeeds);
+    }
+
+    function removeAllowedTokens(address[] memory _tokens) external onlyOwner {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            allowedTokens.remove(_tokens[i]);
+            delete priceFeeds[_tokens[i]];
+        }
+    }
+
+    function updatePriceFeeds(address[] memory _tokens, address[] memory _priceFeeds) external onlyOwner {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            priceFeeds[_tokens[i]] = IAggregatorV3Interface(_priceFeeds[i]);
+        }
+    }
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*                   INTERNAL                */
@@ -384,6 +369,12 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
         }
     }
 
+    function _addAllowedTokens(address[] memory _tokens, address[] memory _priceFeeds) internal {
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            allowedTokens.add(_tokens[i]);
+            priceFeeds[_tokens[i]] = IAggregatorV3Interface(_priceFeeds[i]);
+        }
+    }
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*                   VIEW                    */

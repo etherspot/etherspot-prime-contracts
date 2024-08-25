@@ -134,4 +134,14 @@ interface IMultiTokenSessionKeyValidator is IValidator {
     /// @param smartAccount The address of the smart account.
     /// @return True if the smart account is initialized, false otherwise.
     function isInitialized(address smartAccount) external view returns (bool);
+
+    function addAllowedTokens(address[] memory _tokens, address[] memory _priceFeeds) external;
+
+    function removeAllowedTokens(address[] memory _tokens) external;
+
+    function updatePriceFeeds(address[] memory _tokens, address[] memory _priceFeeds) external;
+
+    function estimateTotalSpentAmountInUsd(address sessionKey, address token, uint256 amount) external view returns (uint256);
+
+    function checkSpendingLimit(address sessionKey, address user, address token, uint256 amount) external view returns (bool);
 }
