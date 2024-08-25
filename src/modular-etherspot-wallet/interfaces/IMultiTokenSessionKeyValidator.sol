@@ -41,7 +41,7 @@ interface IMultiTokenSessionKeyValidator is IValidator {
     struct MultiTokenSessionData {
         address[] tokens;
         bytes4 funcSelector; // The function selector for the allowed operation (e.g., transfer, transferFrom).
-        uint256 spendingLimit; // The maximum amount that can be spent with this session key.
+        uint256 cumulativeSpendingLimitInUsd; // The total spending limit in USD.
         uint48 validAfter; // The timestamp after which the session key is valid.
         uint48 validUntil; // The timestamp until which the session key is valid.
         bool live; // Flag indicating whether the session key is paused or not.

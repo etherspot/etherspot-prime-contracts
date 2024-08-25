@@ -47,6 +47,9 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
     error MTSKV_SessionKeyDoesNotExist(address session);
     error MTSKV_SessionPaused(address sessionKey);
     error NotImplemented();
+    error MTSKV_InvalidTokenPrice(address token);
+    error MTSKV_InvalidStalenessThreshold();
+    error MTSKV_StaleTokenPrice(address token);
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*                   MAPPINGS                */
@@ -54,19 +57,25 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
 
     mapping(address => bool) public initialized;
 
-    mapping(address => mapping(address => MultiTokenSessionData)) public multiTokenSessionData;
+    mapping(address sessionKey => mapping(address wallet => MultiTokenSessionData)) public multiTokenSessionData;
     
     mapping(address wallet => address[] assocSessionKeys) public walletSessionKeys;
     
-    // session-key to tokenAddress to spentAmount
-    mapping(address => mapping(address => uint256)) public spentAmounts;
-
     EnumerableSet.AddressSet private allowedTokens;
     
     mapping(address token => IAggregatorV3Interface) internal priceFeeds;
 
-    constructor(address[] memory tokens, address[] memory _priceFeeds) Ownable(msg.sender) {
+    mapping(address sessionKey => uint256) public totalSpentInUsd;
+
+    uint256 public stalenessThresholdInSeconds;
+
+    constructor(address[] memory tokens, address[] memory _priceFeeds, uint256 _stalenessThresholdInSeconds) Ownable(msg.sender) {
         _addAllowedTokens(tokens, _priceFeeds);
+
+        if(_stalenessThresholdInSeconds == 0) {
+            revert MTSKV_InvalidStalenessThreshold();
+        }
+        stalenessThresholdInSeconds = _stalenessThresholdInSeconds;
     }
 
     function addAllowedTokens(address[] memory _tokens, address[] memory _priceFeeds) external onlyOwner {
@@ -124,8 +133,8 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
         bytes4 funcSelector = bytes4(_sessionData[21 + numTokens * 20:25 + numTokens * 20]);
         if (funcSelector == bytes4(0)) revert MTSKV_InvalidFunctionSelector();
 
-        uint256 cumulativeSpendingLimitUSD = uint256(bytes32(_sessionData[25 + numTokens * 20:57 + numTokens * 20]));
-        if (cumulativeSpendingLimitUSD == 0) revert MTSKV_InvalidSpendingLimit();
+        uint256 cumulativeSpendingLimitInUsd = uint256(bytes32(_sessionData[25 + numTokens * 20:57 + numTokens * 20]));
+        if (cumulativeSpendingLimitInUsd == 0) revert MTSKV_InvalidSpendingLimit();
 
         uint48 validAfter = uint48(bytes6(_sessionData[57 + numTokens * 20:63 + numTokens * 20]));
         if (validAfter == 0) revert MTSKV_InvalidValidAfter(validAfter);
@@ -136,7 +145,7 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
         multiTokenSessionData[sessionKey][msg.sender] = MultiTokenSessionData(
             tokens,
             funcSelector,
-            cumulativeSpendingLimitUSD,
+            cumulativeSpendingLimitInUsd,
             validAfter,
             validUntil,
             true
@@ -380,32 +389,31 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
     /*                   VIEW                    */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
-    function getTokenPriceUSD(address token) internal view returns (uint256) {
-        (, int256 price, , , ) = priceFeeds[token].latestRoundData();
-        require(price > 0, "Invalid price from oracle");
+    function getTokenPriceInUsd(address token) internal view returns (uint256) {
+
+        (, int256 price, ,uint256 updatedAt, ) = priceFeeds[token].latestRoundData();
+
+        if(price == 0) {
+            revert MTSKV_InvalidTokenPrice(token);
+        }
+
+        if(block.timestamp - updatedAt >= stalenessThresholdInSeconds) {
+            revert MTSKV_StaleTokenPrice(token);
+        }
+
         return uint256(price);
     }
 
-    function getTokenDecimals(address token) internal view returns (uint8) {
-        return IERC20(token).decimals();
-    }
+    function estimateTotalSpentAmountInUsd(address sessionKey, address token, uint256 amount) public view returns (uint256) {
+        uint256 currentTokenPriceUSD = getTokenPriceInUsd(token);
+        uint8 currentTokenDecimals = IERC20(token).decimals();
+        uint256 amountInUsd = (amount * currentTokenPriceUSD) / (10 ** currentTokenDecimals);
+        return amountInUsd + totalSpentInUsd[sessionKey];
+   }
 
     function checkSpendingLimit(address sessionKey, address user, address token, uint256 amount) public view returns (bool) {
-        MultiTokenSessionData storage data = multiTokenSessionData[sessionKey][user];
-        uint256 tokenPriceUSD = getTokenPriceUSD(token);
-        uint8 tokenDecimals = getTokenDecimals(token);
-        uint256 amountInUSD = (amount * tokenPriceUSD) / (10 ** tokenDecimals);
-        uint256 totalSpentUSD = 0;
-
-        for (uint256 i = 0; i < data.tokens.length; i++) {
-            address currentToken = data.tokens[i];
-            uint256 spentAmount = spentAmounts[sessionKey][currentToken];
-            uint256 currentTokenPriceUSD = getTokenPriceUSD(currentToken);
-            uint8 currentTokenDecimals = getTokenDecimals(currentToken);
-            totalSpentUSD += (spentAmount * currentTokenPriceUSD) / (10 ** currentTokenDecimals);
-        }
-
-        return (totalSpentUSD + amountInUSD) <= data.spendingLimit;
+        MultiTokenSessionData memory data = multiTokenSessionData[sessionKey][user];
+        return estimateTotalSpentAmountInUsd(sessionKey, token, amount) <= data.cumulativeSpendingLimitInUsd;
     }
 
 }
