@@ -143,5 +143,5 @@ interface IMultiTokenSessionKeyValidator is IValidator {
 
     function estimateTotalSpentAmountInUsd(address sessionKey, address token, uint256 amount) external view returns (uint256);
 
-    function checkSpendingLimit(address sessionKey, address user, address token, uint256 amount) external view returns (bool);
+    function isEstimatedTotalUsdSpentWithInLimits(address sessionKey, address user, address token, uint256 amount) external view returns (bool);
 }

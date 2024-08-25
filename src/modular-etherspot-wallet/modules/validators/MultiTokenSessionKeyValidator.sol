@@ -57,7 +57,6 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*                   MAPPINGS                */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
-
     
     mapping(address => bool) public initialized;
 
@@ -214,11 +213,7 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
             return false;
         }
 
-        if (!checkSpendingLimit(_sessionKey, msg.sender, target, amount)) {
-            return false;
-        }
-
-        return true;
+        return isEstimatedTotalUsdSpentWithInLimits(_sessionKey, msg.sender, target, amount);
     }
 
     function _validateBatchCall(
@@ -239,7 +234,7 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
                 return false;
             }
 
-            if (!checkSpendingLimit(_sessionKey, msg.sender, target, amount)) {
+            if (!isEstimatedTotalUsdSpentWithInLimits(_sessionKey, msg.sender, target, amount)) {
                 return false;
             }
         }
@@ -432,7 +427,7 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
     }
 
 
-    function checkSpendingLimit(address sessionKey, address user, address token, uint256 amount) public view returns (bool) {
+    function isEstimatedTotalUsdSpentWithInLimits(address sessionKey, address user, address token, uint256 amount) public view returns (bool) {
         MultiTokenSessionData memory data = multiTokenSessionData[sessionKey][user];
         return estimateTotalSpentAmountInUsd(sessionKey, token, amount) <= data.cumulativeSpendingLimitInUsd;
     }
