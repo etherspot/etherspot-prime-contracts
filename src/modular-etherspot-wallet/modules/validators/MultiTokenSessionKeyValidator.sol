@@ -19,6 +19,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 
 contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownable {
+    
+    uint8 constant public USD_AMOUNT_DECIMALS = 18;
+
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
     using ArrayLib for address[];
@@ -380,7 +383,7 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
     /*                   VIEW                    */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
-    function getTokenPriceInUsd(address token) internal view returns (uint256) {
+    function getTokenPriceInUsd(address token) internal view returns (uint256, uint8) {
 
         (, int256 price, ,uint256 updatedAt, ) = priceFeeds[token].latestRoundData();
 
@@ -392,15 +395,42 @@ contract MultiTokenSessionKeyValidator is IMultiTokenSessionKeyValidator, Ownabl
             revert MTSKV_StaleTokenPrice(token);
         }
 
-        return uint256(price);
+        uint8 feedDecimals = priceFeeds[token].decimals();
+
+        return (uint256(price), feedDecimals);
     }
 
-    function estimateTotalSpentAmountInUsd(address sessionKey, address token, uint256 amount) public view returns (uint256) {
-        uint256 currentTokenPriceUSD = getTokenPriceInUsd(token);
-        uint8 currentTokenDecimals = IERC20(token).decimals();
-        uint256 amountInUsd = (amount * currentTokenPriceUSD) / (10 ** currentTokenDecimals);
+    // @inheritdoc IMultiTokenSessionKeyValidator
+    /// @dev Estimates the total amount spent in USD for a given session key and token
+    /// @dev token decimals and feed decimals are different and to derive the USD amount in a fixed precision of 18 decimals
+    /// @dev scale the tokenPrice up or down by different to target precision and divide by 10 ** feedDecimals
+    /// @dev amountInUsd will be in decimal precision of 18
+    function estimateTotalSpentAmountInUsd(
+        address sessionKey,
+        address token,
+        uint256 amount
+    ) public view returns (uint256) {
+        (uint256 tokenPriceUSD, uint8 feedDecimals) = getTokenPriceInUsd(token);
+
+        uint8 tokenDecimals = IERC20(token).decimals();
+        uint256 scaledAmount;
+
+        if (tokenDecimals < USD_AMOUNT_DECIMALS) {
+            // If token has fewer than 18 decimals, scale the amount up to 18 decimals
+            scaledAmount = amount * (10 ** (USD_AMOUNT_DECIMALS - tokenDecimals));
+        } else if(tokenDecimals > USD_AMOUNT_DECIMALS) {
+            // If token has more than 18 decimals, scale the amount down to 18 decimals
+            scaledAmount = amount / (10 ** (tokenDecimals - USD_AMOUNT_DECIMALS));            
+        } else {
+            scaledAmount = amount;
+        }
+
+        uint256 amountInUsd = (scaledAmount * tokenPriceUSD) / (10 ** feedDecimals);
+
+        // add the amountInUsd with the totalSpentInUsd for the session key
         return amountInUsd + totalSpentInUsd[sessionKey];
-   }
+    }
+
 
     function checkSpendingLimit(address sessionKey, address user, address token, uint256 amount) public view returns (bool) {
         MultiTokenSessionData memory data = multiTokenSessionData[sessionKey][user];
