@@ -63,9 +63,7 @@ interface IValidator is IModule {
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
-    )
-        external
-        returns (uint256);
+    ) external returns (uint256);
 
     /**
      * Validator can be used for ERC-1271 validation
@@ -74,22 +72,19 @@ interface IValidator is IModule {
         address sender,
         bytes32 hash,
         bytes calldata data
-    )
-        external
-        view
-        returns (bytes4);
+    ) external view returns (bytes4);
 }
 
-interface IExecutor is IModule { }
+interface IExecutor is IModule {}
 
 interface IHook is IModule {
     function preCheck(
         address msgSender,
+        uint256 msgValue,
         bytes calldata msgData
-    )
-        external
-        returns (bytes memory hookData);
-    function postCheck(bytes calldata hookData) external returns (bool success);
+    ) external returns (bytes memory hookData);
+
+    function postCheck(bytes calldata hookData) external;
 }
 
-interface IFallback is IModule { }
+interface IFallback is IModule {}

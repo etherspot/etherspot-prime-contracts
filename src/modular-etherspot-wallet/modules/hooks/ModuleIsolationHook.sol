@@ -43,9 +43,11 @@ contract ModuleIsolationHook is IHook {
 
     /// @notice Main pre-call check for restricted signatures
     /// @param msgSender Message sender address
+    /// @param msgValue Message value
     /// @param msgData Message data
     function preCheck(
         address msgSender,
+        uint256 msgValue,
         bytes calldata msgData
     ) external override returns (bytes memory hookData) {
         bytes4 firstFuncSig = bytes4(msgData[0:4]);
@@ -114,9 +116,7 @@ contract ModuleIsolationHook is IHook {
 
     /// @notice Main pre-call check for restricted signatures
     /// @param hookData Message sender address
-    function postCheck(
-        bytes calldata hookData
-    ) external returns (bool success) {}
+    function postCheck(bytes calldata hookData) external {}
 
     /// @notice Checks if this contract is a hook module type
     /// @param typeID Module type ID

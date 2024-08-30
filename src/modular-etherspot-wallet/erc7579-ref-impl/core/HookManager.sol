@@ -4,11 +4,11 @@ pragma solidity ^0.8.21;
 import "./ModuleManager.sol";
 import "../interfaces/IERC7579Account.sol";
 import "../interfaces/IERC7579Module.sol";
+
 /**
  * @title reference implementation of HookManager
  * @author zeroknots.eth | rhinestone.wtf
  */
-
 abstract contract HookManager {
     /// @custom:storage-location erc7201:hookmanager.storage.msa
     struct HookManagerStorage {
@@ -27,9 +27,13 @@ abstract contract HookManager {
         if (hook == address(0)) {
             _;
         } else {
-            bytes memory hookData = IHook(hook).preCheck(msg.sender, msg.data);
+            bytes memory hookData = IHook(hook).preCheck(
+                msg.sender,
+                msg.value,
+                msg.data
+            );
             _;
-            if (!IHook(hook).postCheck(hookData)) revert HookPostCheckFailed();
+            IHook(hook).postCheck(hookData);
         }
     }
 
