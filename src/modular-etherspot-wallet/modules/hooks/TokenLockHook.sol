@@ -7,6 +7,7 @@ import "../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
+import {MODE_SELECTOR_MTSKV} from "../../common/Constants.sol";
 
 import "forge-std/console2.sol";
 
@@ -15,18 +16,29 @@ contract TokenLockHook is IHook {
     using ExecutionLib for bytes;
 
     /*//////////////////////////////////////////////////////////////
+                               STRUCTS
+    //////////////////////////////////////////////////////////////*/
+
+    struct LockedToken {
+        address sessionKey;
+        address solverAddress;
+        address token;
+        uint256 amount;
+    }
+
+    /*//////////////////////////////////////////////////////////////
                                MAPPINGS
     //////////////////////////////////////////////////////////////*/
 
     mapping(address => bool) public installed;
-    mapping(address => mapping(address => uint256)) public lockedTokens;
-    mapping(address => address[]) public lockedTokensForWallet;
+    mapping(address => LockedToken[]) public lockedTokens;
     mapping(address => bool) public transactionsInProgress;
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 
+    error TLH_TokenIsNotLocked(address sessionKey, address token);
     error TLH_CantUninstallWhileTransactionInProgress(address wallet);
     error TLH_TransactionInProgress(address wallet, address token);
     error TLH_InvalidCallType(CallType callType);
@@ -39,16 +51,53 @@ contract TokenLockHook is IHook {
     event TLH_ModuleUninstalled(address indexed wallet);
     event TLH_TokenLocked(
         address indexed wallet,
+        address indexed sessionKey,
         address indexed token,
-        uint256 indexed amount
+        uint256 amount
     );
 
     /*//////////////////////////////////////////////////////////////
                            PUBLIC/EXTERNAL
     //////////////////////////////////////////////////////////////*/
 
-    function isTokenLocked(address _token) public view returns (bool) {
-        return lockedTokens[msg.sender][_token] > 0;
+    // TODO: on preCheck:
+    // - check ModeSelector
+    // - - if MultiTokenSessionKeyValidator
+    // - - - check SINGLE or BATCH
+    // - - - - decode Execution(s)
+    // - - - - check if selector is enableSessionKey
+    // - - - - - if true, lock tokens/amounts
+    // - - - - - if false and flagged (possibly using ModePayload), unlock tokens/amounts
+    // - - - - - if false and not flagged, check against constraints
+    // - - if not MultiTokenSessionKeyValidator
+    // - - - check SINGLE or BATCH
+    // - - - - decode Execution(s)
+    // - - - - check tokens in Execution(s) against lockedTokens
+    // - - - - - if locked tokens, check against constraints
+    // - - - - - - if failed against constraints, revert
+    // - - - - - - if passed constraints, allow
+    // - - - - - if not locked tokens, allow
+
+    // TODO: pain points
+    // make sure enableSessionKey provides correct data to store for data structures?
+    // how to know what function call and data is to check against locked token constraints?
+    // - limit to IERC20 transfer/transfer from for now?
+    // - use some combination (like in ParamConditions) and SuperValidator to provide location of token/amount data?
+    // use ModeSelector/ModePayload to provide unlocking tx flag?
+    // lock specified amounts for a token so can validate if complies with locked balance?
+    // pass in token amounts on enableSessionKey and check fx amount valid against USD?
+
+    function isTokenLocked(
+        address wallet,
+        address _token
+    ) public view returns (bool) {
+        LockedToken[] memory tokens = lockedTokens[wallet];
+        for (uint256 i; i < tokens.length; ++i) {
+            if (tokens[i].token == _token && tokens[i].amount > 0) {
+                return true;
+            }
+            return false;
+        }
     }
 
     function isTransactionInProgress() public view returns (bool) {
@@ -58,13 +107,10 @@ contract TokenLockHook is IHook {
     // TODO
     function unlockToken(address _wallet, address _token) external {
         // TODO: Implement authorization check
-        delete lockedTokens[_wallet][_token];
-        for (uint256 i; i < lockedTokensForWallet[_wallet].length; ++i) {
-            if (lockedTokensForWallet[_wallet][i] == _token) {
-                delete lockedTokensForWallet[_wallet][i];
-            }
-            delete transactionsInProgress[_wallet];
-        }
+        if (!isTokenLocked(_wallet, _token))
+            revert TLH_TokenIsNotLocked(_wallet, _token);
+        delete lockedTokens[_wallet];
+        delete transactionsInProgress[_wallet];
     }
 
     function preCheck(
@@ -74,12 +120,7 @@ contract TokenLockHook is IHook {
     ) external override returns (bytes memory hookData) {
         ModeCode mode = ModeCode.wrap(bytes32(msgData[4:36]));
         (CallType callType, , ModeSelector modeSelector, ) = mode.decode();
-        if (
-            modeSelector ==
-            ModeSelector.wrap(
-                bytes4(keccak256("etherspot.multitokensessionkeyvalidator"))
-            )
-        ) {
+        if (eqModeSelector(modeSelector, MODE_SELECTOR_MTSKV)) {
             _handleMultiTokenSessionKeyValidator(callType, msgData[100:]);
         } else {
             return _checkLockedTokens(callType, msgData[100:]);
@@ -96,15 +137,10 @@ contract TokenLockHook is IHook {
 
     // @inheritdoc IModule
     function onUninstall(bytes calldata data) external override {
-        if (transactionsInProgress[msg.sender])
+        if (isTransactionInProgress())
             revert TLH_CantUninstallWhileTransactionInProgress(msg.sender);
         installed[msg.sender] = false;
-        for (uint256 i; i < lockedTokensForWallet[msg.sender].length; i++) {
-            delete lockedTokens[msg.sender][
-                lockedTokensForWallet[msg.sender][i]
-            ];
-        }
-        delete lockedTokensForWallet[msg.sender];
+        delete lockedTokens[msg.sender];
         delete transactionsInProgress[msg.sender];
         emit TLH_ModuleUninstalled(msg.sender);
     }
@@ -129,6 +165,7 @@ contract TokenLockHook is IHook {
     // on enableSessionKey function from MultiTokenSessionKeyValidator
     // rather than current approach of locking tokens on
     // erc20 transfer or transferFrom call from MultiTokenSessionKeyValidator
+    // TODO: decide on data passed into enableSesionKey
     function _handleMultiTokenSessionKeyValidator(
         CallType _callType,
         bytes calldata _executionData
@@ -164,33 +201,38 @@ contract TokenLockHook is IHook {
                 _executionData
             );
             for (uint256 i; i < executions.length; ++i) {
-                if (lockedTokens[msg.sender][executions[i].target] > 0) {
+                if (isTransactionInProgress())
                     revert TLH_TransactionInProgress(
                         msg.sender,
                         executions[i].target
                     );
-                } else {
-                    return "";
-                }
+                return "";
             }
         } else if (_callType == CALLTYPE_SINGLE) {
             (address target, , ) = ExecutionLib.decodeSingle(_executionData);
-            if (lockedTokens[msg.sender][target] > 0) {
+            if (isTransactionInProgress())
                 revert TLH_TransactionInProgress(msg.sender, target);
-            } else {
-                return "";
-            }
+
+            return "";
         } else {
             revert TLH_InvalidCallType(_callType);
         }
     }
 
-    function _lockToken(address _token, uint256 _amount) internal {
-        if (lockedTokens[msg.sender][_token] > 0) {
+    function _lockToken(
+        address _sessionKey,
+        address _solver,
+        address _token,
+        uint256 _amount
+    ) internal {
+        if (transactionsInProgress[msg.sender])
             revert TLH_TransactionInProgress(msg.sender, _token);
-        }
-        lockedTokens[msg.sender][_token] = _amount;
-        lockedTokensForWallet[msg.sender].push(_token);
+        lockedTokens[msg.sender] = LockedToken(
+            _sessionKey,
+            _solver,
+            _token,
+            _amount
+        );
         transactionsInProgress[msg.sender] = true;
         emit TLH_TokenLocked(msg.sender, _token, _amount);
     }
