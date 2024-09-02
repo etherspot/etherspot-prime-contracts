@@ -248,4 +248,28 @@ contract TokenLockHook is IHook {
         }
         return 0;
     }
+
+    function _getTokenBalance(address _token) internal view returns (uint256) {
+        return IERC20(_token).balanceOf(address(msg.sender));
+    }
+
+    function _retrieveLockedBalance(
+        address _token
+    ) internal view returns (uint256) {
+        for (uint256 i; i < lockedTokens[msg.sender].length; ++i) {
+            if (lockedTokens[msg.sender][i].token == _token) {
+                return lockedTokens[msg.sender][i].amount;
+            }
+            return type(uint256).max;
+        }
+    }
+
+    function _isBalanceSufficient(
+        address _token,
+        uint256 _txAmount
+    ) internal view returns (bool) {
+        uint256 balance = _getTokenBalance(_token);
+        uint256 locked = _retrieveLockedBalance(_token);
+        return balance >= locked + _txAmount;
+    }
 }
