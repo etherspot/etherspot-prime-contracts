@@ -9,10 +9,10 @@ import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED, VALIDATION_SUCCESS} from "../.
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
-import {IERC20SessionKeyValidator} from "../../interfaces/IERC20SessionKeyValidator.sol";
+import {ITokenLockSessionKeyValidator} from "../../interfaces/ITokenLockSessionKeyValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
-contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
+contract TokenLockSessionKeyValidator is ITokenLockSessionKeyValidator {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
 
@@ -56,29 +56,52 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
 
     // @inheritdoc IERC20SessionKeyValidator
     function enableSessionKey(bytes calldata _sessionData) public {
-        address sessionKey = address(bytes20(_sessionData[0:20]));
+        uint256 offset = 0;
+
+        address sessionKey = address(bytes20(_sessionData[offset:offset + 20]));
+        offset += 20;
         if (sessionKey == address(0)) revert ERC20SKV_InvalidSessionKey();
-        if (
-            sessionData[sessionKey][msg.sender].validUntil != 0 &&
-            ArrayLib._contains(getAssociatedSessionKeys(), sessionKey)
-        ) revert ERC20SKV_SessionKeyAlreadyExists(sessionKey);
-        address token = address(bytes20(_sessionData[20:40]));
-        if (token == address(0)) revert ERC20SKV_InvalidToken();
-        bytes4 funcSelector = bytes4(_sessionData[40:44]);
-        if (funcSelector == bytes4(0))
-            revert ERC20SKV_InvalidFunctionSelector();
-        uint256 spendingLimit = uint256(bytes32(_sessionData[44:76]));
-        if (spendingLimit == 0) revert ERC20SKV_InvalidSpendingLimit();
-        uint48 validAfter = uint48(bytes6(_sessionData[76:82]));
-        if (validAfter == 0) revert ERC20SKV_InvalidValidAfter(validAfter);
-        uint48 validUntil = uint48(bytes6(_sessionData[82:88]));
+
+        uint256 tokensLength = uint256(bytes32(_sessionData[offset:offset + 32]));
+        offset += 32;
+
+        address[] memory tokens = new address[](tokensLength);
+        for (uint256 i = 0; i < tokensLength; i++) {
+            tokens[i] = address(bytes20(_sessionData[offset:offset + 20]));
+            offset += 20;
+        }
+
+        bytes4 funcSelector = bytes4(_sessionData[offset:offset + 4]);
+        offset += 4;
+        if (funcSelector == bytes4(0)) revert ERC20SKV_InvalidFunctionSelector();
+
+        uint256 amountsLength = uint256(bytes32(_sessionData[offset:offset + 32]));
+        offset += 32;
+
+        uint256[] memory amounts = new uint256[](amountsLength);
+        for (uint256 i = 0; i < amountsLength; i++) {
+            amounts[i] = uint256(bytes32(_sessionData[offset:offset + 32]));
+            offset += 32;
+        }
+
+        address solverAddress = address(bytes20(_sessionData[offset:offset + 20]));
+        offset += 20;
+
+        uint48 validUntil = uint48(uint256(bytes32(_sessionData[offset:offset + 6])));
+        offset += 6;
         if (validUntil == 0) revert ERC20SKV_InvalidValidUntil(validUntil);
+
+        uint48 validAfter = uint48(uint256(bytes32(_sessionData[offset:offset + 6])));
+        offset += 6;
+        if (validAfter == 0) revert ERC20SKV_InvalidValidAfter(validAfter);
+
         sessionData[sessionKey][msg.sender] = SessionData(
-            token,
+            tokens,
             funcSelector,
-            spendingLimit,
-            validAfter,
+            amounts,
+            solverAddress,
             validUntil,
+            validAfter,
             true
         );
         walletSessionKeys[msg.sender].push(sessionKey);
@@ -156,9 +179,29 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
                     address to,
                     uint256 amount
                 ) = _digest(execData);
-                if (target != sd.token) return false;
+
                 if (selector != sd.funcSelector) return false;
-                if (amount > sd.spendingLimit) return false;
+
+                bool tokenFound = false;
+                uint256 tokenIndex = 0;
+                for (uint256 i = 0; i < sd.tokens.length; i++) {
+                    if (sd.tokens[i] == target) {
+                        tokenFound = true;
+                        tokenIndex = i;
+                        break;
+                    }
+                }
+                if (!tokenFound) return false;
+
+                if (! (amount == sd.amounts[tokenIndex])) return false;
+
+                // validate if wallet has sufficient balance
+                if (selector == IERC20.transfer.selector) {
+                    if (IERC20(target).balanceOf(from) < amount) return false;
+                } else if (selector == IERC20.transferFrom.selector) {
+                    if (IERC20(target).allowance(from, to) < amount) return false;
+                }
+
                 return true;
             }
             if (calltype == CALLTYPE_BATCH) {
@@ -173,9 +216,19 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
                         address to,
                         uint256 amount
                     ) = _digest(execs[i].callData);
-                    if (target != sd.token) return false;
                     if (selector != sd.funcSelector) return false;
-                    if (amount > sd.spendingLimit) return false;
+                    bool tokenFound = false;
+                    uint256 tokenIndex = 0;
+                    for (uint256 j = 0; j < sd.tokens.length; j++) {
+                        if (sd.tokens[j] == target) {
+                            tokenFound = true;
+                            tokenIndex = j;
+                            break;
+                        }
+                    }
+                    if (!tokenFound) return false;
+
+                    if (!(amount == sd.amounts[tokenIndex])) return false;
                 }
                 return true;
             } else {
@@ -210,6 +263,12 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
         if (!validateSessionKeyParams(sessionKeySigner, userOp))
             return VALIDATION_FAILED;
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
+
+        //disable SessionKey
+        //disable is run because the SessioneKey is only valid for one operation
+        //once used it should be disabled
+        disableSessionKey(sessionKeySigner);
+
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
