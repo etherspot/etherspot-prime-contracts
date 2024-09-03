@@ -282,8 +282,8 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
         // Check receiver balance
         assertEq(erc20.balanceOf(address(receiver)), 1 ether);
         assertEq(newErc20.balanceOf(address(receiver)), 2 ether);
-        assertTrue(tokenLockHook.isTokenLocked(address(erc20)));
-        assertTrue(tokenLockHook.isTokenLocked(address(newErc20)));
+        assertTrue(tokenLockHook.isTokenLocked(address(mew), address(erc20)));
+        assertTrue(tokenLockHook.isTokenLocked(address(mew), address(newErc20)));
         assertTrue(tokenLockHook.isTransactionInProgress());
     }
 
@@ -358,7 +358,7 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
         // Check receiver balance
         assertEq(erc20.balanceOf(address(receiver)), 1 ether);
         // Check tokens are not locked
-        assertFalse(tokenLockHook.isTokenLocked(address(erc20)));
+        assertFalse(tokenLockHook.isTokenLocked(address(mew), address(erc20)));
     }
 
     function test_preCheck_ifOtherValidator_RevertIf_tokensAreLocked() public {
@@ -461,7 +461,7 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
         // Execute the lockToken function
         harness.exposed_lockToken(token, amount);
         // Check that the token is locked
-        assertTrue(harness.isTokenLocked(token));
+        assertTrue(harness.isTokenLocked(address(mew), token));
     }
 
     function test_exposed_lockToken_RevertIf_tokenAlreadyLocked() public {
@@ -512,7 +512,7 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
             execution
         );
         // Check that the token is locked
-        assertTrue(harness.isTokenLocked(address(erc20)));
+        assertTrue(harness.isTokenLocked(address(mew), address(erc20)));
     }
 
     function test_exposed_handleMultiTokenSessionKeyValidator_callTypeBatch()
@@ -553,8 +553,8 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
             batchExecutions
         );
         // Check that the Tokens are locked
-        assertTrue(harness.isTokenLocked(address(erc20)));
-        assertTrue(harness.isTokenLocked(address(newERC20)));
+        assertTrue(harness.isTokenLocked(address(mew), address(erc20)));
+        assertTrue(harness.isTokenLocked(address(mew), address(newERC20)));
     }
 
     function test_exposed_handleMultiTokenSessionKeyValidator_RevertIf_invalidCallType()
@@ -589,7 +589,7 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
             execution
         );
         // Check that the token is not locked
-        assertFalse(harness.isTokenLocked(address(erc20)));
+        assertFalse(harness.isTokenLocked(address(mew), address(erc20)));
     }
 
     function test_exposed_handleMultiTokenSessionKeyValidator_RevertIf_doubleLockingTokenInBatch()
@@ -632,7 +632,7 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
             batchExecutions
         );
         // Check that the token is not locked
-        assertFalse(harness.isTokenLocked(address(erc20)));
+        assertFalse(harness.isTokenLocked(address(mew), address(erc20)));
     }
 
     function test_exposed_checkLockedTokens_RevertIf_invalidCallType() public {
@@ -726,9 +726,9 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
         );
         bytes memory batchExecutions = ExecutionLib.encodeBatch(batchCall);
         // Lock one of the tokens
-        harness.exposed_lockToken(address(erc20), 1);
+        harness.exposed_lockToken(receiver, address(erc20), 1);
         // Check that the locked token is locked
-        assertTrue(harness.isTokenLocked(address(erc20)));
+        assertTrue(harness.isTokenLocked(address(mew), address(erc20)));
         // Expect the function call to revert with TLH_TransactionInProgress error
         // if one of the Tokens is locked
         vm.expectRevert(
@@ -741,9 +741,9 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
         // Execute the checkLockedTokens function
         harness.exposed_checkLockedTokens(callType, batchExecutions);
         // Check that the locked token is still locked
-        assertTrue(harness.isTokenLocked(address(erc20)));
+        assertTrue(harness.isTokenLocked(address(mew), address(erc20)));
         // Check that the other token is not locked
-        assertFalse(harness.isTokenLocked(address(newERC20)));
+        assertFalse(harness.isTokenLocked(address(mew), address(newERC20)));
     }
 
     function test_exposed_getTokenAmount_transfer() public {

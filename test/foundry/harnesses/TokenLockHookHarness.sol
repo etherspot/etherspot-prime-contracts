@@ -5,15 +5,15 @@ import {TokenLockHook} from "../../../src/modular-etherspot-wallet/modules/hooks
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
 
 contract TokenLockHookHarness is TokenLockHook {
-    function exposed_lockToken(address _token, uint256 _amount) external {
-        return _lockToken(_token, _amount);
+    function exposed_lockToken(address _sessionKey, address _solver, address _token, uint256 _amount) external {
+        return _lockToken(_sessionKey, _solver, _token, _amount);
     }
 
     function exposed_handleMultiTokenSessionKeyValidator(
         CallType _callType,
         bytes calldata _executionData
     ) external {
-        return _handleMultiTokenSessionKeyValidator(_callType, _executionData);
+        return _handleTokenLockSessionKeyValidator(_callType, _executionData);
     }
 
     function exposed_checkLockedTokens(

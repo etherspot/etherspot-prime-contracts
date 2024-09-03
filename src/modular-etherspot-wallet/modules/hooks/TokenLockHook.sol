@@ -121,7 +121,7 @@ contract TokenLockHook is IHook {
         ModeCode mode = ModeCode.wrap(bytes32(msgData[4:36]));
         (CallType callType, , ModeSelector modeSelector, ) = mode.decode();
         if (eqModeSelector(modeSelector, MODE_SELECTOR_MTSKV)) {
-            _handleMultiTokenSessionKeyValidator(callType, msgData[100:]);
+            _handleTokenLockSessionKeyValidator(callType, msgData[100:]);
         } else {
             return _checkLockedTokens(callType, msgData[100:]);
         }
@@ -166,7 +166,7 @@ contract TokenLockHook is IHook {
     // rather than current approach of locking tokens on
     // erc20 transfer or transferFrom call from MultiTokenSessionKeyValidator
     // TODO: decide on data passed into enableSesionKey
-    function _handleMultiTokenSessionKeyValidator(
+    function _handleTokenLockSessionKeyValidator(
         CallType _callType,
         bytes calldata _executionData
     ) internal {
