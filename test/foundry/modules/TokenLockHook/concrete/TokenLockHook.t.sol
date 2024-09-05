@@ -5,7 +5,6 @@ import "forge-std/Test.sol";
 import {ModularEtherspotWallet} from "../../../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {TokenLockHook} from "../../../../../src/modular-etherspot-wallet/modules/hooks/TokenLockHook.sol";
 import {TokenLockHookTestUtils} from "../utils/TokenLockHookTestUtils.sol";
-import {TestERC20} from "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import {TestCounter} from "../../../../../src/modular-etherspot-wallet/test/TestCounter.sol";
 import {MODULE_TYPE_HOOK} from "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
@@ -17,12 +16,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 using ERC4337Utils for IEntryPoint;
 
 contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
-    /*//////////////////////////////////////////////////////////////
-                              VARIABLES
-    //////////////////////////////////////////////////////////////*/
-
-    // Contract instances
-    TestERC20 internal erc20;
+    using ModeLib for ModeCode;
 
     /*//////////////////////////////////////////////////////////////
                                 EVENTS
@@ -42,46 +36,48 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
 
     function setUp() public override {
         super.setUp();
-        erc20 = new TestERC20();
     }
 
     /*//////////////////////////////////////////////////////////////
                                 TESTS
     //////////////////////////////////////////////////////////////*/
 
+    // Test installation of the TokenLockHook module
     function test_installModule() public {
-        // Set up the Modular Etherspot Wallet
+        // Initialize the Modular Etherspot Wallet
         mew = setupMEW();
         vm.startPrank(owner1);
-        // Prepare the execution data for installing the module
-        Execution[] memory batchCall = new Execution[](1);
-        batchCall[0].target = address(mew);
-        batchCall[0].value = 0;
-        batchCall[0].callData = abi.encodeWithSelector(
+        // Prepare execution data for installing the TokenLockHook module
+        bytes memory callData = abi.encodeWithSelector(
             ModularEtherspotWallet.installModule.selector,
             uint256(4),
             address(tokenLockHook),
             hex""
         );
-        // Expect the module installation event to be emitted
+        (, PackedUserOperation memory userOp) = _createUserOperation(
+            address(mew),
+            callData,
+            owner1Key
+        );
+        // Expect the TLH_ModuleInstalled event to be emitted
         vm.expectEmit(true, false, false, false);
         emit TLH_ModuleInstalled(address(mew));
         // Execute the module installation
-        defaultExecutor.execBatch(IERC7579Account(mew), batchCall);
-        // Verify that the module is installed
+        _executeUserOperation(userOp);
+        // Verify that the TokenLockHook module is installed
         assertTrue(
             mew.isModuleInstalled(4, address(tokenLockHook), ""),
             "TokenLockHook module should be installed"
         );
     }
 
+    // Test installing another module while TokenLockHook is already installed
     function test_installModule_whileHookIsActive() public {
-        // Set up the test environment
+        // Set up the test environment with TokenLockHook already installed
         _testSetup();
-        // Set up new validator to install
+        // Create a new validator module to install
         MockValidator newValidator = new MockValidator();
-        // Prepare the execution data for installing the module
-        // Execute the module installation
+        // Install the new validator module
         defaultExecutor.executeViaAccount(
             IERC7579Account(mew),
             address(mew),
@@ -93,25 +89,26 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
                 ""
             )
         );
-        // Verify that the module is installed
+        // Verify that the new validator module is installed
         assertTrue(
             mew.isModuleInstalled(1, address(newValidator), ""),
             "Validator module should be installed"
         );
     }
 
-    function test_uninstallModule_whileHookIsActive() public {
-        // Set up the test environment
+    // Test uninstallation of the TokenLockHook module
+    function test_uninstallModule() public {
+        // Set up the test environment with TokenLockHook installed
         _testSetup();
-        // Check to make sure hook is installed on wallet
+        // Verify that the TokenLockHook is initially installed
         assertTrue(
             mew.isModuleInstalled(4, address(tokenLockHook), ""),
             "TokenLockHook module should be installed"
         );
-        // Expect the module installation event to be emitted
+        // Expect the TLH_ModuleUninstalled event to be emitted
         vm.expectEmit(true, false, false, false);
         emit TLH_ModuleUninstalled(address(mew));
-        // Execute the module uninstallation
+        // Uninstall the TokenLockHook module
         defaultExecutor.executeViaAccount(
             IERC7579Account(mew),
             address(mew),
@@ -123,34 +120,35 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
                 ""
             )
         );
-        // Verify that module is uninstalled
+        // Verify that the TokenLockHook module is uninstalled
         assertFalse(
             mew.isModuleInstalled(4, address(tokenLockHook), ""),
             "TokenLockHook module should be uninstalled"
         );
     }
 
-    // TODO: Add tests for:
-    // - uninstallModule: reverts until transactionInProgress is false
+    // Test that uninstalling the TokenLockHook module fails when a transaction is in progress
     function test_uninstallModule_RevertIf_transactionInProgress() public {
-        // Set up the test environment
+        // Set up the test environment and install a MockValidator
         _testSetup();
-        erc20.mint(address(mew), 2 ether);
-        erc20.approve(address(mew), 2 ether);
-        // Set up UserOperation
-        (, PackedUserOperation[] memory userOps) = _singleLockTokenInHook(
-            address(mew),
-            address(receiver),
-            address(erc20),
-            1 ether,
-            owner1Key,
-            SelectMode.LOCKING_MODE
+        // Verify that the MockValidator is installed
+        assertTrue(
+            mew.isModuleInstalled(1, address(validator), ""),
+            "Validator module should be installed"
         );
-        // Execute the user operation
+        // Set up and execute a user operation to enable a session key
+        bytes memory sessionData = _getDefaultSessionData();
+        (, PackedUserOperation[] memory userOps) = _enableSessionKeyUserOp(
+            address(mew),
+            _getLockingMode(CALLTYPE_SINGLE),
+            sessionData,
+            owner1Key
+        );
         entrypoint.handleOps(userOps, beneficiary);
-        assertTrue(tokenLockHook.isTransactionInProgress());
-        // Expect the function call to revert with TLH_CantUninstallWhileTransactionInProgress error
-        // when trying uninstall hook when transaction in progress
+        // Verify that a transaction is in progress
+        assertTrue(tokenLockHook.isTransactionInProgress(address(mew)));
+        // Attempt to uninstall the TokenLockHook module while a transaction is in progress
+        // Expect the operation to revert with TLH_CantUninstallWhileTransactionInProgress error
         vm.expectRevert(
             abi.encodeWithSelector(
                 TokenLockHook
@@ -159,7 +157,6 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
                 address(mew)
             )
         );
-        // Attempt module uninstallation
         defaultExecutor.executeViaAccount(
             IERC7579Account(mew),
             address(mew),
@@ -167,91 +164,60 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
             abi.encodeWithSelector(
                 ModularEtherspotWallet.uninstallModule.selector,
                 uint256(4),
-                address(tokenLockHook),
+                address(validator),
                 ""
             )
         );
-        // Unlock the token to allow for uninstall
-        tokenLockHook.unlockToken(address(mew), address(erc20));
-        // Attempt module uninstallation - should succeed
-        defaultExecutor.executeViaAccount(
-            IERC7579Account(mew),
-            address(mew),
-            0,
-            abi.encodeWithSelector(
-                ModularEtherspotWallet.uninstallModule.selector,
-                uint256(4),
-                address(tokenLockHook),
-                ""
-            )
-        );
-        // Check module is uninstalled
-        assertFalse(tokenLockHook.isInitialized(address(mew)));
     }
 
+    // Test that the TokenLockHook is properly initialized for a wallet
     function test_isInitialized() public {
         // Set up the test environment
         _testSetup();
+        // Verify that the TokenLockHook is initialized for the wallet
         assertTrue(tokenLockHook.isInitialized(address(mew)));
     }
 
+    // Test that the TokenLockHook is recognized as the correct module type
     function test_isModuleType() public {
-        assertTrue(tokenLockHook.isModuleType(4)); // 3 is MODULE_TYPE_HOOK
+        // Verify that the TokenLockHook is recognized as a hook module (type 4)
+        assertTrue(tokenLockHook.isModuleType(4));
+        // Verify that the TokenLockHook is not recognized as a validator module (type 1)
         assertFalse(tokenLockHook.isModuleType(1));
     }
 
-    function test_preCheck_ifMultiTokenSessionKeyValidator_lockTokens_singleExecute()
-        public
-    {
-        // Set up the test environment
+    // Test locking tokens with a single execution
+    function test_lockingTokens_singleExecute() public {
+        // Set up the test environment and install a MockValidator
         _testSetup();
-        erc20.mint(address(mew), 2 ether);
-        erc20.approve(address(mew), 1 ether);
-        // Set up UserOperation
-        (, PackedUserOperation[] memory userOps) = _singleLockTokenInHook(
+        // Set up and execute a user operation to enable a session key
+        bytes memory sessionData = _getDefaultSessionData();
+        (, PackedUserOperation[] memory userOps) = _enableSessionKeyUserOp(
             address(mew),
-            address(receiver),
-            address(erc20),
-            1 ether,
-            owner1Key,
-            SelectMode.LOCKING_MODE
+            _getLockingMode(CALLTYPE_SINGLE),
+            sessionData,
+            owner1Key
         );
-        // Expect the TLH_TokenLocked event to be emitted
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), address(erc20), 1 ether);
-        // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
-        // Check receiver balance
-        assertEq(erc20.balanceOf(address(receiver)), 1 ether);
+        // Verify that tokens are locked and a transaction is in progress
+        assertTrue(tokenLockHook.isTransactionInProgress(address(mew)));
+        _verifyTokenLocking(address(token1), true);
+        _verifyTokenLocking(address(token2), true);
     }
 
-    function test_preCheck_ifMultiTokenSessionKeyValidator_lockTokens_batchExecute()
-        public
-    {
+    // Test locking tokens with a batch execution
+    function test_lockingTokens_batchExecute() public {
         // Set up the test environment
         _testSetup();
-        TestERC20 newErc20 = new TestERC20();
-        erc20.mint(address(mew), 2 ether);
-        newErc20.mint(address(mew), 2 ether);
-        erc20.approve(address(mew), 1 ether);
-        newErc20.approve(address(mew), 2 ether);
-        // Set up the execution data
-        Execution[] memory batchCall = new Execution[](2);
-        batchCall[0].target = address(erc20);
+        // Prepare and execute a batch operation to enable a session key
+        bytes memory sessionData = _getDefaultSessionData();
+        Execution[] memory batchCall = new Execution[](1);
+        batchCall[0].target = address(validator);
         batchCall[0].value = 0;
         batchCall[0].callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            address(receiver),
-            1 ether
+            validator.enableSessionKey.selector,
+            sessionData
         );
-        batchCall[1].target = address(newErc20);
-        batchCall[1].value = 0;
-        batchCall[1].callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            address(receiver),
-            2 ether
-        );
-        // Set up UserOperation
         bytes memory userOpCalldata = abi.encodeCall(
             IERC7579Account.execute,
             (
@@ -270,155 +236,316 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
             ECDSA.toEthSignedMessageHash(hash)
         );
         userOp.signature = abi.encodePacked(r, s, v);
-        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
-        userOps[0] = userOp;
-        // Expect the TLH_TokenLocked event to be emitted
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), address(erc20), 1 ether);
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), address(newErc20), 2 ether);
-        // Execute the user operation
-        entrypoint.handleOps(userOps, beneficiary);
-        // Check receiver balance
-        assertEq(erc20.balanceOf(address(receiver)), 1 ether);
-        assertEq(newErc20.balanceOf(address(receiver)), 2 ether);
-        assertTrue(tokenLockHook.isTokenLocked(address(erc20)));
-        assertTrue(tokenLockHook.isTokenLocked(address(newErc20)));
-        assertTrue(tokenLockHook.isTransactionInProgress());
+        _executeUserOperation(userOp);
+        // Verify that tokens are locked and a transaction is in progress
+        _verifyTokenLocking(address(token1), true);
+        _verifyTokenLocking(address(token2), true);
+        assertTrue(tokenLockHook.isTransactionInProgress(address(mew)));
     }
 
-    function test_preCheck_ifMultiTokenSessionKeyValidator_RevertIf_alreadyLocked()
+    // Test locking more of the same token in a different session key
+    function test_lockingTokens_lockingMoreOfSameTokenInDifferentSessionKey()
+        public
+    {
+        // Set up the test environment and install a MockValidator
+        _testSetup();
+        // Enable a session key and lock tokens
+        bytes memory sessionData = _getDefaultSessionData();
+        (, PackedUserOperation[] memory userOps) = _enableSessionKeyUserOp(
+            address(mew),
+            _getLockingMode(CALLTYPE_SINGLE),
+            sessionData,
+            owner1Key
+        );
+        entrypoint.handleOps(userOps, beneficiary);
+        // Verify initial token locking
+        assertTrue(tokenLockHook.isTransactionInProgress(address(mew)));
+        _verifyTokenLocking(address(token1), true);
+        _verifyTokenLocking(address(token2), true);
+        // Lock more of the same token with a different session key
+        address anotherSessionKey = address(0x535510);
+        token1.mint(address(mew), 13 ether);
+        token1.approve(address(mew), 13 ether);
+        sessionData = abi.encodePacked(
+            anotherSessionKey,
+            solver,
+            selector,
+            validAfter,
+            validUntil,
+            uint256(1),
+            [address(token1)],
+            uint256(1),
+            [13 ether]
+        );
+        (, userOps) = _enableSessionKeyUserOp(
+            address(mew),
+            _getLockingMode(CALLTYPE_SINGLE),
+            sessionData,
+            owner1Key
+        );
+        entrypoint.handleOps(userOps, beneficiary);
+        // Verify updated token locking
+        assertTrue(tokenLockHook.isTransactionInProgress(address(mew)));
+        _verifyTokenLocking(address(token1), true);
+        _verifyTokenLocking(address(token2), true);
+        assertEq(
+            tokenLockHook.retrieveLockedBalance(address(token1)),
+            14 ether
+        );
+        assertEq(tokenLockHook.retrieveLockedBalance(address(token2)), 2 ether);
+    }
+
+    // Test that locking tokens fails when there's not enough unlocked balance
+    function test_lockingTokens_notEnoughUnlockedBalance() public {
+        // Set up the test environment and install a MockValidator
+        _testSetup();
+        // Enable a session key and lock tokens
+        bytes memory sessionData = _getDefaultSessionData();
+        (, PackedUserOperation[] memory userOps) = _enableSessionKeyUserOp(
+            address(mew),
+            _getLockingMode(CALLTYPE_SINGLE),
+            sessionData,
+            owner1Key
+        );
+        entrypoint.handleOps(userOps, beneficiary);
+        // Attempt to transfer more tokens than the unlocked balance
+        bytes memory callData = abi.encodeWithSelector(
+            IERC20.transfer.selector,
+            address(receiver),
+            1 ether
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(token1), 0, callData)
+            )
+        );
+        (
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperation(address(mew), userOpCalldata, owner1Key);
+        userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+        // Expect the operation to revert with TLH_InsufficientUnlockedBalance error
+        vm.expectEmit(true, true, true, true);
+        emit IEntryPoint.UserOperationRevertReason(
+            hash,
+            address(mew),
+            userOps[0].nonce,
+            abi.encodeWithSelector(
+                TokenLockHook.TLH_InsufficientUnlockedBalance.selector,
+                address(token1)
+            )
+        );
+        entrypoint.handleOps(userOps, beneficiary);
+    }
+
+    // Test that locking tokens fails when trying to use an already existing session key
+    function test_lockingTokens_sessionKeyAlreadyUsed() public {
+        // Set up the test environment and install a MockValidator
+        _testSetup();
+        // Enable a session key and lock tokens
+        bytes memory sessionData = _getDefaultSessionData();
+        (, PackedUserOperation[] memory userOps) = _enableSessionKeyUserOp(
+            address(mew),
+            _getLockingMode(CALLTYPE_SINGLE),
+            sessionData,
+            owner1Key
+        );
+        entrypoint.handleOps(userOps, beneficiary);
+        // Attempt to use the same session key again
+        token1.mint(address(mew), 1 ether);
+        token1.approve(address(mew), 1 ether);
+        token2.mint(address(mew), 2 ether);
+        token2.approve(address(mew), 2 ether);
+        (
+            bytes32 hash,
+            PackedUserOperation[] memory userOps1
+        ) = _enableSessionKeyUserOp(
+                address(mew),
+                _getLockingMode(CALLTYPE_SINGLE),
+                sessionData,
+                owner1Key
+            );
+        // Expect the operation to revert with TLH_SessionKeyAlreadyExists error
+        vm.expectEmit(true, true, true, true);
+        emit IEntryPoint.UserOperationRevertReason(
+            hash,
+            address(mew),
+            userOps1[0].nonce,
+            abi.encodeWithSelector(
+                TokenLockHook.TLH_SessionKeyAlreadyExists.selector,
+                address(mew),
+                sessionKey
+            )
+        );
+        entrypoint.handleOps(userOps1, beneficiary);
+    }
+
+    // Test that tokens are not locked when no mode selector is provided
+    function test_lockingTokens_noModeSelector_shouldNotLockTokens() public {
+        // Set up the test environment
+        _testSetup();
+        // Prepare session data and calldata for enabling a session key
+        bytes memory sessionData = _getDefaultSessionData();
+        bytes memory callData = abi.encodeWithSelector(
+            validator.enableSessionKey.selector,
+            sessionData
+        );
+        // Create a user operation without a mode selector
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(validator), 0, callData)
+            )
+        );
+        // Prepare and sign the user operation
+        (
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperation(address(mew), userOpCalldata, owner1Key);
+        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+        // Expect the TLH_CannotEnableSessionKeyWithoutModeSelector error
+        vm.expectEmit(true, true, true, true);
+        emit IEntryPoint.UserOperationRevertReason(
+            hash,
+            address(mew),
+            userOps[0].nonce,
+            abi.encodeWithSelector(
+                TokenLockHook
+                    .TLH_CannotEnableSessionKeyWithoutModeSelector
+                    .selector
+            )
+        );
+        // Execute the user operation
+        entrypoint.handleOps(userOps, beneficiary);
+        // Verify that no tokens are locked and no transaction is in progress
+        assertFalse(tokenLockHook.isTransactionInProgress(address(mew)));
+        _verifyTokenLocking(address(token1), false);
+        _verifyTokenLocking(address(token2), false);
+    }
+
+    // Test that tokens are not locked when an invalid mode selector is provided
+    function test_lockingTokens_invalidModeSelector_shouldNotLockTokens()
         public
     {
         // Set up the test environment
         _testSetup();
-        erc20.mint(address(mew), 2 ether);
-        erc20.approve(address(mew), 2 ether);
-        // Set up UserOperation
-        (, PackedUserOperation[] memory userOps) = _singleLockTokenInHook(
-            address(mew),
-            address(receiver),
-            address(erc20),
-            1 ether,
-            owner1Key,
-            SelectMode.LOCKING_MODE
+        // Prepare session data and calldata for enabling a session key
+        bytes memory sessionData = _getDefaultSessionData();
+        bytes memory callData = abi.encodeWithSelector(
+            validator.enableSessionKey.selector,
+            sessionData
         );
-        // Expect the TLH_TokenLocked event to be emitted
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), address(erc20), 1 ether);
-        // Execute the user operation
-        entrypoint.handleOps(userOps, beneficiary);
-        // Check receiver balance
-        assertEq(erc20.balanceOf(address(receiver)), 1 ether);
-        // Get new UserOperation data with same calldata
-        (
-            bytes32 userOp1Hash,
-            PackedUserOperation[] memory userOps1
-        ) = _singleLockTokenInHook(
-                address(mew),
-                address(receiver),
-                address(erc20),
-                1 ether,
-                owner1Key,
-                SelectMode.LOCKING_MODE
-            );
-        // Expect the TLH_TransactionInProgress error to be emitted
-        // wrapped in UserOperationRevertReason event
-        vm.expectEmit(true, true, true, true);
-        emit IEntryPoint.UserOperationRevertReason(
-            userOp1Hash,
-            address(mew),
-            userOps1[0].nonce,
-            abi.encodeWithSelector(
-                TokenLockHook.TLH_TransactionInProgress.selector,
-                address(mew),
-                address(erc20)
+        // Create an invalid mode selector
+        ModeCode mode = ModeCode.wrap(
+            bytes32(
+                abi.encodePacked(
+                    CALLTYPE_SINGLE,
+                    ExecType.wrap(0x00),
+                    bytes4(0),
+                    ModeSelector.wrap(
+                        bytes4(keccak256("etherspot.invalidvalidator"))
+                    ),
+                    bytes22(0)
+                )
             )
         );
-        // Execute the user operation again
-        entrypoint.handleOps(userOps1, beneficiary);
-    }
-
-    function test_preCheck_ifOtherValidator_shouldNotLockTokens() public {
-        // Set up the test environment
-        _testSetup();
-        erc20.mint(address(mew), 2 ether);
-        erc20.approve(address(mew), 1 ether);
-        // Set up UserOperation
-        (, PackedUserOperation[] memory userOps) = _singleLockTokenInHook(
-            address(mew),
-            address(receiver),
-            address(erc20),
-            1 ether,
-            owner1Key,
-            SelectMode.SINGLE_MODE
+        // Create a user operation with the invalid mode selector
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (mode, ExecutionLib.encodeSingle(address(validator), 0, callData))
         );
-        // Execute the user operation
-        entrypoint.handleOps(userOps, beneficiary);
-        // Check receiver balance
-        assertEq(erc20.balanceOf(address(receiver)), 1 ether);
-        // Check tokens are not locked
-        assertFalse(tokenLockHook.isTokenLocked(address(erc20)));
-    }
-
-    function test_preCheck_ifOtherValidator_RevertIf_tokensAreLocked() public {
-        // Set up the test environment
-        _testSetup();
-        erc20.mint(address(mew), 2 ether);
-        erc20.approve(address(mew), 1 ether);
-        // Set up UserOperation
-        (, PackedUserOperation[] memory userOps) = _singleLockTokenInHook(
-            address(mew),
-            address(receiver),
-            address(erc20),
-            1 ether,
-            owner1Key,
-            SelectMode.LOCKING_MODE
-        );
-        // Expect the TLH_TokenLocked event to be emitted
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), address(erc20), 1 ether);
-        // Execute the user operation
-        entrypoint.handleOps(userOps, beneficiary);
-        // Set up UserOperation
+        // Prepare and sign the user operation
         (
-            bytes32 userOpHash1,
-            PackedUserOperation[] memory userOps1
-        ) = _singleLockTokenInHook(
-                address(mew),
-                address(receiver),
-                address(erc20),
-                1 ether,
-                owner1Key,
-                SelectMode.SINGLE_MODE
-            );
-        // Expect the TLH_TransactionInProgress error to be emitted
-        // wrapped in UserOperationRevertReason event
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperation(address(mew), userOpCalldata, owner1Key);
+        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+        // Expect the TLH_CannotEnableSessionKeyWithoutModeSelector error
         vm.expectEmit(true, true, true, true);
         emit IEntryPoint.UserOperationRevertReason(
-            userOpHash1,
+            hash,
             address(mew),
-            userOps1[0].nonce,
+            userOps[0].nonce,
             abi.encodeWithSelector(
-                TokenLockHook.TLH_TransactionInProgress.selector,
-                address(mew),
-                address(erc20)
+                TokenLockHook
+                    .TLH_CannotEnableSessionKeyWithoutModeSelector
+                    .selector
             )
         );
-        // Execute the user operation again
-        entrypoint.handleOps(userOps1, beneficiary);
+        // Execute the user operation
+        entrypoint.handleOps(userOps, beneficiary);
+        // Verify that no tokens are locked and no transaction is in progress
+        assertFalse(tokenLockHook.isTransactionInProgress(address(mew)));
+        _verifyTokenLocking(address(token1), false);
+        _verifyTokenLocking(address(token2), false);
     }
 
-    // TODO: test to check other transactions for tokens that are not locked proceed
-    function test_preCheck_ifOtherValidator_allowOtherTransactions() public {
+    // Test that transferring tokens fails when there's not enough unlocked balance
+    function test_transferTokens_notEnoughUnlockedBalance() public {
+        // Set up the test environment and install the mock validator
+        _testSetup();
+        // Enable a session key and lock tokens
+        bytes memory sessionData = _getDefaultSessionData();
+        (, PackedUserOperation[] memory userOps) = _enableSessionKeyUserOp(
+            address(mew),
+            _getLockingMode(CALLTYPE_SINGLE),
+            sessionData,
+            owner1Key
+        );
+        entrypoint.handleOps(userOps, beneficiary);
+        // Attempt to transfer more tokens than the unlocked balance
+        bytes memory callData = abi.encodeWithSelector(
+            IERC20.transfer.selector,
+            address(receiver),
+            1 ether
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(token1), 0, callData)
+            )
+        );
+        // Prepare and sign the user operation
+        (
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperation(address(mew), userOpCalldata, owner1Key);
+        userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+        // Expect the TLH_InsufficientUnlockedBalance error
+        vm.expectEmit(true, true, true, true);
+        emit IEntryPoint.UserOperationRevertReason(
+            hash,
+            address(mew),
+            userOps[0].nonce,
+            abi.encodeWithSelector(
+                TokenLockHook.TLH_InsufficientUnlockedBalance.selector,
+                address(token1)
+            )
+        );
+        // Execute the user operation
+        entrypoint.handleOps(userOps, beneficiary);
+    }
+
+    // Test that other transactions are allowed when tokens are locked
+    function test_allowOtherTransactions() public {
         // Set up the test environment
         _testSetup();
+        // Deploy a test counter contract
         TestCounter counter = new TestCounter();
-        // Set up calldata
+        // Prepare calldata to change the counter value
         bytes memory callData = abi.encodeWithSelector(
             TestCounter.changeCount.selector,
             7579
         );
+        // Create a user operation to execute the counter change
         bytes memory userOpCalldata = abi.encodeCall(
             IERC7579Account.execute,
             (
@@ -426,22 +553,14 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
                 ExecutionLib.encodeSingle(address(counter), 0, callData)
             )
         );
-        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+        // Prepare and sign the user operation
+        (, PackedUserOperation memory userOp) = _createUserOperation(
             address(mew),
-            userOpCalldata
+            userOpCalldata,
+            owner1Key
         );
-        userOp.nonce = getNonce(address(mew), address(ecdsaValidator));
-        bytes32 hash = entrypoint.getUserOpHash(userOp);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            owner1Key,
-            ECDSA.toEthSignedMessageHash(hash)
-        );
-        userOp.signature = abi.encodePacked(r, s, v);
-        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
-        userOps[0] = userOp;
-        // Execute the user operation
-        entrypoint.handleOps(userOps, beneficiary);
-        // Check count value updated
+        _executeUserOperation(userOp);
+        // Verify that the counter value was updated
         assertEq(counter.getCount(), 7579);
     }
 
@@ -449,519 +568,603 @@ contract TokenLockHook_Concrete_Test is TokenLockHookTestUtils {
                       TESTS (INTERNAL FUNCTIONS)
     //////////////////////////////////////////////////////////////*/
 
-    function test_exposed_lockToken() public {
-        // Set up the token lock variables
-        address token = address(0x1234);
-        uint256 amount = 99;
+    // Test the exposed function for getting token balance
+    function test_exposed_getTokenBalance() public {
         // Set up the test environment
         _testSetup();
-        // Expect the TLH_TokenLocked event to be emitted on locking token
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), token, amount);
-        // Execute the lockToken function
-        harness.exposed_lockToken(token, amount);
-        // Check that the token is locked
-        assertTrue(harness.isTokenLocked(token));
+        // Get token balances using the exposed function
+        uint256 balance1 = harness.exposed_getTokenBalance(address(token1));
+        uint256 balance2 = harness.exposed_getTokenBalance(address(token2));
+        // Verify that the token balances are correct
+        assertEq(balance1, 1 ether);
+        assertEq(balance2, 2 ether);
     }
 
-    function test_exposed_lockToken_RevertIf_tokenAlreadyLocked() public {
-        // Set up the token lock variables
-        address token = address(0x1234);
-        uint256 amount = 99;
+    // Test the exposed function for locking tokens
+    function test_exposed_lockTokens() public {
         // Set up the test environment
         _testSetup();
-        // Lock the token
-        harness.exposed_lockToken(token, amount);
-        // Expect the function call to revert with TLH_TransactionInProgress error
-        // when trying to lock an already locked token
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                TokenLockHook.TLH_TransactionInProgress.selector,
-                address(mew),
-                token
-            )
-        );
-        // Attempt to lock the token
-        harness.exposed_lockToken(token, 13);
-    }
-
-    function test_exposed_handleMultiTokenSessionKeyValidator_callTypeSingle()
-        public
-    {
-        // Set up the test environment
-        _testSetup();
-        // Set up the CallType
-        CallType callType = CALLTYPE_SINGLE;
-        // Set up the execution data
-        bytes memory callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            receiver,
-            1 ether
-        );
-        bytes memory execution = ExecutionLib.encodeSingle(
-            address(erc20),
-            0,
-            callData
-        );
-        // Expect the TLH_TokenLocked event to be emitted on locking token
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), address(erc20), 1 ether);
-        // Execute the handleMultiTokenSessionKeyValidator function
-        harness.exposed_handleMultiTokenSessionKeyValidator(
-            callType,
-            execution
-        );
-        // Check that the token is locked
-        assertTrue(harness.isTokenLocked(address(erc20)));
-    }
-
-    function test_exposed_handleMultiTokenSessionKeyValidator_callTypeBatch()
-        public
-    {
-        // Set up the test environment
-        _testSetup();
-        TestERC20 newERC20 = new TestERC20();
-        // Set up the CallType
-        CallType callType = CALLTYPE_BATCH;
-        // Set up the execution data
-        Execution[] memory batchCall = new Execution[](2);
-        batchCall[0].target = address(erc20);
-        batchCall[0].value = 0;
-        batchCall[0].callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            receiver,
-            1 ether
-        );
-        batchCall[1].target = address(newERC20);
-        batchCall[1].value = 0;
-        batchCall[1].callData = abi.encodeWithSelector(
-            IERC20.transferFrom.selector,
-            address(mew),
-            receiver,
-            2 ether
-        );
-        bytes memory batchExecutions = ExecutionLib.encodeBatch(batchCall);
-        // Expect the TLH_TokenLocked event to be emitted on locking token
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), address(erc20), 1 ether);
-        // Expect the TLH_TokenLocked event to be emitted on locking token
-        vm.expectEmit(true, true, true, false);
-        emit TLH_TokenLocked(address(mew), address(newERC20), 2 ether);
-        // Execute the handleMultiTokenSessionKeyValidator function
-        harness.exposed_handleMultiTokenSessionKeyValidator(
-            callType,
-            batchExecutions
-        );
-        // Check that the Tokens are locked
-        assertTrue(harness.isTokenLocked(address(erc20)));
-        assertTrue(harness.isTokenLocked(address(newERC20)));
-    }
-
-    function test_exposed_handleMultiTokenSessionKeyValidator_RevertIf_invalidCallType()
-        public
-    {
-        // Set up the test environment
-        _testSetup();
-        // Set up the CallType
-        CallType callType = CALLTYPE_DELEGATECALL;
-        // Set up the execution data
-        bytes memory callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            receiver,
-            1 ether
-        );
-        bytes memory execution = ExecutionLib.encodeSingle(
-            address(erc20),
-            0,
-            callData
-        );
-        // Expect the function call to revert with TLH_InvalidCallType error
-        // when trying to use an unsupported CallType
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                TokenLockHook.TLH_InvalidCallType.selector,
-                callType
-            )
-        );
-        // Execute the handleMultiTokenSessionKeyValidator function
-        harness.exposed_handleMultiTokenSessionKeyValidator(
-            callType,
-            execution
-        );
-        // Check that the token is not locked
-        assertFalse(harness.isTokenLocked(address(erc20)));
-    }
-
-    function test_exposed_handleMultiTokenSessionKeyValidator_RevertIf_doubleLockingTokenInBatch()
-        public
-    {
-        // Set up the test environment
-        _testSetup();
-        // Set up the CallType
-        CallType callType = CALLTYPE_BATCH;
-        // Set up the execution data
-        Execution[] memory batchCall = new Execution[](2);
-        batchCall[0].target = address(erc20);
-        batchCall[0].value = 0;
-        batchCall[0].callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            receiver,
-            1 ether
-        );
-        batchCall[1].target = address(erc20);
-        batchCall[1].value = 0;
-        batchCall[1].callData = abi.encodeWithSelector(
-            IERC20.transferFrom.selector,
-            address(mew),
-            receiver,
-            2 ether
-        );
-        bytes memory batchExecutions = ExecutionLib.encodeBatch(batchCall);
-        // Expect the function call to revert with TLH_TransactionInProgress error
-        // when trying to lock a token twice in same batch
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                TokenLockHook.TLH_TransactionInProgress.selector,
-                address(mew),
-                address(erc20)
-            )
-        );
-        // Execute the handleMultiTokenSessionKeyValidator function
-        harness.exposed_handleMultiTokenSessionKeyValidator(
-            callType,
-            batchExecutions
-        );
-        // Check that the token is not locked
-        assertFalse(harness.isTokenLocked(address(erc20)));
-    }
-
-    function test_exposed_checkLockedTokens_RevertIf_invalidCallType() public {
-        // Set up the test environment
-        _testSetup();
-        // Set up the CallType
-        CallType callType = CALLTYPE_DELEGATECALL;
-        // Set up the execution data
-        bytes memory callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            receiver,
-            1 ether
-        );
-        bytes memory execution = ExecutionLib.encodeSingle(
-            address(erc20),
-            0,
-            callData
-        );
-        // Expect the function call to revert with TLH_InvalidCallType error
-        // when trying to use an unsupported CallType
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                TokenLockHook.TLH_InvalidCallType.selector,
-                callType
-            )
-        );
-        // Execute the checkLockedTokens function
-        harness.exposed_checkLockedTokens(callType, execution);
-    }
-
-    function test_exposed_checkLockedTokens_callTypeSingle_RevertIf_tokenIsLocked()
-        public
-    {
-        // Set up the test environment
-        _testSetup();
-        // Set up the CallType
-        CallType callType = CALLTYPE_SINGLE;
-        // Set up the execution data
-        bytes memory callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            receiver,
-            1 ether
-        );
-        bytes memory execution = ExecutionLib.encodeSingle(
-            address(erc20),
-            0,
-            callData
-        );
-        // Execute the handleMultiTokenSessionKeyValidator function
-        harness.exposed_handleMultiTokenSessionKeyValidator(
-            callType,
-            execution
-        );
-        // Expect the function call to revert with TLH_TransactionInProgress error
-        // if the token is locked
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                TokenLockHook.TLH_TransactionInProgress.selector,
-                address(mew),
-                address(erc20)
-            )
-        );
-        // Execute the checkLockedTokens function
-        harness.exposed_checkLockedTokens(callType, execution);
-    }
-
-    function test_exposed_checkLockedTokens_callTypeBatch_RevertIf_tokenIsLocked()
-        public
-    {
-        // Set up the test environment
-        _testSetup();
-        TestERC20 newERC20 = new TestERC20();
-        // Set up the CallType
-        CallType callType = CALLTYPE_BATCH;
-        // Set up the execution data
-        Execution[] memory batchCall = new Execution[](2);
-        batchCall[0].target = address(erc20);
-        batchCall[0].value = 0;
-        batchCall[0].callData = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            receiver,
-            1 ether
-        );
-        batchCall[1].target = address(newERC20);
-        batchCall[1].value = 0;
-        batchCall[1].callData = abi.encodeWithSelector(
-            IERC20.transferFrom.selector,
-            address(mew),
-            receiver,
-            2 ether
-        );
-        bytes memory batchExecutions = ExecutionLib.encodeBatch(batchCall);
-        // Lock one of the tokens
-        harness.exposed_lockToken(address(erc20), 1);
-        // Check that the locked token is locked
-        assertTrue(harness.isTokenLocked(address(erc20)));
-        // Expect the function call to revert with TLH_TransactionInProgress error
-        // if one of the Tokens is locked
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                TokenLockHook.TLH_TransactionInProgress.selector,
-                address(mew),
-                address(erc20)
-            )
-        );
-        // Execute the checkLockedTokens function
-        harness.exposed_checkLockedTokens(callType, batchExecutions);
-        // Check that the locked token is still locked
-        assertTrue(harness.isTokenLocked(address(erc20)));
-        // Check that the other token is not locked
-        assertFalse(harness.isTokenLocked(address(newERC20)));
-    }
-
-    function test_exposed_getTokenAmount_transfer() public {
-        // Set up the test environment
-        _testSetup();
-        // Set up calldata
+        // Prepare session data and encode it for the validator
+        bytes memory sessionData = _getDefaultSessionData();
         bytes memory data = abi.encodeWithSelector(
-            IERC20.transfer.selector,
-            receiver,
-            7579
+            validator.enableSessionKey.selector,
+            sessionData
         );
-        // Call getTokenAmount to get amount of tokens
-        uint256 amount = harness.exposed_getTokenAmount(data);
-        // Check token amount retrieved from data is correct
-        assertEq(amount, 7579);
+        // Execute the lockTokens function through the harness
+        bool success = harness.exposed_lockTokens(data);
+        // Verify that the tokens are successfully locked
+        assertTrue(success);
+        assertTrue(harness.isTokenLocked(address(mew), address(token1)));
+        assertTrue(harness.isTokenLocked(address(mew), address(token2)));
     }
 
-    function test_exposed_getTokenAmount_transferFrom() public {
+    // Test that the exposed lockTokens function allows locking more of the same token if balance allows
+    function test_exposed_lockTokens_shouldAllowMoreOfTokenToBeLockedIfBalanceAllows()
+        public
+    {
         // Set up the test environment
         _testSetup();
-        // Set up calldata
+        // Lock initial tokens
+        bytes memory sessionData = _getDefaultSessionData();
         bytes memory data = abi.encodeWithSelector(
-            IERC20.transferFrom.selector,
-            address(mew),
-            receiver,
-            7579
+            validator.enableSessionKey.selector,
+            sessionData
         );
-        // Call getTokenAmount to get amount of tokens
-        uint256 amount = harness.exposed_getTokenAmount(data);
-        // Check token amount retrieved from data is correct
-        assertEq(amount, 7579);
+        bool success = harness.exposed_lockTokens(data);
+        assertTrue(success);
+        assertTrue(harness.isTokenLocked(address(mew), address(token1)));
+        assertTrue(harness.isTokenLocked(address(mew), address(token2)));
+        // Prepare to lock more of the same token
+        address anotherSessionKey = address(0x535510);
+        token1.mint(address(mew), 13 ether);
+        token1.approve(address(mew), 13 ether);
+        // Generate new session data for additional token locking
+        sessionData = abi.encodePacked(
+            anotherSessionKey,
+            solver,
+            selector,
+            validAfter,
+            validUntil,
+            uint256(1),
+            [address(token1)],
+            uint256(1),
+            [13 ether]
+        );
+        data = abi.encodeWithSelector(
+            validator.enableSessionKey.selector,
+            sessionData
+        );
+        // Lock additional tokens
+        success = harness.exposed_lockTokens(data);
+        // Verify that additional tokens are locked
+        assertTrue(success);
+        assertTrue(harness.isTokenLocked(address(mew), address(token1)));
+        uint256 totalLocked = harness.retrieveLockedBalance(address(token1));
+        assertEq(totalLocked, 14 ether);
     }
 
-    function test_exposed_getTokenAmount_unsupportedSelector() public {
+    // Test that the exposed lockTokens function prevents locking more tokens if there's insufficient balance
+    function test_exposed_lockTokens_shouldNotAllowMoreOfTokenToBeLockedIfInsufficientBalance()
+        public
+    {
         // Set up the test environment
         _testSetup();
-        // Set up calldata with unsupported selector
+        // Lock initial tokens
+        bytes memory sessionData = _getDefaultSessionData();
         bytes memory data = abi.encodeWithSelector(
-            IERC20.approve.selector,
-            receiver,
-            7579
+            validator.enableSessionKey.selector,
+            sessionData
         );
-        // Call getTokenAmount to get amount of tokens
-        uint256 amount = harness.exposed_getTokenAmount(data);
-        // Check token amount retrieved from data is zero
-        assertEq(amount, 0);
+        bool success = harness.exposed_lockTokens(data);
+        assertTrue(success);
+        assertTrue(harness.isTokenLocked(address(mew), address(token1)));
+        assertTrue(harness.isTokenLocked(address(mew), address(token2)));
+        // Attempt to lock more tokens than available balance
+        address anotherSessionKey = address(0x535510);
+        token1.mint(address(mew), 12 ether);
+        token1.approve(address(mew), 13 ether);
+        // Generate new session data for additional token locking
+        sessionData = abi.encodePacked(
+            anotherSessionKey,
+            solver,
+            selector,
+            validAfter,
+            validUntil,
+            uint256(1),
+            [address(token1)],
+            uint256(1),
+            [13 ether]
+        );
+        data = abi.encodeWithSelector(
+            validator.enableSessionKey.selector,
+            sessionData
+        );
+        // Attempt to lock additional tokens
+        success = harness.exposed_lockTokens(data);
+        // Verify that locking additional tokens fails
+        assertFalse(success);
+        assertTrue(harness.isTokenLocked(address(mew), address(token1)));
+        uint256 totalLocked = harness.retrieveLockedBalance(address(token1));
+        assertEq(totalLocked, 1 ether);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                                 TODO
-    //////////////////////////////////////////////////////////////*/
-
-    // TODO: check what happens if locking tokens but also calling uninstallModule in same batch
-    // may need to lock this to CALLTYPE_SINGLE - locked for now
-
-    // function testPreCheckMultiTokenSessionKeyValidator() public {
-    //     ModeCode mode = ModeCode.wrap(
-    //         bytes32(
-    //             abi.encodePacked(
-    //                 CALLTYPE_SINGLE,
-    //                 ExecType.wrap(0x00),
-    //                 bytes4(0),
-    //                 ModeSelector.wrap(
-    //                     bytes4(
-    //                         keccak256(
-    //                             "modularetherspotwallet.multitokensessionkeyvalidator"
-    //                         )
-    //                     )
-    //                 ),
-    //                 bytes22(0)
-    //             )
-    //         )
-    //     );
-
-    //     bytes memory executionData = abi.encodeWithSelector(
-    //         bytes4(keccak256("transfer(address,uint256)")),
-    //         address(0xdead),
+    // function test_exposed_handleMultiTokenSessionKeyValidator_callTypeSingle()
+    //     public
+    // {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     // Set up the CallType
+    //     CallType callType = CALLTYPE_SINGLE;
+    //     // Set up the execution data
+    //     bytes memory callData = abi.encodeWithSelector(
+    //         IERC20.transfer.selector,
+    //         receiver,
     //         1 ether
     //     );
-
-    //     bytes memory msgData = abi.encodePacked(
-    //         bytes4(keccak256("execute(bytes32,bytes)")),
-    //         mode,
-    //         executionData
+    //     bytes memory execution = ExecutionLib.encodeSingle(
+    //         address(erc20),
+    //         0,
+    //         callData
     //     );
-
-    //     vm.expectEmit(true, true, true, true);
-    //     emit ResourceLocked(address(this), mockToken, 1 ether);
-
-    //     hook.preCheck(address(this), msgData);
-
-    //     assertTrue(hook.checkIfLocked(mockToken));
+    //     // Expect the TLH_TokenLocked event to be emitted on locking token
+    //     vm.expectEmit(true, true, true, false);
+    //     emit TLH_TokenLocked(address(mew), address(erc20), 1 ether);
+    //     // Execute the handleMultiTokenSessionKeyValidator function
+    //     harness.exposed_handleMultiTokenSessionKeyValidator(
+    //         callType,
+    //         execution
+    //     );
+    //     // Check that the token is locked
+    //     assertTrue(harness.isTokenLocked(address(erc20)));
     // }
 
-    // function testPreCheckOtherValidator() public {
-    //     ModeCode mode = ModeCode.wrap(
-    //         bytes32(
-    //             abi.encodePacked(
-    //                 CALLTYPE_SINGLE,
-    //                 ExecType.wrap(0x00),
-    //                 bytes4(0),
-    //                 ModeSelector.wrap(bytes4(keccak256("other.validator"))),
-    //                 bytes22(0)
-    //             )
-    //         )
-    //     );
-
-    //     bytes memory executionData = abi.encodeWithSelector(
-    //         bytes4(keccak256("transfer(address,uint256)")),
-    //         address(0xdead),
+    // function test_exposed_handleMultiTokenSessionKeyValidator_callTypeBatch()
+    //     public
+    // {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     TestERC20 newERC20 = new TestERC20();
+    //     // Set up the CallType
+    //     CallType callType = CALLTYPE_BATCH;
+    //     // Set up the execution data
+    //     Execution[] memory batchCall = new Execution[](2);
+    //     batchCall[0].target = address(erc20);
+    //     batchCall[0].value = 0;
+    //     batchCall[0].callData = abi.encodeWithSelector(
+    //         IERC20.transfer.selector,
+    //         receiver,
     //         1 ether
     //     );
-
-    //     bytes memory msgData = abi.encodePacked(
-    //         bytes4(keccak256("execute(bytes32,bytes)")),
-    //         mode,
-    //         executionData
+    //     batchCall[1].target = address(newERC20);
+    //     batchCall[1].value = 0;
+    //     batchCall[1].callData = abi.encodeWithSelector(
+    //         IERC20.transferFrom.selector,
+    //         address(mew),
+    //         receiver,
+    //         2 ether
     //     );
-
-    //     hook.preCheck(address(this), msgData);
-
-    //     assertFalse(hook.checkIfLocked(mockToken));
+    //     bytes memory batchExecutions = ExecutionLib.encodeBatch(batchCall);
+    //     // Expect the TLH_TokenLocked event to be emitted on locking token
+    //     vm.expectEmit(true, true, true, false);
+    //     emit TLH_TokenLocked(address(mew), address(erc20), 1 ether);
+    //     // Expect the TLH_TokenLocked event to be emitted on locking token
+    //     vm.expectEmit(true, true, true, false);
+    //     emit TLH_TokenLocked(address(mew), address(newERC20), 2 ether);
+    //     // Execute the handleMultiTokenSessionKeyValidator function
+    //     harness.exposed_handleMultiTokenSessionKeyValidator(
+    //         callType,
+    //         batchExecutions
+    //     );
+    //     // Check that the Tokens are locked
+    //     assertTrue(harness.isTokenLocked(address(erc20)));
+    //     assertTrue(harness.isTokenLocked(address(newERC20)));
     // }
 
-    // function testPreCheckLockedResourceRevert() public {
-    //     // First, lock a resource
-    //     testPreCheckMultiTokenSessionKeyValidator();
-
-    //     // Now try to use the locked resource with a different validator
-    //     ModeCode mode = ModeCode.wrap(
-    //         bytes32(
-    //             abi.encodePacked(
-    //                 CALLTYPE_SINGLE,
-    //                 ExecType.wrap(0x00),
-    //                 bytes4(0),
-    //                 ModeSelector.wrap(bytes4(keccak256("other.validator"))),
-    //                 bytes22(0)
-    //             )
-    //         )
-    //     );
-
-    //     bytes memory executionData = abi.encodeWithSelector(
-    //         bytes4(keccak256("transfer(address,uint256)")),
-    //         address(0xdead),
+    // function test_exposed_handleMultiTokenSessionKeyValidator_RevertIf_invalidCallType()
+    //     public
+    // {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     // Set up the CallType
+    //     CallType callType = CALLTYPE_DELEGATECALL;
+    //     // Set up the execution data
+    //     bytes memory callData = abi.encodeWithSelector(
+    //         IERC20.transfer.selector,
+    //         receiver,
     //         1 ether
     //     );
-
-    //     bytes memory msgData = abi.encodePacked(
-    //         bytes4(keccak256("execute(bytes32,bytes)")),
-    //         mode,
-    //         executionData
+    //     bytes memory execution = ExecutionLib.encodeSingle(
+    //         address(erc20),
+    //         0,
+    //         callData
     //     );
-
+    //     // Expect the function call to revert with TLH_InvalidCallType error
+    //     // when trying to use an unsupported CallType
     //     vm.expectRevert(
     //         abi.encodeWithSelector(
-    //             TokenLockHook.TransactionInProgress.selector,
-    //             address(this),
-    //             mockToken
+    //             TokenLockHook.TLH_InvalidCallType.selector,
+    //             callType
     //         )
     //     );
-    //     hook.preCheck(address(this), msgData);
+    //     // Execute the handleMultiTokenSessionKeyValidator function
+    //     harness.exposed_handleMultiTokenSessionKeyValidator(
+    //         callType,
+    //         execution
+    //     );
+    //     // Check that the token is not locked
+    //     assertFalse(harness.isTokenLocked(address(erc20)));
     // }
 
-    // function testBatchExecution() public {
-    //     ModeCode mode = ModeCode.wrap(
-    //         bytes32(
-    //             abi.encodePacked(
-    //                 CALLTYPE_BATCH,
-    //                 ExecType.wrap(0x00),
-    //                 bytes4(0),
-    //                 ModeSelector.wrap(
-    //                     bytes4(
-    //                         keccak256(
-    //                             "modularetherspotwallet.multitokensessionkeyvalidator"
-    //                         )
-    //                     )
-    //                 ),
-    //                 bytes22(0)
-    //             )
-    //         )
+    // function test_exposed_handleMultiTokenSessionKeyValidator_RevertIf_doubleLockingTokenInBatch()
+    //     public
+    // {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     // Set up the CallType
+    //     CallType callType = CALLTYPE_BATCH;
+    //     // Set up the execution data
+    //     Execution[] memory batchCall = new Execution[](2);
+    //     batchCall[0].target = address(erc20);
+    //     batchCall[0].value = 0;
+    //     batchCall[0].callData = abi.encodeWithSelector(
+    //         IERC20.transfer.selector,
+    //         receiver,
+    //         1 ether
     //     );
-
-    //     Execution[] memory executions = new Execution[](2);
-    //     executions[0] = Execution(
-    //         mockToken,
-    //         0,
+    //     batchCall[1].target = address(erc20);
+    //     batchCall[1].value = 0;
+    //     batchCall[1].callData = abi.encodeWithSelector(
+    //         IERC20.transferFrom.selector,
+    //         address(mew),
+    //         receiver,
+    //         2 ether
+    //     );
+    //     bytes memory batchExecutions = ExecutionLib.encodeBatch(batchCall);
+    //     // Expect the function call to revert with TLH_TransactionInProgress error
+    //     // when trying to lock a token twice in same batch
+    //     vm.expectRevert(
     //         abi.encodeWithSelector(
-    //             bytes4(keccak256("transfer(address,uint256)")),
-    //             address(0xdead),
-    //             1 ether
+    //             TokenLockHook.TLH_TransactionInProgress.selector,
+    //             address(mew),
+    //             address(erc20)
     //         )
     //     );
-    //     executions[1] = Execution(
-    //         address(0x9876),
-    //         0,
-    //         abi.encodeWithSelector(
-    //             bytes4(keccak256("transfer(address,uint256)")),
-    //             address(0xbeef),
-    //             2 ether
-    //         )
+    //     // Execute the handleMultiTokenSessionKeyValidator function
+    //     harness.exposed_handleMultiTokenSessionKeyValidator(
+    //         callType,
+    //         batchExecutions
     //     );
-
-    //     bytes memory executionData = ExecutionLib.encodeBatch(executions);
-
-    //     bytes memory msgData = abi.encodePacked(
-    //         bytes4(keccak256("execute(bytes32,bytes)")),
-    //         mode,
-    //         executionData
-    //     );
-
-    //     vm.expectEmit(true, true, true, true);
-    //     emit ResourceLocked(address(this), mockToken, 1 ether);
-    //     vm.expectEmit(true, true, true, true);
-    //     emit ResourceLocked(address(this), address(0x9876), 2 ether);
-
-    //     hook.preCheck(address(this), msgData);
-
-    //     assertTrue(hook.checkIfLocked(mockToken));
-    //     assertTrue(hook.checkIfLocked(address(0x9876)));
+    //     // Check that the token is not locked
+    //     assertFalse(harness.isTokenLocked(address(erc20)));
     // }
+
+    // function test_exposed_checkLockedTokens_RevertIf_invalidCallType() public {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     // Set up the CallType
+    //     CallType callType = CALLTYPE_DELEGATECALL;
+    //     // Set up the execution data
+    //     bytes memory callData = abi.encodeWithSelector(
+    //         IERC20.transfer.selector,
+    //         receiver,
+    //         1 ether
+    //     );
+    //     bytes memory execution = ExecutionLib.encodeSingle(
+    //         address(erc20),
+    //         0,
+    //         callData
+    //     );
+    //     // Expect the function call to revert with TLH_InvalidCallType error
+    //     // when trying to use an unsupported CallType
+    //     vm.expectRevert(
+    //         abi.encodeWithSelector(
+    //             TokenLockHook.TLH_InvalidCallType.selector,
+    //             callType
+    //         )
+    //     );
+    //     // Execute the checkLockedTokens function
+    //     harness.exposed_checkLockedTokens(callType, execution);
+    // }
+
+    // function test_exposed_checkLockedTokens_callTypeSingle_RevertIf_tokenIsLocked()
+    //     public
+    // {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     // Set up the CallType
+    //     CallType callType = CALLTYPE_SINGLE;
+    //     // Set up the execution data
+    //     bytes memory callData = abi.encodeWithSelector(
+    //         IERC20.transfer.selector,
+    //         receiver,
+    //         1 ether
+    //     );
+    //     bytes memory execution = ExecutionLib.encodeSingle(
+    //         address(erc20),
+    //         0,
+    //         callData
+    //     );
+    //     // Execute the handleMultiTokenSessionKeyValidator function
+    //     harness.exposed_handleMultiTokenSessionKeyValidator(
+    //         callType,
+    //         execution
+    //     );
+    //     // Expect the function call to revert with TLH_TransactionInProgress error
+    //     // if the token is locked
+    //     vm.expectRevert(
+    //         abi.encodeWithSelector(
+    //             TokenLockHook.TLH_TransactionInProgress.selector,
+    //             address(mew),
+    //             address(erc20)
+    //         )
+    //     );
+    //     // Execute the checkLockedTokens function
+    //     harness.exposed_checkLockedTokens(callType, execution);
+    // }
+
+    // function test_exposed_checkLockedTokens_callTypeBatch_RevertIf_tokenIsLocked()
+    //     public
+    // {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     TestERC20 newERC20 = new TestERC20();
+    //     // Set up the CallType
+    //     CallType callType = CALLTYPE_BATCH;
+    //     // Set up the execution data
+    //     Execution[] memory batchCall = new Execution[](2);
+    //     batchCall[0].target = address(erc20);
+    //     batchCall[0].value = 0;
+    //     batchCall[0].callData = abi.encodeWithSelector(
+    //         IERC20.transfer.selector,
+    //         receiver,
+    //         1 ether
+    //     );
+    //     batchCall[1].target = address(newERC20);
+    //     batchCall[1].value = 0;
+    //     batchCall[1].callData = abi.encodeWithSelector(
+    //         IERC20.transferFrom.selector,
+    //         address(mew),
+    //         receiver,
+    //         2 ether
+    //     );
+    //     bytes memory batchExecutions = ExecutionLib.encodeBatch(batchCall);
+    //     // Lock one of the tokens
+    //     harness.exposed_lockToken(address(erc20), 1);
+    //     // Check that the locked token is locked
+    //     assertTrue(harness.isTokenLocked(address(erc20)));
+    //     // Expect the function call to revert with TLH_TransactionInProgress error
+    //     // if one of the Tokens is locked
+    //     vm.expectRevert(
+    //         abi.encodeWithSelector(
+    //             TokenLockHook.TLH_TransactionInProgress.selector,
+    //             address(mew),
+    //             address(erc20)
+    //         )
+    //     );
+    //     // Execute the checkLockedTokens function
+    //     harness.exposed_checkLockedTokens(callType, batchExecutions);
+    //     // Check that the locked token is still locked
+    //     assertTrue(harness.isTokenLocked(address(erc20)));
+    //     // Check that the other token is not locked
+    //     assertFalse(harness.isTokenLocked(address(newERC20)));
+    // }
+
+    // function test_exposed_getTokenAmount_transfer() public {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     // Set up calldata
+    //     bytes memory data = abi.encodeWithSelector(
+    //         IERC20.transfer.selector,
+    //         receiver,
+    //         7579
+    //     );
+    //     // Call getTokenAmount to get amount of tokens
+    //     uint256 amount = harness.exposed_getTokenAmount(data);
+    //     // Check token amount retrieved from data is correct
+    //     assertEq(amount, 7579);
+    // }
+
+    // function test_exposed_getTokenAmount_transferFrom() public {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     // Set up calldata
+    //     bytes memory data = abi.encodeWithSelector(
+    //         IERC20.transferFrom.selector,
+    //         address(mew),
+    //         receiver,
+    //         7579
+    //     );
+    //     // Call getTokenAmount to get amount of tokens
+    //     uint256 amount = harness.exposed_getTokenAmount(data);
+    //     // Check token amount retrieved from data is correct
+    //     assertEq(amount, 7579);
+    // }
+
+    // function test_exposed_getTokenAmount_unsupportedSelector() public {
+    //     // Set up the test environment
+    //     _testSetup();
+    //     // Set up calldata with unsupported selector
+    //     bytes memory data = abi.encodeWithSelector(
+    //         IERC20.approve.selector,
+    //         receiver,
+    //         7579
+    //     );
+    //     // Call getTokenAmount to get amount of tokens
+    //     uint256 amount = harness.exposed_getTokenAmount(data);
+    //     // Check token amount retrieved from data is zero
+    //     assertEq(amount, 0);
+    // }
+
+    // /*//////////////////////////////////////////////////////////////
+    //                              TODO
+    // //////////////////////////////////////////////////////////////*/
+
+    // // TODO: check what happens if locking tokens but also calling uninstallModule in same batch
+    // // may need to lock this to CALLTYPE_SINGLE - locked for now
+
+    // // function testPreCheckMultiTokenSessionKeyValidator() public {
+    // //     ModeCode mode = ModeCode.wrap(
+    // //         bytes32(
+    // //             abi.encodePacked(
+    // //                 CALLTYPE_SINGLE,
+    // //                 ExecType.wrap(0x00),
+    // //                 bytes4(0),
+    // //                 ModeSelector.wrap(
+    // //                     bytes4(
+    // //                         keccak256(
+    // //                             "modularetherspotwallet.multitokensessionkeyvalidator"
+    // //                         )
+    // //                     )
+    // //                 ),
+    // //                 bytes22(0)
+    // //             )
+    // //         )
+    // //     );
+
+    // //     bytes memory executionData = abi.encodeWithSelector(
+    // //         bytes4(keccak256("transfer(address,uint256)")),
+    // //         address(0xdead),
+    // //         1 ether
+    // //     );
+
+    // //     bytes memory msgData = abi.encodePacked(
+    // //         bytes4(keccak256("execute(bytes32,bytes)")),
+    // //         mode,
+    // //         executionData
+    // //     );
+
+    // //     vm.expectEmit(true, true, true, true);
+    // //     emit ResourceLocked(address(this), mockToken, 1 ether);
+
+    // //     hook.preCheck(address(this), msgData);
+
+    // //     assertTrue(hook.checkIfLocked(mockToken));
+    // // }
+
+    // // function testPreCheckOtherValidator() public {
+    // //     ModeCode mode = ModeCode.wrap(
+    // //         bytes32(
+    // //             abi.encodePacked(
+    // //                 CALLTYPE_SINGLE,
+    // //                 ExecType.wrap(0x00),
+    // //                 bytes4(0),
+    // //                 ModeSelector.wrap(bytes4(keccak256("other.validator"))),
+    // //                 bytes22(0)
+    // //             )
+    // //         )
+    // //     );
+
+    // //     bytes memory executionData = abi.encodeWithSelector(
+    // //         bytes4(keccak256("transfer(address,uint256)")),
+    // //         address(0xdead),
+    // //         1 ether
+    // //     );
+
+    // //     bytes memory msgData = abi.encodePacked(
+    // //         bytes4(keccak256("execute(bytes32,bytes)")),
+    // //         mode,
+    // //         executionData
+    // //     );
+
+    // //     hook.preCheck(address(this), msgData);
+
+    // //     assertFalse(hook.checkIfLocked(mockToken));
+    // // }
+
+    // // function testPreCheckLockedResourceRevert() public {
+    // //     // First, lock a resource
+    // //     testPreCheckMultiTokenSessionKeyValidator();
+
+    // //     // Now try to use the locked resource with a different validator
+    // //     ModeCode mode = ModeCode.wrap(
+    // //         bytes32(
+    // //             abi.encodePacked(
+    // //                 CALLTYPE_SINGLE,
+    // //                 ExecType.wrap(0x00),
+    // //                 bytes4(0),
+    // //                 ModeSelector.wrap(bytes4(keccak256("other.validator"))),
+    // //                 bytes22(0)
+    // //             )
+    // //         )
+    // //     );
+
+    // //     bytes memory executionData = abi.encodeWithSelector(
+    // //         bytes4(keccak256("transfer(address,uint256)")),
+    // //         address(0xdead),
+    // //         1 ether
+    // //     );
+
+    // //     bytes memory msgData = abi.encodePacked(
+    // //         bytes4(keccak256("execute(bytes32,bytes)")),
+    // //         mode,
+    // //         executionData
+    // //     );
+
+    // //     vm.expectRevert(
+    // //         abi.encodeWithSelector(
+    // //             TokenLockHook.TransactionInProgress.selector,
+    // //             address(this),
+    // //             mockToken
+    // //         )
+    // //     );
+    // //     hook.preCheck(address(this), msgData);
+    // // }
+
+    // // function testBatchExecution() public {
+    // //     ModeCode mode = ModeCode.wrap(
+    // //         bytes32(
+    // //             abi.encodePacked(
+    // //                 CALLTYPE_BATCH,
+    // //                 ExecType.wrap(0x00),
+    // //                 bytes4(0),
+    // //                 ModeSelector.wrap(
+    // //                     bytes4(
+    // //                         keccak256(
+    // //                             "modularetherspotwallet.multitokensessionkeyvalidator"
+    // //                         )
+    // //                     )
+    // //                 ),
+    // //                 bytes22(0)
+    // //             )
+    // //         )
+    // //     );
+
+    // //     Execution[] memory executions = new Execution[](2);
+    // //     executions[0] = Execution(
+    // //         mockToken,
+    // //         0,
+    // //         abi.encodeWithSelector(
+    // //             bytes4(keccak256("transfer(address,uint256)")),
+    // //             address(0xdead),
+    // //             1 ether
+    // //         )
+    // //     );
+    // //     executions[1] = Execution(
+    // //         address(0x9876),
+    // //         0,
+    // //         abi.encodeWithSelector(
+    // //             bytes4(keccak256("transfer(address,uint256)")),
+    // //             address(0xbeef),
+    // //             2 ether
+    // //         )
+    // //     );
+
+    // //     bytes memory executionData = ExecutionLib.encodeBatch(executions);
+
+    // //     bytes memory msgData = abi.encodePacked(
+    // //         bytes4(keccak256("execute(bytes32,bytes)")),
+    // //         mode,
+    // //         executionData
+    // //     );
+
+    // //     vm.expectEmit(true, true, true, true);
+    // //     emit ResourceLocked(address(this), mockToken, 1 ether);
+    // //     vm.expectEmit(true, true, true, true);
+    // //     emit ResourceLocked(address(this), address(0x9876), 2 ether);
+
+    // //     hook.preCheck(address(this), msgData);
+
+    // //     assertTrue(hook.checkIfLocked(mockToken));
+    // //     assertTrue(hook.checkIfLocked(address(0x9876)));
+    // // }
 }
