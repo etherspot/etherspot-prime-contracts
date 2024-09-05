@@ -8,6 +8,7 @@ import "../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import "../../../src/modular-etherspot-wallet/test/TestUSDC.sol";
 import "../../../src/modular-etherspot-wallet/test/TestDAI.sol";
 import "../../../src/modular-etherspot-wallet/test/TestUNI.sol";
+import "../../../account-abstraction/contracts/core/Helpers.sol";
 import {PackedUserOperation} from "../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {VALIDATION_FAILED} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../TestAdvancedUtils.t.sol";
@@ -180,10 +181,18 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         );
 
         tokenLockSessionKeyValidator.enableSessionKey(sessionData);
+        ITokenLockSessionKeyValidator.SessionData memory sessionDataQueried = tokenLockSessionKeyValidator.getSessionKeyData(sessionKeyAddr);
         assertEq(tokenLockSessionKeyValidator.getAssociatedSessionKeys().length, 1);
+        assertEq(sessionDataQueried.validUntil, validUntil);
+        assertEq(sessionDataQueried.validAfter, validAfter);
+        assertEq(sessionDataQueried.funcSelector, functionSelector);
+        assertEq(sessionDataQueried.tokens.length, tokens.length);
+        assertEq(sessionDataQueried.amounts.length, amounts.length);
+        assertEq(sessionDataQueried.solverAddress, solver);
+        assertTrue(sessionDataQueried.live);
         vm.stopPrank();
 
-        return (sessionKeyAddr, tokenLockSessionKeyValidator.getSessionKeyData(sessionKeyAddr));
+        return (sessionKeyAddr, sessionDataQueried);
     }
 
     function setup_disableSessionKey(ModularEtherspotWallet modularWallet, address sessionKey) public {
@@ -290,7 +299,170 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         vm.stopPrank();
     }
 
-    function test_pass_TLSKV_validateUserOp() public {
+
+    function test_pass_TLSKV_SessionKeyParams() public {
+
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        (address sessionKey, ITokenLockSessionKeyValidator.SessionData memory sessionData) = setup_sessionkey(mew, IERC20.transferFrom.selector);
+
+        // Construct user op data
+        bytes memory data = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            amounts[0]
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            address(mew),
+            userOpCalldata
+        );
+
+        vm.startPrank(address(mew));
+
+        userOp.nonce = getNonce(address(mew), address(tokenLockSessionKeyValidator));
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            sessionKeyPrivate,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
+        // Validation should succeed
+        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+
+        assertTrue(tokenLockSessionKeyValidator.validateSessionKeyParams(sessionKey, userOp));
+        
+        vm.stopPrank();
+    }
+
+    function test_pass_TLSKV_ValidateUserOp() public {
+
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        (address sessionKey, ITokenLockSessionKeyValidator.SessionData memory sessionDataStruct) = setup_sessionkey(mew, IERC20.transferFrom.selector);
+
+        // Construct user op data
+        bytes memory data = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            amounts[0]
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            address(mew),
+            userOpCalldata
+        );
+
+        vm.startPrank(address(mew));
+
+        userOp.nonce = getNonce(address(mew), address(tokenLockSessionKeyValidator));
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            sessionKeyPrivate,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
+        // Validation should succeed
+        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+
+        uint256 validationData = tokenLockSessionKeyValidator.validateUserOp(userOp, hash);
+
+        uint256 expectedValidationData = _packValidationData(false, sessionDataStruct.validUntil, sessionDataStruct.validAfter);
+        assertEq(validationData, expectedValidationData);
+        
+        vm.stopPrank();
+    }
+
+    function test_fail_TLSKV_validateUserOp_invalidFunctionSelector() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        setup_sessionkey(mew, IERC20.transfer.selector);
+
+        vm.startPrank(address(mew));
+        // Construct invalid selector user op data
+        bytes memory data = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            100 * 10**6
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            address(mew),
+            userOpCalldata
+        );
+        address tokenLockSessionKeyValidatorAddr = address(tokenLockSessionKeyValidator);
+        userOp.nonce = uint256(uint160(tokenLockSessionKeyValidatorAddr)) << 96;
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(sessionKeyPrivate, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
+        uint256 validationData = tokenLockSessionKeyValidator.validateUserOp(userOp, hash);
+        assertEq(validationData, VALIDATION_FAILED);
+        vm.stopPrank();
+    }
+
+    function test_fail_TLSKV_sessionSignedByInvalidKey() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        setup_sessionkey(mew, IERC20.transferFrom.selector);
+
+        vm.startPrank(address(mew));
+        // Construct user op data
+        bytes memory data = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            100 * 10**6
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            address(mew),
+            userOpCalldata
+        );
+
+        userOp.nonce = getNonce(address(mew), address(tokenLockSessionKeyValidator));
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            owner1Key,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
+
+        uint256 validationData = tokenLockSessionKeyValidator.validateUserOp(userOp, hash);
+        assertEq(validationData, VALIDATION_FAILED);
+
+        vm.stopPrank();
+    }
+
+    function test_pass_TLSKV_E2E_handleUserOp() public {
         mew = setupMEWWithTokenLockSessionKeyValidator();
         (address sessionKey, ITokenLockSessionKeyValidator.SessionData memory sessionData) = setup_sessionkey(mew, IERC20.transferFrom.selector);
 
@@ -324,6 +496,9 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         // Validation should succeed
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
+
+        vm.startPrank(address(mew));
+
         entrypoint.handleOps(userOps, beneficiary);
         assertEq(usdc.balanceOf(address(bob)), amounts[0]);
 
@@ -333,98 +508,5 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).funcSelector, bytes4(0));
         assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).tokens.length, 0);
         assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).amounts.length, 0);
-
-        vm.stopPrank();
     }
-
-    function test_fail_TLSKV_validateUserOp_invalidFunctionSelector() public {
-        mew = setupMEWWithTokenLockSessionKeyValidator();
-        setup_sessionkey(mew, IERC20.transfer.selector);
-
-        // Construct invalid selector user op data
-        bytes memory data = abi.encodeWithSelector(
-            IERC20.transferFrom.selector,
-            address(mew),
-            address(bob),
-            100 * 10**6
-        );
-        bytes memory userOpCalldata = abi.encodeCall(
-            IERC7579Account.execute,
-            (
-                ModeLib.encodeSimpleSingle(),
-                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
-            )
-        );
-        PackedUserOperation memory userOp = entrypoint.fillUserOp(
-            address(mew),
-            userOpCalldata
-        );
-        address tokenLockSessionKeyValidatorAddr = address(tokenLockSessionKeyValidator);
-        userOp.nonce = uint256(uint160(tokenLockSessionKeyValidatorAddr)) << 96;
-        bytes32 hash = entrypoint.getUserOpHash(userOp);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(sessionKeyPrivate, hash);
-        bytes memory signature = abi.encodePacked(r, s, v);
-        userOp.signature = signature;
-        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
-        userOps[0] = userOp;
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IEntryPoint.FailedOp.selector,
-                0,
-                "AA24 signature error"
-            )
-        );
-        
-        entrypoint.handleOps(userOps, beneficiary);
-    }
-
-    function test_fail_TLSKV_sessionSignedByInvalidKey() public {
-        mew = setupMEWWithTokenLockSessionKeyValidator();
-        setup_sessionkey(mew, IERC20.transferFrom.selector);
-
-        // Construct user op data
-        bytes memory data = abi.encodeWithSelector(
-            IERC20.transferFrom.selector,
-            address(mew),
-            address(bob),
-            100 * 10**6
-        );
-        bytes memory userOpCalldata = abi.encodeCall(
-            IERC7579Account.execute,
-            (
-                ModeLib.encodeSimpleSingle(),
-                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
-            )
-        );
-        PackedUserOperation memory userOp = entrypoint.fillUserOp(
-            address(mew),
-            userOpCalldata
-        );
-
-        userOp.nonce = getNonce(address(mew), address(tokenLockSessionKeyValidator));
-        bytes32 hash = entrypoint.getUserOpHash(userOp);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            owner1Key,
-            ECDSA.toEthSignedMessageHash(hash)
-        );
-        bytes memory signature = abi.encodePacked(r, s, v);
-        userOp.signature = signature;
-        // Validation should succeed
-        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
-        userOps[0] = userOp;
-
-        // Validation should fail - signed with different valid session key
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IEntryPoint.FailedOp.selector,
-                0,
-                "AA24 signature error"
-            )
-        );
-
-        entrypoint.handleOps(userOps, beneficiary);
-
-        vm.stopPrank();
-    }
-
 }
