@@ -501,12 +501,5 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
 
         entrypoint.handleOps(userOps, beneficiary);
         assertEq(usdc.balanceOf(address(bob)), amounts[0]);
-
-        // assert the disabled session key
-        assertEq(tokenLockSessionKeyValidator.getAssociatedSessionKeys().length, 0);
-        assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).validUntil, 0);
-        assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).funcSelector, bytes4(0));
-        assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).tokens.length, 0);
-        assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).amounts.length, 0);
     }
 }

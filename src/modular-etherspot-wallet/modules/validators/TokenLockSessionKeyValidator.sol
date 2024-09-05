@@ -287,10 +287,6 @@ contract TokenLockSessionKeyValidator is ITokenLockSessionKeyValidator {
         
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
 
-        //disable SessionKey
-        //disable is run because the SessioneKey is only valid for one operation
-        //once used it should be disabled
-        disableSessionKey(sessionKeySigner);
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
