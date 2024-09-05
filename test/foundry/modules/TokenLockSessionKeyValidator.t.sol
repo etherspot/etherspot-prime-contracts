@@ -40,6 +40,9 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
     uint256 sessionKeyPrivate;
     address sessionKey1Addr;
     uint256 sessionKey1Private;
+    address invalidSessionKey;
+    address[] tokens;
+    uint256[] amounts;
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*                   EVENTS                  */
@@ -83,8 +86,19 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         dai = new TestDAI();
         uni = new TestUNI();
 
+        tokens = new address[](3);
+        tokens[0] = address(usdc);
+        tokens[1] = address(dai);
+        tokens[2] = address(uni);
+
+        amounts = new uint256[](3);
+        amounts[0] = 100 * 10**6;
+        amounts[1] = 200 * 10**18;
+        amounts[2] = 300 * 10**18;
+
         (sessionKeyAddr, sessionKeyPrivate) = makeAddrAndKey("session_key");
         (sessionKey1Addr, sessionKey1Private) = makeAddrAndKey("session_key_1");
+        (invalidSessionKey, ) = makeAddrAndKey("invalid_session_key");
         (alice, aliceKey) = makeAddrAndKey("alice");
         (bob, bobKey) = makeAddrAndKey("bob");
         (solver, solverKey) = makeAddrAndKey("solver");
@@ -92,12 +106,9 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         vm.deal(beneficiary, 1 ether);
     }
 
-    /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
-    /*                    TESTS                  */
-    /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
-
-    function test_install_TKSKV_Module() public {
+    function setupMEWWithTokenLockSessionKeyValidator() public returns (ModularEtherspotWallet) {
         mew = setupMEW();
+
         vm.startPrank(owner1);
         // Install another tokenLockSessionKeyValidator module for total of 3
         Execution[] memory batchCall1 = new Execution[](1);
@@ -113,24 +124,6 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         vm.expectEmit(false, false, false, true);
         emit TLSKV_ModuleInstalled(address(mew));
         defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
-        assertTrue(mew.isModuleInstalled(1, address(tokenLockSessionKeyValidator), ""));
-    }
-
-    function test_Uninstall_TKSKV_Module() public {
-        mew = setupMEWWithSessionKeys();
-        vm.startPrank(address(mew));
-        // Install another tokenLockSessionKeyValidator module for total of 3
-       
-        Execution[] memory batchCall1 = new Execution[](1);
-        batchCall1[0].target = address(mew);
-        batchCall1[0].value = 0;
-        batchCall1[0].callData = abi.encodeWithSelector(
-            ModularEtherspotWallet.installModule.selector,
-            uint256(1),
-            address(tokenLockSessionKeyValidator),
-            hex""
-        );
-        defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
 
         Execution[] memory batchCall0 = new Execution[](1);
         batchCall0[0].target = address(mew);
@@ -141,6 +134,7 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
             address(defaultValidator),
             hex""
         );
+
         defaultExecutor.execBatch(IERC7579Account(mew), batchCall0);
 
         // Should be 3 Validator modules installed
@@ -148,15 +142,26 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         assertTrue(mew.isModuleInstalled(1, address(tokenLockSessionKeyValidator), ""));
         assertTrue(mew.isModuleInstalled(1, address(defaultValidator), ""));
         
-        address[] memory tokens = new address[](3);
-        tokens[0] = address(usdc);
-        tokens[1] = address(dai);
-        tokens[2] = address(uni);
+        vm.stopPrank();
 
-        uint256[] memory amounts = new uint256[](3);
-        amounts[0] = 100 * 10**6;
-        amounts[1] = 200 * 10**18;
-        amounts[2] = 300 * 10**18;
+        return mew;
+    }
+
+    function setup_sessionkey(ModularEtherspotWallet modularWallet, bytes4 functionSelector) public returns (address, ITokenLockSessionKeyValidator.SessionData memory) {
+        vm.startPrank(address(modularWallet));
+
+        usdc.mint(address(modularWallet), amounts[0]);
+        assertEq(usdc.balanceOf(address(modularWallet)), amounts[0]);
+        usdc.approve(address(bob), amounts[0]);
+        usdc.approve(address(modularWallet), amounts[0]);
+
+        dai.mint(address(modularWallet), amounts[1]);
+        assertEq(dai.balanceOf(address(modularWallet)), amounts[1]);
+        dai.approve(address(bob), amounts[1]);
+
+        uni.mint(address(modularWallet), amounts[2]);
+        assertEq(uni.balanceOf(address(modularWallet)), amounts[2]);
+        uni.approve(address(bob), amounts[2]);
 
         uint48 validAfter = uint48(block.timestamp);
         uint48 validUntil = uint48(block.timestamp + 1 days);
@@ -165,7 +170,7 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         bytes memory sessionData = abi.encodePacked(
             sessionKeyAddr,
             solver,
-            IERC20.transfer.selector,
+            functionSelector,
             validAfter,
             validUntil,
             tokens.length,
@@ -175,6 +180,45 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         );
 
         tokenLockSessionKeyValidator.enableSessionKey(sessionData);
+        assertEq(tokenLockSessionKeyValidator.getAssociatedSessionKeys().length, 1);
+        vm.stopPrank();
+
+        return (sessionKeyAddr, tokenLockSessionKeyValidator.getSessionKeyData(sessionKeyAddr));
+    }
+
+    function setup_disableSessionKey(ModularEtherspotWallet modularWallet, address sessionKey) public {
+        vm.startPrank(address(modularWallet));
+
+        vm.expectEmit(true, true, true, true);
+        emit TLSKV_SessionKeyDisabled(sessionKey, address(modularWallet));
+        tokenLockSessionKeyValidator.disableSessionKey(sessionKey);
+
+        ITokenLockSessionKeyValidator.SessionData memory sessionData = tokenLockSessionKeyValidator.getSessionKeyData(sessionKey);
+
+        assertEq(sessionData.validUntil, 0);
+        assertEq(sessionData.validAfter, 0);
+        assertEq(sessionData.funcSelector, bytes4(0));
+        assertEq(sessionData.tokens.length, 0);
+        assertEq(sessionData.amounts.length, 0);
+        
+        vm.stopPrank();
+    }
+
+    /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
+    /*                    TESTS                  */
+    /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
+
+    function test_install_TKSKV_Module() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        assertTrue(mew.isModuleInstalled(1, address(tokenLockSessionKeyValidator), ""));
+    }
+
+    function test_Uninstall_TKSKV_Module() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        setup_sessionkey(mew, IERC20.transfer.selector);
+
+        vm.startPrank(address(mew));
+       
         assertEq(tokenLockSessionKeyValidator.getAssociatedSessionKeys().length, 1);
 
         // Get previous tokenLockSessionKeyValidator to pass into uninstall (required for linked list)
@@ -203,110 +247,52 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
     }
 
     function test_pass_TLSKV_enableSessionKey() public {
-        vm.startPrank(alice);
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        setup_sessionkey(mew, IERC20.transfer.selector);
+    }
 
-        address[] memory tokens = new address[](3);
-        tokens[0] = address(usdc);
-        tokens[1] = address(dai);
-        tokens[2] = address(uni);
+    function test_pass_TLSKV_disableSessionKey() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        (address sessionKey, ) = setup_sessionkey(mew, IERC20.transfer.selector);
+        setup_disableSessionKey(mew, sessionKey);
+    }
 
-        uint256[] memory amounts = new uint256[](3);
-        amounts[0] = 100 * 10**6;
-        amounts[1] = 200 * 10**18;
-        amounts[2] = 300 * 10**18;
+    function test_pass_TLSKV_toggleSessionKeyPause() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        (address sessionKey, ITokenLockSessionKeyValidator.SessionData memory sessionData) = setup_sessionkey(mew, IERC20.transfer.selector);
+        vm.startPrank(address(mew));
 
-        uint48 validAfter = uint48(block.timestamp);
-        uint48 validUntil = uint48(block.timestamp + 1 days);
+        vm.expectEmit(true, true, true, true);
+        emit TLSKV_SessionKeyPaused(sessionKey, address(mew));
+        tokenLockSessionKeyValidator.toggleSessionKeyPause(sessionKey);
+        ITokenLockSessionKeyValidator.SessionData memory sessionDataAfterToggle = tokenLockSessionKeyValidator.getSessionKeyData(sessionKey);
+        assertFalse(sessionDataAfterToggle.live);
 
-        // Enable session
-        bytes memory sessionData = abi.encodePacked(
-            sessionKeyAddr,
-            solver,
-            IERC20.transfer.selector,
-            validAfter,
-            validUntil,
-            tokens.length,
-            tokens,
-            amounts.length,
-            amounts
+        vm.expectEmit(true, true, true, true);
+        emit TLSKV_SessionKeyUnpaused(sessionKey, address(mew));
+        tokenLockSessionKeyValidator.toggleSessionKeyPause(sessionKey);
+        sessionDataAfterToggle = tokenLockSessionKeyValidator.getSessionKeyData(sessionKey);
+        assertTrue(sessionDataAfterToggle.live);
+        vm.stopPrank();
+    }
+
+    function test_fail_TLSKV_toggleSessionKeyPause() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        vm.startPrank(address(mew));
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TokenLockSessionKeyValidator.TLSKV_SessionKeyDoesNotExist.selector,
+                invalidSessionKey
+            )
         );
-        // Check emitted event
-        vm.expectEmit(false, false, false, true);
-        emit TLSKV_SessionKeyEnabled(sessionKeyAddr, address(alice));
-        tokenLockSessionKeyValidator.enableSessionKey(sessionData);
-        // Session should be enabled
-        assertFalse(
-            tokenLockSessionKeyValidator.getSessionKeyData(sessionKeyAddr).validUntil == 0
-        );
+        tokenLockSessionKeyValidator.toggleSessionKeyPause(invalidSessionKey);
         vm.stopPrank();
     }
 
     function test_pass_TLSKV_validateUserOp() public {
-        mew = setupMEW();
-
-        vm.startPrank(owner1);
-        // Install another tokenLockSessionKeyValidator module for total of 3
-        Execution[] memory batchCall1 = new Execution[](1);
-        batchCall1[0].target = address(mew);
-        batchCall1[0].value = 0;
-        batchCall1[0].callData = abi.encodeWithSelector(
-            ModularEtherspotWallet.installModule.selector,
-            uint256(1),
-            address(tokenLockSessionKeyValidator),
-            hex""
-        );
-        // Check emitted event
-        vm.expectEmit(false, false, false, true);
-        emit TLSKV_ModuleInstalled(address(mew));
-        defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
-        vm.stopPrank();
-
-        // Enable valid session
-        
-        address[] memory tokens = new address[](3);
-        tokens[0] = address(usdc);
-        tokens[1] = address(dai);
-        tokens[2] = address(uni);
-
-        uint256[] memory amounts = new uint256[](3);
-        amounts[0] = 100 * 10**6;
-        amounts[1] = 200 * 10**18;
-        amounts[2] = 300 * 10**18;
-
-        vm.deal(address(mew), 1 ether);
-        vm.startPrank(address(mew));
-        
-        usdc.mint(address(mew), amounts[0]);
-        assertEq(usdc.balanceOf(address(mew)), amounts[0]);
-        usdc.approve(address(bob), amounts[0]);
-        usdc.approve(address(mew), amounts[0]);
-
-        dai.mint(address(mew), amounts[1]);
-        assertEq(dai.balanceOf(address(mew)), amounts[1]);
-        dai.approve(address(bob), amounts[1]);
-
-        uni.mint(address(mew), amounts[2]);
-        assertEq(uni.balanceOf(address(mew)), amounts[2]);
-        uni.approve(address(bob), amounts[2]);
-
-        uint48 validAfter = uint48(block.timestamp);
-        uint48 validUntil = uint48(block.timestamp + 1 days);
-
-        // Enable session
-        bytes memory sessionData = abi.encodePacked(
-            sessionKeyAddr,
-            solver,
-            IERC20.transferFrom.selector,
-            validAfter,
-            validUntil,
-            tokens.length,
-            tokens,
-            amounts.length,
-            amounts
-        );
-
-        tokenLockSessionKeyValidator.enableSessionKey(sessionData);
-        assertEq(tokenLockSessionKeyValidator.getAssociatedSessionKeys().length, 1);
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        (address sessionKey, ITokenLockSessionKeyValidator.SessionData memory sessionData) = setup_sessionkey(mew, IERC20.transferFrom.selector);
 
         // Construct user op data
         bytes memory data = abi.encodeWithSelector(
@@ -340,5 +326,105 @@ contract TokenLockSessionKeyValidatorTest is TestAdvancedUtils {
         userOps[0] = userOp;
         entrypoint.handleOps(userOps, beneficiary);
         assertEq(usdc.balanceOf(address(bob)), amounts[0]);
+
+        // assert the disabled session key
+        assertEq(tokenLockSessionKeyValidator.getAssociatedSessionKeys().length, 0);
+        assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).validUntil, 0);
+        assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).funcSelector, bytes4(0));
+        assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).tokens.length, 0);
+        assertEq(tokenLockSessionKeyValidator.getSessionKeyData(sessionKey).amounts.length, 0);
+
+        vm.stopPrank();
     }
+
+    function test_fail_TLSKV_validateUserOp_invalidFunctionSelector() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        setup_sessionkey(mew, IERC20.transfer.selector);
+
+        // Construct invalid selector user op data
+        bytes memory data = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            100 * 10**6
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            address(mew),
+            userOpCalldata
+        );
+        address tokenLockSessionKeyValidatorAddr = address(tokenLockSessionKeyValidator);
+        userOp.nonce = uint256(uint160(tokenLockSessionKeyValidatorAddr)) << 96;
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(sessionKeyPrivate, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
+        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        
+        entrypoint.handleOps(userOps, beneficiary);
+    }
+
+    function test_fail_TLSKV_sessionSignedByInvalidKey() public {
+        mew = setupMEWWithTokenLockSessionKeyValidator();
+        setup_sessionkey(mew, IERC20.transferFrom.selector);
+
+        // Construct user op data
+        bytes memory data = abi.encodeWithSelector(
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(bob),
+            100 * 10**6
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            address(mew),
+            userOpCalldata
+        );
+
+        userOp.nonce = getNonce(address(mew), address(tokenLockSessionKeyValidator));
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            owner1Key,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        bytes memory signature = abi.encodePacked(r, s, v);
+        userOp.signature = signature;
+        // Validation should succeed
+        PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
+        userOps[0] = userOp;
+
+        // Validation should fail - signed with different valid session key
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+
+        entrypoint.handleOps(userOps, beneficiary);
+
+        vm.stopPrank();
+    }
+
 }

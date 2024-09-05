@@ -11,7 +11,6 @@ import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ITokenLockSessionKeyValidator} from "../../interfaces/ITokenLockSessionKeyValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
-import "forge-std/console.sol";
 
 contract TokenLockSessionKeyValidator is ITokenLockSessionKeyValidator {
     using ModeLib for ModeCode;
