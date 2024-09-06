@@ -9,10 +9,10 @@ import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED, VALIDATION_SUCCESS} from "../.
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
-import {IERC20SessionKeyValidator} from "../../interfaces/IERC20SessionKeyValidator.sol";
+import {ITokenLockSessionKeyValidator} from "../../interfaces/ITokenLockSessionKeyValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
-contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
+contract TokenLockSessionKeyValidator is ITokenLockSessionKeyValidator {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
 
@@ -27,17 +27,18 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
     /*                    ERRORS                 */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
-    error ERC20SKV_ModuleAlreadyInstalled();
-    error ERC20SKV_ModuleNotInstalled();
-    error ERC20SKV_InvalidSessionKey();
-    error ERC20SKV_InvalidToken();
-    error ERC20SKV_InvalidFunctionSelector();
-    error ERC20SKV_InvalidSpendingLimit();
-    error ERC20SKV_InvalidValidAfter(uint48 validAfter);
-    error ERC20SKV_InvalidValidUntil(uint48 validUntil);
-    error ERC20SKV_SessionKeyAlreadyExists(address sessionKey);
-    error ERC20SKV_SessionKeyDoesNotExist(address session);
-    error ERC20SKV_SessionPaused(address sessionKey);
+    error TLSKV_ModuleAlreadyInstalled();
+    error TLSKV_ModuleNotInstalled();
+    error TLSKV_InvalidSessionKey();
+    error TLSKV_InvalidToken();
+    error TLSKV_InvalidFunctionSelector();
+    error TLSKV_InvalidSpendingLimit();
+    error TLSKV_InvalidValidAfter(uint48 validAfter);
+    error TLSKV_InvalidValidUntil(uint48 validUntil);
+    error TLSKV_InvalidTokenAmountData(address sessionKey);
+    error TLSKV_SessionKeyAlreadyExists(address sessionKey);
+    error TLSKV_SessionKeyDoesNotExist(address session);
+    error TLSKV_SessionPaused(address sessionKey);
     error NotImplemented();
 
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
@@ -50,51 +51,87 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
     mapping(address sessionKey => mapping(address wallet => SessionData))
         public sessionData;
 
+    struct ExecData {
+        bytes4 selector;
+        address from;
+        address to;
+        uint256 amount;
+    }
+
+
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
     /*               PUBLIC/EXTERNAL             */
     /*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*§*/
 
-    // @inheritdoc IERC20SessionKeyValidator
+    // @inheritdoc ITokenLockSessionKeyValidator
     function enableSessionKey(bytes calldata _sessionData) public {
-        address sessionKey = address(bytes20(_sessionData[0:20]));
-        if (sessionKey == address(0)) revert ERC20SKV_InvalidSessionKey();
-        if (
-            sessionData[sessionKey][msg.sender].validUntil != 0 &&
-            ArrayLib._contains(getAssociatedSessionKeys(), sessionKey)
-        ) revert ERC20SKV_SessionKeyAlreadyExists(sessionKey);
-        address token = address(bytes20(_sessionData[20:40]));
-        if (token == address(0)) revert ERC20SKV_InvalidToken();
-        bytes4 funcSelector = bytes4(_sessionData[40:44]);
-        if (funcSelector == bytes4(0))
-            revert ERC20SKV_InvalidFunctionSelector();
-        uint256 spendingLimit = uint256(bytes32(_sessionData[44:76]));
-        if (spendingLimit == 0) revert ERC20SKV_InvalidSpendingLimit();
-        uint48 validAfter = uint48(bytes6(_sessionData[76:82]));
-        if (validAfter == 0) revert ERC20SKV_InvalidValidAfter(validAfter);
-        uint48 validUntil = uint48(bytes6(_sessionData[82:88]));
-        if (validUntil == 0) revert ERC20SKV_InvalidValidUntil(validUntil);
+        uint256 offset = 0;
+
+        address sessionKey = address(bytes20(_sessionData[offset:offset + 20]));
+        offset += 20;
+        if (sessionKey == address(0)) revert TLSKV_InvalidSessionKey();
+
+        address solverAddress = address(bytes20(_sessionData[offset:offset + 20]));
+        offset += 20;
+
+        bytes4 funcSelector = bytes4(_sessionData[offset:offset + 4]);
+        offset += 4;
+        if (funcSelector == bytes4(0)) revert TLSKV_InvalidFunctionSelector();
+
+        uint48 validAfter = uint48(bytes6(_sessionData[offset:offset + 6]));
+        offset += 6;
+        if (validAfter == 0) revert TLSKV_InvalidValidAfter(validAfter);
+
+        uint48 validUntil = uint48(bytes6(_sessionData[offset:offset + 6]));
+        offset += 6;
+        if (validUntil == 0) revert TLSKV_InvalidValidUntil(validUntil);
+
+        uint256 tokensLength = uint256(bytes32(_sessionData[offset:offset + 32]));
+        offset += 32;
+
+        address[] memory tokens = new address[](tokensLength);
+        for (uint256 i = 0; i < tokensLength; i++) {
+            tokens[i] = address(uint160(uint256(bytes32(_sessionData[offset:offset + 32]))));
+            offset += 32;
+        }
+
+        uint256 amountsLength = uint256(bytes32(_sessionData[offset:offset + 32]));
+        offset += 32;
+
+        // Decode amounts array
+        uint256[] memory amounts = new uint256[](amountsLength);
+        for (uint256 i = 0; i < amountsLength; i++) {
+            amounts[i] = uint256(bytes32(_sessionData[offset:offset + 32]));
+            offset += 32;
+        }
+
+        if(tokensLength != amountsLength) revert TLSKV_InvalidTokenAmountData(sessionKey);  
+
+        // Store the decoded data in sessionData mapping
         sessionData[sessionKey][msg.sender] = SessionData(
-            token,
+            tokens,
             funcSelector,
-            spendingLimit,
+            amounts,
+            solverAddress,
             validAfter,
             validUntil,
             true
         );
+
         walletSessionKeys[msg.sender].push(sessionKey);
-        emit ERC20SKV_SessionKeyEnabled(sessionKey, msg.sender);
+        emit TLSKV_SessionKeyEnabled(sessionKey, msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function disableSessionKey(address _session) public {
         if (sessionData[_session][msg.sender].validUntil == 0)
-            revert ERC20SKV_SessionKeyDoesNotExist(_session);
+            revert TLSKV_SessionKeyDoesNotExist(_session);
         delete sessionData[_session][msg.sender];
         walletSessionKeys[msg.sender] = ArrayLib._removeElement(
             getAssociatedSessionKeys(),
             _session
         );
-        emit ERC20SKV_SessionKeyDisabled(_session, msg.sender);
+        emit TLSKV_SessionKeyDisabled(_session, msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
@@ -110,13 +147,13 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
     function toggleSessionKeyPause(address _sessionKey) external {
         SessionData storage sd = sessionData[_sessionKey][msg.sender];
         if (sd.validUntil == 0)
-            revert ERC20SKV_SessionKeyDoesNotExist(_sessionKey);
+            revert TLSKV_SessionKeyDoesNotExist(_sessionKey);
         if (sd.live) {
             sd.live = false;
-            emit ERC20SKV_SessionKeyPaused(_sessionKey, msg.sender);
+            emit TLSKV_SessionKeyPaused(_sessionKey, msg.sender);
         } else {
             sd.live = true;
-            emit ERC20SKV_SessionKeyUnpaused(_sessionKey, msg.sender);
+            emit TLSKV_SessionKeyUnpaused(_sessionKey, msg.sender);
         }
     }
 
@@ -131,53 +168,19 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
         PackedUserOperation calldata userOp
     ) public view returns (bool) {
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (isSessionKeyLive(_sessionKey) == false) {
+        if (!isSessionKeyLive(_sessionKey)) {
             return false;
         }
-        address target;
+
         bytes calldata callData = userOp.callData;
-        bytes4 sel = bytes4(callData[:4]);
-        if (sel == IERC7579Account.execute.selector) {
+        if (bytes4(callData[:4]) == IERC7579Account.execute.selector) {
             ModeCode mode = ModeCode.wrap(bytes32(callData[4:36]));
             (CallType calltype, , , ) = ModeLib.decode(mode);
+
             if (calltype == CALLTYPE_SINGLE) {
-                bytes calldata execData;
-                // 0x00 ~ 0x04 : selector
-                // 0x04 ~ 0x24 : mode code
-                // 0x24 ~ 0x44 : execution target
-                // 0x44 ~0x64 : execution value
-                // 0x64 ~ : execution calldata
-                (target, , execData) = ExecutionLib.decodeSingle(
-                    callData[100:]
-                );
-                (
-                    bytes4 selector,
-                    address from,
-                    address to,
-                    uint256 amount
-                ) = _digest(execData);
-                if (target != sd.token) return false;
-                if (selector != sd.funcSelector) return false;
-                if (amount > sd.spendingLimit) return false;
-                return true;
-            }
-            if (calltype == CALLTYPE_BATCH) {
-                Execution[] calldata execs = ExecutionLib.decodeBatch(
-                    callData[100:]
-                );
-                for (uint256 i; i < execs.length; i++) {
-                    target = execs[i].target;
-                    (
-                        bytes4 selector,
-                        address from,
-                        address to,
-                        uint256 amount
-                    ) = _digest(execs[i].callData);
-                    if (target != sd.token) return false;
-                    if (selector != sd.funcSelector) return false;
-                    if (amount > sd.spendingLimit) return false;
-                }
-                return true;
+                return validateSingleCall(callData, sd, userOp.sender);
+            } else if (calltype == CALLTYPE_BATCH) {
+                return validateBatchCall(callData, sd, userOp.sender);
             } else {
                 return false;
             }
@@ -185,6 +188,77 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
             return false;
         }
     }
+
+    function validateSingleCall(
+        bytes calldata callData,
+        SessionData memory sd,
+        address userOpSender
+    ) internal view returns (bool) {
+        address target;
+        bytes calldata execData;
+        (target, , execData) = ExecutionLib.decodeSingle(callData[100:]);
+
+        (bytes4 selector, address from, , uint256 amount) = _digest(execData);
+
+        if (selector != sd.funcSelector) return false;
+        return validateTokenData(sd.tokens, selector, userOpSender, from, amount, target);
+    }
+
+    // Internal function to validate batch call
+    function validateBatchCall(
+        bytes calldata callData,
+        SessionData memory sd,
+        address userOpSender
+    ) internal view returns (bool) {
+        Execution[] calldata execs = ExecutionLib.decodeBatch(callData[100:]);
+        for (uint256 i; i < execs.length; i++) {
+            address target = execs[i].target;
+            (bytes4 selector, address from, , uint256 amount) = _digest(execs[i].callData);
+            if (selector != sd.funcSelector) return false;
+            if (!validateTokenData(sd.tokens, selector, userOpSender, from, amount, target)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function validateTokenData(
+        address[] memory tokens,
+        bytes4 selector,
+        address userOpSender,
+        address from,
+        uint256 amount,
+        address token
+    ) internal view returns (bool) {
+
+        (bool tokenFound, ) = findTokenIndex(tokens, token);
+
+        if (!tokenFound) return false;
+
+        // Validate if wallet has sufficient balance
+        if (selector == IERC20.transfer.selector) {
+            if (IERC20(token).balanceOf(from) < amount) {
+                return false;
+            }
+        } else if (selector == IERC20.transferFrom.selector) {
+            if (IERC20(token).balanceOf(userOpSender) < amount || IERC20(token).allowance(userOpSender, from) < amount) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    function findTokenIndex(address[] memory tokens, address target) internal pure returns (bool, uint256) {
+        for (uint256 i = 0; i < tokens.length; i++) {
+            if (tokens[i] == target) {
+                return (true, i);
+            }
+        }
+        return (false, 0);
+    }
+
 
     // @inheritdoc IERC20SessionKeyValidator
     function getAssociatedSessionKeys() public view returns (address[] memory) {
@@ -207,9 +281,12 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
             ECDSA.toEthSignedMessageHash(userOpHash),
             userOp.signature
         );
-        if (!validateSessionKeyParams(sessionKeySigner, userOp))
+        if (!validateSessionKeyParams(sessionKeySigner, userOp)) {
             return VALIDATION_FAILED;
+        }
+        
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
+
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
@@ -223,15 +300,15 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
     // @inheritdoc IERC20SessionKeyValidator
     function onInstall(bytes calldata data) external override {
         if (initialized[msg.sender] == true)
-            revert ERC20SKV_ModuleAlreadyInstalled();
+            revert TLSKV_ModuleAlreadyInstalled();
         initialized[msg.sender] = true;
-        emit ERC20SKV_ModuleInstalled(msg.sender);
+        emit TLSKV_ModuleInstalled(msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
     function onUninstall(bytes calldata data) external override {
         if (initialized[msg.sender] == false)
-            revert ERC20SKV_ModuleNotInstalled();
+            revert TLSKV_ModuleNotInstalled();
         address[] memory sessionKeys = getAssociatedSessionKeys();
         uint256 sessionKeysLength = sessionKeys.length;
         for (uint256 i; i < sessionKeysLength; i++) {
@@ -239,7 +316,7 @@ contract TokenLockSessionKeyValidator is IERC20SessionKeyValidator {
         }
         delete walletSessionKeys[msg.sender];
         initialized[msg.sender] = false;
-        emit ERC20SKV_ModuleUninstalled(msg.sender);
+        emit TLSKV_ModuleUninstalled(msg.sender);
     }
 
     // @inheritdoc IERC20SessionKeyValidator
