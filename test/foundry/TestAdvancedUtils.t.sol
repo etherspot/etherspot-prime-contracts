@@ -14,11 +14,11 @@ import {ExecutionLib} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/
 import {ModeLib, ModeCode, CallType, ExecType, ModeSelector, ModePayload, CALLTYPE_STATIC} from "../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
 import {PackedUserOperation} from "../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import "../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
-
 import {ModularEtherspotWallet} from "../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/modules/validators/MultipleOwnerECDSAValidator.sol";
 import {ERC20SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol";
-import {TokenLockHook} from "../../src/modular-etherspot-wallet/modules/hooks/TokenLockHook.sol";
+import {CredibleAccountHook} from "../../src/modular-etherspot-wallet/modules/hooks/CredibleAccountHook.sol";
+import {CredibleAccountValidator} from "../../src/modular-etherspot-wallet/modules/validators/CredibleAccountValidator.sol";
 
 contract TestAdvancedUtils is BootstrapUtil, Test {
     // singletons
@@ -31,7 +31,8 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     MockFallback fallbackHandler;
     MultipleOwnerECDSAValidator ecdsaValidator;
     ERC20SessionKeyValidator sessionKeyValidator;
-    TokenLockHook tokenLockHook;
+    CredibleAccountHook caHook;
+    CredibleAccountValidator credibleAccountValidator;
 
     ModularEtherspotWallet mewAccount;
     MockTarget target;
@@ -65,8 +66,11 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         // ERC20SessionKeyValidtor for MEW
         sessionKeyValidator = new ERC20SessionKeyValidator();
 
-        // TokenLockHook for MEW
-        tokenLockHook = new TokenLockHook();
+        // CredibleAccountHook for MEW
+        caHook = new CredibleAccountHook();
+
+        // CredibleAccountValidator for MEW
+        credibleAccountValidator = new CredibleAccountValidator();
 
         // Set up Target for testing
         target = new MockTarget();
@@ -279,7 +283,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return mewAccount;
     }
 
-    function setupMEWWithTokenLockHook()
+    function setupMEWWithCredibleAccountHook()
         internal
         returns (ModularEtherspotWallet mew)
     {
@@ -291,10 +295,53 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
             address(defaultExecutor),
             ""
         );
-        BootstrapConfig memory hook = _makeBootstrapConfig(
-            address(tokenLockHook),
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(caHook), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
             ""
         );
+
+        // Create owner
+        (owner1, owner1Key) = makeAddrAndKey("owner1");
+        vm.deal(owner1, 100 ether);
+
+        // Create initcode and salt to be sent to Factory
+        bytes memory _initCode = abi.encode(
+            owner1,
+            address(bootstrapSingleton),
+            abi.encodeCall(
+                bootstrapSingleton.initMSA,
+                (validators, executors, hook, fallbacks)
+            )
+        );
+        bytes32 salt = keccak256("1");
+
+        vm.startPrank(owner1);
+        // create account
+        mewAccount = ModularEtherspotWallet(
+            payable(factory.createAccount({salt: salt, initCode: _initCode}))
+        );
+        vm.deal(address(mewAccount), 100 ether);
+        vm.stopPrank();
+        return mewAccount;
+    }
+
+    function setupMEWWithCredibleAccountValidator()
+        public
+        returns (ModularEtherspotWallet)
+    {
+        // Create config for initial modules
+        BootstrapConfig[] memory validators = new BootstrapConfig[](2);
+        validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
+        validators[1] = _makeBootstrapConfig(
+            address(credibleAccountValidator),
+            ""
+        );
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
+        BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
         BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
             ""

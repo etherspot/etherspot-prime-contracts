@@ -5,37 +5,49 @@ import {IValidator} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl
 import {IERC7579Account} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import {PackedUserOperation} from "../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 
-/// @title TokenSessionKeyValidator Interface
+/// @title CredibleAccountValidator Interface
 /// @author Etherspot
-/// @notice This interface defines the functions and events of the TokenSessionKeyValidator contract.
-interface ITokenLockSessionKeyValidator is IValidator {
+/// @notice This interface defines the functions and events of the CredibleAccountValidator contract.
+interface ICredibleAccountValidator is IValidator {
     /// @notice Emitted when the ERC20 Session Key Validator module is installed for a wallet.
     /// @param wallet The address of the wallet for which the module is installed.
-    event TLSKV_ModuleInstalled(address wallet);
+    event CredibleAccountValidator_ModuleInstalled(address wallet);
 
     /// @notice Emitted when the ERC20 Session Key Validator module is uninstalled from a wallet.
     /// @param wallet The address of the wallet from which the module is uninstalled.
-    event TLSKV_ModuleUninstalled(address wallet);
+    event CredibleAccountValidator_ModuleUninstalled(address wallet);
 
     /// @notice Emitted when a new session key is enabled for a wallet.
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is enabled.
-    event TLSKV_SessionKeyEnabled(address sessionKey, address wallet);
+    event CredibleAccountValidator_SessionKeyEnabled(
+        address sessionKey,
+        address wallet
+    );
 
     /// @notice Emitted when a session key is disabled for a wallet.
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is disabled.
-    event TLSKV_SessionKeyDisabled(address sessionKey, address wallet);
+    event CredibleAccountValidator_SessionKeyDisabled(
+        address sessionKey,
+        address wallet
+    );
 
     /// @notice Emitted when a session key is paused for a wallet.
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is paused.
-    event TLSKV_SessionKeyPaused(address sessionKey, address wallet);
+    event CredibleAccountValidator_SessionKeyPaused(
+        address sessionKey,
+        address wallet
+    );
 
     /// @notice Emitted when a session key is unpaused for a wallet.
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is unpaused.
-    event TLSKV_SessionKeyUnpaused(address sessionKey, address wallet);
+    event CredibleAccountValidator_SessionKeyUnpaused(
+        address sessionKey,
+        address wallet
+    );
 
     /// @notice Struct representing the data associated with a session key.
     struct SessionData {
@@ -46,6 +58,13 @@ interface ITokenLockSessionKeyValidator is IValidator {
         uint48 validAfter; // The timestamp after which the session key is valid.
         uint48 validUntil; // The timestamp until which the session key is valid.
         bool live; // Flag indicating whether the session key is paused or not.
+    }
+
+    struct ExecData {
+        bytes4 selector;
+        address from;
+        address to;
+        uint256 amount;
     }
 
     /// @notice Enables a new session key for the caller's wallet.

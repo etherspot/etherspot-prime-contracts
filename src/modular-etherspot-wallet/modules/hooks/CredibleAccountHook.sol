@@ -8,10 +8,10 @@ import "../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ModularEtherspotWallet} from "../../wallet/ModularEtherspotWallet.sol";
-import {TokenLockSessionKeyValidator as TLSKV} from "../validators/TokenLockSessionKeyValidator.sol";
-import {MODE_SELECTOR_MTSKV} from "../../common/Constants.sol";
+import {CredibleAccountValidator as CAV} from "../validators/CredibleAccountValidator.sol";
+import {MODE_SELECTOR_CREDIBLE_ACCOUNT} from "../../common/Constants.sol";
 
-contract TokenLockHook is IHook {
+contract CredibleAccountHook is IHook {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
 
@@ -26,19 +26,30 @@ contract TokenLockHook is IHook {
     mapping(address => LockedToken[]) public lockedTokens;
     mapping(address => uint256) public transactionsInProgress;
 
-    error TLH_TokenIsNotLocked(address sessionKey, address token);
-    error TLH_CantUninstallWhileTransactionInProgress(address wallet);
-    error TLH_TransactionInProgress(address wallet, address token);
-    error TLH_InvalidCallType(CallType callType);
-    error TLH_UnsuccessfulUnlock();
-    error TLH_UnsuccessfulLock();
-    error TLH_InsufficientUnlockedBalance(address token);
-    error TLH_CannotEnableSessionKeyWithoutModeSelector();
-    error TLH_SessionKeyAlreadyExists(address wallet, address sessionKey);
+    error CredibleAccountHook_TokenIsNotLocked(
+        address sessionKey,
+        address token
+    );
+    error CredibleAccountHook_CantUninstallWhileTransactionInProgress(
+        address wallet
+    );
+    error CredibleAccountHook_TransactionInProgress(
+        address wallet,
+        address token
+    );
+    error CredibleAccountHook_InvalidCallType(CallType callType);
+    error CredibleAccountHook_UnsuccessfulUnlock();
+    error CredibleAccountHook_UnsuccessfulLock();
+    error CredibleAccountHook_InsufficientUnlockedBalance(address token);
+    error CredibleAccountHook_CannotEnableSessionKeyWithoutModeSelector();
+    error CredibleAccountHook_SessionKeyAlreadyExists(
+        address wallet,
+        address sessionKey
+    );
 
-    event TLH_ModuleInstalled(address indexed wallet);
-    event TLH_ModuleUninstalled(address indexed wallet);
-    event TLH_TokenLocked(
+    event CredibleAccountHook_ModuleInstalled(address indexed wallet);
+    event CredibleAccountHook_ModuleUninstalled(address indexed wallet);
+    event CredibleAccountHook_TokenLocked(
         address indexed wallet,
         address indexed sessionKey,
         address indexed token,
@@ -76,14 +87,14 @@ contract TokenLockHook is IHook {
             ModeSelector modeSelector,
             ModePayload modePayload
         ) = mode.decode();
-        if (eqModeSelector(modeSelector, MODE_SELECTOR_MTSKV)) {
+        if (eqModeSelector(modeSelector, MODE_SELECTOR_CREDIBLE_ACCOUNT)) {
             _manageLockState(callType, modePayload, msgData[100:]);
         } else {
             if (!_checkForUninstallHook(callType, msgData[100:])) {
                 return _checkLockedTokens(callType, msgData[100:]);
             } else {
                 if (isTransactionInProgress(msg.sender))
-                    revert TLH_CantUninstallWhileTransactionInProgress(
+                    revert CredibleAccountHook_CantUninstallWhileTransactionInProgress(
                         msg.sender
                     );
                 return "";
@@ -95,16 +106,18 @@ contract TokenLockHook is IHook {
 
     function onInstall(bytes calldata data) external override {
         installed[msg.sender] = true;
-        emit TLH_ModuleInstalled(msg.sender);
+        emit CredibleAccountHook_ModuleInstalled(msg.sender);
     }
 
     function onUninstall(bytes calldata data) external override {
         if (transactionsInProgress[msg.sender] > 0)
-            revert TLH_CantUninstallWhileTransactionInProgress(msg.sender);
+            revert CredibleAccountHook_CantUninstallWhileTransactionInProgress(
+                msg.sender
+            );
         installed[msg.sender] = false;
         delete lockedTokens[msg.sender];
         delete transactionsInProgress[msg.sender];
-        emit TLH_ModuleUninstalled(msg.sender);
+        emit CredibleAccountHook_ModuleUninstalled(msg.sender);
     }
 
     function isInitialized(
@@ -146,7 +159,7 @@ contract TokenLockHook is IHook {
             if (!_checkExecution(selector, receiver, txAmount, target))
                 return "";
         } else {
-            revert TLH_InvalidCallType(_callType);
+            revert CredibleAccountHook_InvalidCallType(_callType);
         }
         return "";
     }
@@ -157,13 +170,13 @@ contract TokenLockHook is IHook {
         uint256 txAmount,
         address target
     ) private view returns (bool) {
-        if (selector == TLSKV.enableSessionKey.selector) {
-            revert TLH_CannotEnableSessionKeyWithoutModeSelector();
+        if (selector == CAV.enableSessionKey.selector) {
+            revert CredibleAccountHook_CannotEnableSessionKeyWithoutModeSelector();
         }
         if (receiver == address(0)) return false;
         if (isTokenLocked(msg.sender, target)) {
             if (!_isBalanceSufficient(target, txAmount)) {
-                revert TLH_InsufficientUnlockedBalance(target);
+                revert CredibleAccountHook_InsufficientUnlockedBalance(target);
             }
         }
         return true;
@@ -218,10 +231,10 @@ contract TokenLockHook is IHook {
         );
         if (sessionKey != address(0)) {
             if (!_tryUnlock(_callType, sessionKey, _executionData))
-                revert TLH_UnsuccessfulUnlock();
+                revert CredibleAccountHook_UnsuccessfulUnlock();
         } else {
             if (!_tryLock(_callType, _executionData))
-                revert TLH_UnsuccessfulLock();
+                revert CredibleAccountHook_UnsuccessfulLock();
         }
     }
 
@@ -324,7 +337,7 @@ contract TokenLockHook is IHook {
     }
 
     function _lockTokens(bytes calldata _data) internal returns (bool) {
-        if (bytes4(_data[:4]) != TLSKV.enableSessionKey.selector) return false;
+        if (bytes4(_data[:4]) != CAV.enableSessionKey.selector) return false;
         address sessionKey = address(bytes20(_data[68:88]));
         address solver = address(bytes20(_data[88:108]));
         uint256 tokenLen = uint256(bytes32(_data[124:156]));
@@ -332,7 +345,10 @@ contract TokenLockHook is IHook {
         uint256 userLocksLength = userLocks.length;
         for (uint256 i; i < userLocksLength; ) {
             if (userLocks[i].sessionKey == sessionKey)
-                revert TLH_SessionKeyAlreadyExists(msg.sender, sessionKey);
+                revert CredibleAccountHook_SessionKeyAlreadyExists(
+                    msg.sender,
+                    sessionKey
+                );
             unchecked {
                 ++i;
             }
@@ -358,7 +374,12 @@ contract TokenLockHook is IHook {
                 token: token,
                 amount: amount
             });
-            emit TLH_TokenLocked(msg.sender, sessionKey, token, amount);
+            emit CredibleAccountHook_TokenLocked(
+                msg.sender,
+                sessionKey,
+                token,
+                amount
+            );
             userLocks.push(lock);
             unchecked {
                 ++transactionsInProgress[msg.sender];

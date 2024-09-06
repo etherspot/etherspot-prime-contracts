@@ -5,18 +5,16 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 import {ModularEtherspotWallet} from "../../../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
-import {TokenLockHook} from "../../../../../src/modular-etherspot-wallet/modules/hooks/TokenLockHook.sol";
-import {TokenLockHookHarness} from "../../../harnesses/TokenLockHookHarness.sol";
-import {MockTokenLockValidator} from "../../../../../src/modular-etherspot-wallet/test/mocks/MockTokenLockValidator.sol";
+import {CredibleAccountHookHarness} from "../../../harnesses/CredibleAccountHookHarness.sol";
+import {CredibleAccountValidator} from "../../../../../src/modular-etherspot-wallet/modules/validators/CredibleAccountValidator.sol";
 import {TestERC20} from "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 import {PackedUserOperation} from "../../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
-import {CALLTYPE_SINGLE} from "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
 import "../../../TestAdvancedUtils.t.sol";
 import "../../../../../src/modular-etherspot-wallet/utils/ERC4337Utils.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract TokenLockHookTestUtils is TestAdvancedUtils {
+contract CredibleAccountHookTestUtils is TestAdvancedUtils {
     using ERC4337Utils for IEntryPoint;
     using ECDSA for bytes32;
 
@@ -26,8 +24,8 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
 
     // Contract instances
     ModularEtherspotWallet internal mew;
-    TokenLockHookHarness internal harness;
-    MockTokenLockValidator internal validator;
+    CredibleAccountHookHarness internal harness;
+    CredibleAccountValidator internal caValidator;
     TestERC20 internal token1;
     TestERC20 internal token2;
 
@@ -66,9 +64,9 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
 
     function _testSetup() internal {
         // Set up contracts and wallet
-        mew = setupMEWWithTokenLockHook();
-        harness = new TokenLockHookHarness();
-        validator = new MockTokenLockValidator();
+        mew = setupMEWWithCredibleAccountHook();
+        harness = new CredibleAccountHookHarness();
+        caValidator = new CredibleAccountValidator();
         token1 = new TestERC20();
         token2 = new TestERC20();
         // Set up test addresses and keys
@@ -86,11 +84,11 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
         token1.approve(address(mew), 1 ether);
         token2.mint(address(mew), 2 ether);
         token2.approve(address(mew), 2 ether);
-        // Install mock TokenLockSessionKeyValidator
-        _installMockValidator();
+        // Install CredibleAccountValidator
+        _installCredibleAccountValidator();
     }
 
-    function _installMockValidator() internal {
+    function _installCredibleAccountValidator() internal {
         defaultExecutor.executeViaAccount(
             IERC7579Account(mew),
             address(mew),
@@ -98,7 +96,7 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
             abi.encodeWithSelector(
                 ModularEtherspotWallet.installModule.selector,
                 uint256(1),
-                address(validator),
+                address(caValidator),
                 ""
             )
         );
@@ -114,9 +112,7 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
                     ExecType.wrap(0x00),
                     bytes4(0),
                     ModeSelector.wrap(
-                        bytes4(
-                            keccak256("etherspot.multitokensessionkeyvalidator")
-                        )
+                        bytes4(keccak256("etherspot.credibleaccount.action"))
                     ),
                     bytes22(0)
                 )
@@ -136,9 +132,7 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
                     ExecType.wrap(0x00),
                     bytes4(0),
                     ModeSelector.wrap(
-                        bytes4(
-                            keccak256("etherspot.multitokensessionkeyvalidator")
-                        )
+                        bytes4(keccak256("etherspot.credibleaccount.action"))
                     ),
                     ModePayload.wrap(bytes22(abi.encodePacked(_sessionKey)))
                 )
@@ -162,6 +156,18 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
             );
     }
 
+    function _createTokenTransferExecution(
+        address _recipient,
+        uint256 _amount
+    ) internal pure returns (bytes memory) {
+        return
+            abi.encodeWithSelector(
+                IERC20.transfer.selector,
+                _recipient,
+                _amount
+            );
+    }
+
     function _enableSessionKeyUserOp(
         address _wallet,
         ModeCode _mode,
@@ -170,13 +176,16 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
     ) internal view returns (bytes32, PackedUserOperation[] memory) {
         // Set up calldata
         bytes memory callData = abi.encodeWithSelector(
-            validator.enableSessionKey.selector,
+            caValidator.enableSessionKey.selector,
             _sessionData
         );
         // Set up UserOperation
         bytes memory userOpCalldata = abi.encodeCall(
             IERC7579Account.execute,
-            (_mode, ExecutionLib.encodeSingle(address(validator), 0, callData))
+            (
+                _mode,
+                ExecutionLib.encodeSingle(address(caValidator), 0, callData)
+            )
         );
         PackedUserOperation memory userOp = entrypoint.fillUserOp(
             _wallet,
@@ -197,13 +206,14 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
     function _createUserOperation(
         address _account,
         bytes memory _callData,
+        address _validator,
         uint256 _signerKey
     ) internal view returns (bytes32, PackedUserOperation memory) {
         PackedUserOperation memory userOp = entrypoint.fillUserOp(
             _account,
             _callData
         );
-        userOp.nonce = getNonce(_account, address(ecdsaValidator));
+        userOp.nonce = getNonce(_account, address(_validator));
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             _signerKey,
@@ -226,7 +236,7 @@ contract TokenLockHookTestUtils is TestAdvancedUtils {
         bool _expectedLockStatus
     ) internal {
         assertEq(
-            tokenLockHook.isTokenLocked(address(mew), _token),
+            caHook.isTokenLocked(address(mew), _token),
             _expectedLockStatus,
             "Unexpected token lock status"
         );
