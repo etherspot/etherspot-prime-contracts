@@ -10,6 +10,7 @@ gas_reports = [
   "MultipleOwnerECDSAValidator",
   "ERC20SessionKeyValidator",
   "ModuleIsolationHook",
+  "TokenLockHook",
 ]
 
 
