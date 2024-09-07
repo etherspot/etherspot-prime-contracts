@@ -371,4 +371,15 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         vm.stopPrank();
         return mewAccount;
     }
+
+    function getDummyMerkelRootAndProof() public pure returns (bytes32, bytes32[] memory) {
+        // Generate a dummy Merkle root of type bytes32
+        bytes32 merkelRoot = bytes32("0x1234567890abcdef");
+
+        // Generate a dummy Merkle proof of type bytes32[] with length 1
+        bytes32[] memory merkelProof = new bytes32[](1);
+        merkelProof[0] = bytes32("0x1234567890abcdef");
+
+        return (merkelRoot, merkelProof);
+    }
 }

@@ -806,11 +806,9 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         );
         userOp.nonce = getNonce(address(mew), address(caValidator));
         bytes32 hash = entrypoint.getUserOpHash(userOp);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            sessionKeyPrivateKey,
-            ECDSA.toEthSignedMessageHash(hash)
-        );
-        userOp.signature = abi.encodePacked(r, s, v);
+
+        userOp.signature = _generateUserOpSignatureWithMerkelProof(userOp, sessionKeyPrivateKey);
+
         userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         // Execute the user operation
@@ -870,11 +868,9 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         );
         userOp.nonce = getNonce(address(mew), address(caValidator));
         bytes32 hash = entrypoint.getUserOpHash(userOp);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            sessionKeyPrivateKey,
-            ECDSA.toEthSignedMessageHash(hash)
-        );
-        userOp.signature = abi.encodePacked(r, s, v);
+        
+        userOp.signature = _generateUserOpSignatureWithMerkelProof(userOp, sessionKeyPrivateKey);
+
         userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         // Expect the CredibleAccountHook_UnsuccessfulUnlock error to be emitted

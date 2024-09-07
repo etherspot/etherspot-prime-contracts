@@ -11,7 +11,6 @@ import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ICredibleAccountValidator} from "../../interfaces/ICredibleAccountValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
-import "forge-std/console.sol";
 
 contract CredibleAccountValidator is ICredibleAccountValidator {
     using ModeLib for ModeCode;
@@ -213,15 +212,27 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         return sessionData[_sessionKey][msg.sender];
     }
 
-    // @inheritdoc ICredibleAccountValidator
+    /**
+     * @notice Validates a user operation.
+     * @dev This function checks the length of the signature and extracts the necessary components.
+     *      The signature must be at least 129 bytes long to include the following:
+     *      - 32 bytes for `r`
+     *      - 32 bytes for `s`
+     *      - 1 byte for `v` (padded to 32 bytes)
+     *      - 32 bytes for `merkleRoot`
+     *      - 32 bytes for at least one entry in the `merkleProof`
+     * @param userOp The packed user operation containing the signature and other data.
+     * @param userOpHash The hash of the user operation.
+     * @return A status code indicating the result of the validation.
+     */
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        // Ensure the extended signature length is valid
-        require(userOp.signature.length >= 97, "Invalid extended signature length");
-
-        // Extract r, s, v from the extended signature
+        if (userOp.signature.length < 129) {
+            return VALIDATION_FAILED;
+        }
+   
         bytes32 r;
         bytes32 s;
         uint8 v;
@@ -236,10 +247,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             merkleRoot := mload(add(signature, 0x80))
         }
 
-        bytes memory rebuiltSignature = abi.encode(r, s, v);
-
-        console.log("rebuiltSignature is: ");
-        console.logBytes(rebuiltSignature);
+        bytes memory rebuiltSignature = abi.encodePacked(r, s, v);
 
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
@@ -252,20 +260,41 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
         // Calculate the length of the Merkle proof
         // r (32 bytes) + s (32 bytes) + v (32 bytes, padded) + merkleRoot (32 bytes) = 128 bytes (0x80 in hexadecimal).
-        uint256 proofLength = (signature.length - 0x80) / 0x20;
+        uint256 proofLength = (signature.length - 97) / 32;
+
+        if(proofLength == 0) {
+           return VALIDATION_FAILED;
+        }
+
         merkleProof = new bytes32[](proofLength);
 
         assembly {
-            // 160 byte offset (32 byte r, 32 byte s, 32 byte v (padded), 32 byte merkleRoot, 32 byte proofLength)
-            let proofStart := add(signature, 0xa0) 
+            // 160 byte offset (32 byte r, 32 byte s, 1 byte v, 32 byte merkleRoot)
+            let proofStart := add(signature, 0x61) 
             for { let i := 0 } lt(i, proofLength) { i := add(i, 1) } {
                 mstore(add(merkleProof, add(0x20, mul(i, 0x20))), mload(add(proofStart, mul(i, 0x20))))
             }
         }
 
+        // Validate the Merkle proof (userOpHash is considered the leaf)
+        // this is only stub method and to be replaced with actual Merkle proof validation logic
+        if (!validateProof(merkleProof, merkleRoot, userOpHash)) {
+            return VALIDATION_FAILED;
+        }
+
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
 
         return _packValidationData(false, sd.validUntil, sd.validAfter);
+    }
+
+    // Stub method to validate Merkle proof
+    function validateProof(
+        bytes32[] memory proof,
+        bytes32 root,
+        bytes32 leaf
+    ) public pure returns (bool) {
+        // Placeholder for actual Merkle proof validation logic
+        return true;
     }
 
     // @inheritdoc ICredibleAccountValidator
