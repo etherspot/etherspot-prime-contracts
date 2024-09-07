@@ -178,6 +178,25 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         assertEq(sessionData.amounts.length, 0);
     }
 
+    // function _createUserOperation(
+    //     address _account,
+    //     bytes memory _callData,
+    //     uint256 _signerKey
+    // ) internal view returns (bytes32, PackedUserOperation memory) {
+    //     PackedUserOperation memory userOp = entrypoint.fillUserOp(
+    //         _account,
+    //         _callData
+    //     );
+    //     userOp.nonce = getNonce(_account, address(credibleAccountValidator));
+    //     bytes32 hash = entrypoint.getUserOpHash(userOp);
+    //     (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+    //         _signerKey,
+    //         ECDSA.toEthSignedMessageHash(hash)
+    //     );
+    //     userOp.signature = abi.encodePacked(r, s, v);
+    //     return (hash, userOp);
+    // }
+
     function _createUserOperation(
         address _account,
         bytes memory _callData,
@@ -193,7 +212,15 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
             _signerKey,
             ECDSA.toEthSignedMessageHash(hash)
         );
-        userOp.signature = abi.encodePacked(r, s, v);
+        
+        // generate a dummy merkelRoot of type bytes32
+        bytes32 merkelRoot = bytes32("0x1234567890abcdef");
+        // generate a dummy merkelProof of type bytes32[] with length 1
+        bytes32[] memory merkelProof = new bytes32[](1);
+        merkelProof[0] = bytes32("0x1234567890abcdef");
+        // append r, s, v of signature followed by merkelRoot and merkelProof to the signature
+        userOp.signature = abi.encode(r, s, v, merkelRoot, merkelProof);
+
         return (hash, userOp);
     }
 

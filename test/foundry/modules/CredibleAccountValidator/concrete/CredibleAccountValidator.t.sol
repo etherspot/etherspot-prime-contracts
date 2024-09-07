@@ -235,7 +235,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     }
 
     // Test: Verify that a user operation can be validated
-    function test_validateUserOp() public {
+    function test_CA_validateUserOp() public {
         // Set up the test environment and enable a session key
         _testSetup();
         (

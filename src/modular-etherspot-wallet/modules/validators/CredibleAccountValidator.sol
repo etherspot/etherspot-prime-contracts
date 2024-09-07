@@ -11,6 +11,7 @@ import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ICredibleAccountValidator} from "../../interfaces/ICredibleAccountValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
+import "forge-std/console.sol";
 
 contract CredibleAccountValidator is ICredibleAccountValidator {
     using ModeLib for ModeCode;
@@ -217,12 +218,49 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
+        // Ensure the extended signature length is valid
+        require(userOp.signature.length >= 97, "Invalid extended signature length");
+
+        // Extract r, s, v from the extended signature
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        bytes32 merkleRoot;
+        bytes32[] memory merkleProof;
+        bytes memory signature = userOp.signature;
+
+        assembly {
+            r := mload(add(signature, 0x20))
+            s := mload(add(signature, 0x40))
+            v := byte(0, mload(add(signature, 0x60)))
+            merkleRoot := mload(add(signature, 0x80))
+        }
+
+        bytes memory rebuiltSignature = abi.encode(r, s, v);
+
+        console.log("rebuiltSignature is: ");
+        console.logBytes(rebuiltSignature);
+
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
-            userOp.signature
+            rebuiltSignature
         );
+
         if (!validateSessionKeyParams(sessionKeySigner, userOp)) {
             return VALIDATION_FAILED;
+        }
+
+        // Calculate the length of the Merkle proof
+        // r (32 bytes) + s (32 bytes) + v (32 bytes, padded) + merkleRoot (32 bytes) = 128 bytes (0x80 in hexadecimal).
+        uint256 proofLength = (signature.length - 0x80) / 0x20;
+        merkleProof = new bytes32[](proofLength);
+
+        assembly {
+            // 160 byte offset (32 byte r, 32 byte s, 32 byte v (padded), 32 byte merkleRoot, 32 byte proofLength)
+            let proofStart := add(signature, 0xa0) 
+            for { let i := 0 } lt(i, proofLength) { i := add(i, 1) } {
+                mstore(add(merkleProof, add(0x20, mul(i, 0x20))), mload(add(proofStart, mul(i, 0x20))))
+            }
         }
 
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
