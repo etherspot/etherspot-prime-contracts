@@ -235,7 +235,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     }
 
     // Test: Verify that a user operation can be validated
-    function test_validateUserOp() public {
+    function test_CA_validateUserOp() public {
         // Set up the test environment and enable a session key
         _testSetup();
         (
@@ -255,6 +255,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
                 ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
             )
         );
+
         (
             bytes32 hash,
             PackedUserOperation memory userOp
@@ -375,5 +376,122 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             amounts[0],
             "Alice's balance should match the transferred amount"
         );
+    }
+
+    function test_exposed_validateSingleCall() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[0]
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+
+        bool isValid = credibleAccountValidatorHarness.exposed_validateSingleCall(
+            userOpCalldata,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertTrue(isValid, "validate single-call should be valid");
+    }
+
+    function test_exposed_validateBatchCall() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+
+        // Prepare user operation data
+        bytes memory data_usdc = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[0]
+        );
+
+        bytes memory data_dai = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[1]
+        );
+
+        bytes memory data_uni = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[2]
+        );
+
+        // Create the executions
+        Execution[] memory executions = new Execution[](3);
+
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: data_usdc
+        });
+        executions[1] = Execution({
+            target: address(dai),
+            value: 0,
+            callData: data_dai
+        });
+
+        executions[2] = Execution({
+            target: address(uni),
+            value: 0,
+            callData: data_uni
+        });
+
+        // Encode the call into the calldata for the userOp
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+
+        bool isValid = credibleAccountValidatorHarness.exposed_validateBatchCall(
+            userOpCalldata,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertTrue(isValid, "validate batch-call should be valid");
+    }
+
+    function test_exposed_validateTokenData() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+
+        address[] memory tokens_data = new address[](3);
+        tokens_data[0] = address(usdc);
+        tokens_data[1] = address(dai);
+        tokens_data[2] = address(uni);
+
+        bool isValid = credibleAccountValidatorHarness.exposed_validateTokenData(
+            tokens_data,
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(mew),
+            amounts[0],
+            address(usdc)
+        );
+
+        assertTrue(isValid, "validate token-data should be valid");
     }
 }

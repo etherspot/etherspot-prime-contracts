@@ -246,11 +246,9 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             merkleRoot := mload(add(signature, 0x80))
         }
 
-        bytes memory rebuiltSignature = abi.encodePacked(r, s, v);
-
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
-            rebuiltSignature
+            abi.encodePacked(r, s, v)
         );
 
         if (!validateSessionKeyParams(sessionKeySigner, userOp)) {

@@ -6,6 +6,7 @@ pragma solidity 0.8.23;
 import "forge-std/Test.sol";
 import {ModularEtherspotWallet} from "../../../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {ICredibleAccountValidator} from "../../../../../src/modular-etherspot-wallet/interfaces/ICredibleAccountValidator.sol";
+import {CredibleAccountValidatorHarness} from "../../../harnesses/CredibleAccountValidatorHarness.sol";
 import {TestERC20} from "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import {TestUSDC} from "../../../../../src/modular-etherspot-wallet/test/TestUSDC.sol";
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
@@ -25,6 +26,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
 
     // Contract instances
     ModularEtherspotWallet internal mew;
+    CredibleAccountValidatorHarness internal credibleAccountValidatorHarness;
     TestERC20 internal dai;
     TestERC20 internal uni;
     TestUSDC internal usdc;
@@ -65,6 +67,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     function _testSetup() internal {
         // Set up contracts and wallet
         mew = setupMEWWithCredibleAccountValidator();
+        credibleAccountValidatorHarness = new CredibleAccountValidatorHarness();
         dai = new TestERC20();
         uni = new TestERC20();
         usdc = new TestUSDC();
@@ -127,18 +130,19 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         ModularEtherspotWallet _modularWallet,
         bytes4 _functionSelector
     ) public returns (address, ICredibleAccountValidator.SessionData memory) {
+        
         usdc.mint(address(_modularWallet), amounts[0]);
         assertEq(usdc.balanceOf(address(_modularWallet)), amounts[0]);
-        usdc.approve(address(alice), amounts[0]);
         usdc.approve(address(_modularWallet), amounts[0]);
 
         dai.mint(address(_modularWallet), amounts[1]);
         assertEq(dai.balanceOf(address(_modularWallet)), amounts[1]);
-        dai.approve(address(alice), amounts[1]);
+        dai.approve(address(_modularWallet), amounts[1]);
 
         uni.mint(address(_modularWallet), amounts[2]);
         assertEq(uni.balanceOf(address(_modularWallet)), amounts[2]);
-        uni.approve(address(alice), amounts[2]);
+        uni.approve(address(_modularWallet), amounts[2]);
+
         // Enable session
         bytes memory sessionData = _getDefaultSessionData(_functionSelector);
         credibleAccountValidator.enableSessionKey(sessionData);
