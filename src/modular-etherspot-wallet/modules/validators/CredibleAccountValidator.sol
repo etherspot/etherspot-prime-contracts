@@ -257,7 +257,6 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             return VALIDATION_FAILED;
         }
 
-        // Calculate the length of the Merkle proof
         // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
         uint256 proofLength = (signature.length - 97) / 32;
 
@@ -268,7 +267,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         bytes32[] memory merkleProof = new bytes32[](proofLength);
 
         assembly {
-            // 160 byte offset (32 byte r, 32 byte s, 1 byte v, 32 byte merkleRoot)
+            // 97 byte offset (32 byte r, 32 byte s, 1 byte v, 32 byte merkleRoot)
             let proofStart := add(signature, 0x61) 
             for { let i := 0 } lt(i, proofLength) { i := add(i, 1) } {
                 mstore(add(merkleProof, add(0x20, mul(i, 0x20))), mload(add(proofStart, mul(i, 0x20))))
@@ -395,6 +394,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         return true;
     }
 
+    /**
+     * @notice check if the tokenAddress in calldata of userOp is part of the session data and wallet has sufficient token balance
+     * @dev locked tokenBalance check is done in the CredibleAccountHook
+     * @dev for `transfer` as function-selector, then check for the wallet balance
+     * @dev for `transferFrom` as function-selector, then check for the wallet balance and allowance
+     */
     function _validateTokenData(
         address[] memory tokens,
         bytes4 selector,
@@ -403,11 +408,16 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         uint256 amount,
         address token
     ) internal view returns (bool) {
-        (bool tokenFound, ) = _findTokenIndex(tokens, token);
+        bool tokenFound = false;
+        for (uint256 i = 0; i < tokens.length; i++) {
+            if (tokens[i] == token) {
+                tokenFound = true;
+                break;
+            }
+        }
 
         if (!tokenFound) return false;
 
-        // Validate if wallet has sufficient balance
         if (selector == IERC20.transfer.selector) {
             if (IERC20(token).balanceOf(userOpSender) < amount) {
                 return false;
@@ -422,18 +432,6 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         }
 
         return true;
-    }
-
-    function _findTokenIndex(
-        address[] memory tokens,
-        address target
-    ) internal pure returns (bool, uint256) {
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (tokens[i] == target) {
-                return (true, i);
-            }
-        }
-        return (false, 0);
     }
 
     function _digest(
