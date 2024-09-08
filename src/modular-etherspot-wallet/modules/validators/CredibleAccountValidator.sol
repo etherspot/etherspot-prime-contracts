@@ -218,7 +218,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
      *      The signature must be at least 129 bytes long to include the following:
      *      - 32 bytes for `r`
      *      - 32 bytes for `s`
-     *      - 1 byte for `v` (padded to 32 bytes)
+     *      - 1 byte for `v`
      *      - 32 bytes for `merkleRoot`
      *      - 32 bytes for at least one entry in the `merkleProof`
      * @param userOp The packed user operation containing the signature and other data.
@@ -237,7 +237,6 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         bytes32 s;
         uint8 v;
         bytes32 merkleRoot;
-        bytes32[] memory merkleProof;
         bytes memory signature = userOp.signature;
 
         assembly {
@@ -259,14 +258,14 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         }
 
         // Calculate the length of the Merkle proof
-        // r (32 bytes) + s (32 bytes) + v (32 bytes, padded) + merkleRoot (32 bytes) = 128 bytes (0x80 in hexadecimal).
+        // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
         uint256 proofLength = (signature.length - 97) / 32;
 
         if(proofLength == 0) {
            return VALIDATION_FAILED;
         }
 
-        merkleProof = new bytes32[](proofLength);
+        bytes32[] memory merkleProof = new bytes32[](proofLength);
 
         assembly {
             // 160 byte offset (32 byte r, 32 byte s, 1 byte v, 32 byte merkleRoot)
