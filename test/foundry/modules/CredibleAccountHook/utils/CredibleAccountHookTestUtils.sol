@@ -221,9 +221,9 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
         );
 
         if(_validator == address(caValidator)) {
-            (bytes32 merkelRoot, bytes32[] memory merkelProof) = getDummyMerkelRootAndProof();
-            // append r, s, v of signature followed by merkelRoot and merkelProof to the signature
-            userOp.signature = abi.encodePacked(r, s, v, merkelRoot, merkelProof);
+            (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
+            // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
+            userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
         } else {
             userOp.signature = abi.encodePacked(r, s, v);
         }
@@ -231,17 +231,17 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
         return (hash, userOp);
     }
 
-    function _generateUserOpSignatureWithMerkelProof(PackedUserOperation memory userOp, uint256 signerKey) internal view returns (bytes memory) {
+    function _generateUserOpSignatureWithMerkleProof(PackedUserOperation memory userOp, uint256 signerKey) internal view returns (bytes memory) {
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             signerKey,
             ECDSA.toEthSignedMessageHash(hash)
         );
         
-        (bytes32 merkelRoot, bytes32[] memory merkelProof) = getDummyMerkelRootAndProof();
+        (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
 
-        // append r, s, v of signature followed by merkelRoot and merkelProof to the signature
-        return abi.encodePacked(r, s, v, merkelRoot, merkelProof);
+        // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
+        return abi.encodePacked(r, s, v, merkleRoot, merkleProof);
     }
 
     function _executeUserOperation(

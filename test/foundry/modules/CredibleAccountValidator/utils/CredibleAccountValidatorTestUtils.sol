@@ -194,13 +194,38 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
             ECDSA.toEthSignedMessageHash(hash)
         );
         
-        (bytes32 merkelRoot, bytes32[] memory merkelProof) = getDummyMerkelRootAndProof();
+        (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
 
-        // append r, s, v of signature followed by merkelRoot and merkelProof to the signature
-        userOp.signature = abi.encodePacked(r, s, v, merkelRoot, merkelProof);
+        // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
+        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
 
         return (hash, userOp);
     }
+
+    function _createUserOperationWithInvalidMessageProof(
+        address _account,
+        bytes memory _callData,
+        uint256 _signerKey
+    ) internal view returns (bytes32, PackedUserOperation memory) {
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            _account,
+            _callData
+        );
+        userOp.nonce = getNonce(_account, address(credibleAccountValidator));
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            _signerKey,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        
+        (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
+
+        // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
+        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+
+        return (hash, userOp);
+    }
+
 
     function _executeUserOperation(
         PackedUserOperation memory _userOp

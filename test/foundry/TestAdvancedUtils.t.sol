@@ -372,14 +372,36 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return mewAccount;
     }
 
-    function getDummyMerkelRootAndProof() public pure returns (bytes32, bytes32[] memory) {
+    function getDummyMerkleRootAndProof() public pure returns (bytes32, bytes32[] memory) {
         // Generate a dummy Merkle root of type bytes32
-        bytes32 merkelRoot = bytes32("0x1234567890abcdef");
+        bytes32 merkleRoot = bytes32("0x1234567890abcdef");
 
         // Generate a dummy Merkle proof of type bytes32[] with length 1
-        bytes32[] memory merkelProof = new bytes32[](1);
-        merkelProof[0] = bytes32("0x1234567890abcdef");
+        bytes32[] memory merkleProof = new bytes32[](1);
+        merkleProof[0] = bytes32("0x1234567890abcdef");
 
-        return (merkelRoot, merkelProof);
+        return (merkleRoot, merkleProof);
+    }
+
+    function getDummyMerkleRootAndInvalidProof() public pure returns (bytes32, bytes32[] memory) {
+        // Generate a dummy Merkle root of type bytes32
+        bytes32 merkleRoot = bytes32("0x1234567890abcdef");
+
+        // Generate a dummy Merkle proof of type bytes32[] with length 1
+        bytes32[] memory merkleProof = new bytes32[](0);
+
+        return (merkleRoot, merkleProof);
+    }
+
+    function getDummyInvalidMerkleRootAndProof() public pure returns (bytes32, bytes32[] memory) {
+        // Generate a dummy Merkle root of type bytes32
+        bytes32 merkleRoot = bytes32(0);
+
+        // Generate a dummy Merkle proof of type bytes32[] with length 1
+        bytes32[] memory merkleProof = new bytes32[](1);
+        merkleProof[0] = bytes32("0x1234567890abcdef");
+
+        return (merkleRoot, merkleProof);
+
     }
 }

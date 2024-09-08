@@ -807,7 +807,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         userOp.nonce = getNonce(address(mew), address(caValidator));
         bytes32 hash = entrypoint.getUserOpHash(userOp);
 
-        userOp.signature = _generateUserOpSignatureWithMerkelProof(userOp, sessionKeyPrivateKey);
+        userOp.signature = _generateUserOpSignatureWithMerkleProof(userOp, sessionKeyPrivateKey);
 
         userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
@@ -869,7 +869,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         userOp.nonce = getNonce(address(mew), address(caValidator));
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         
-        userOp.signature = _generateUserOpSignatureWithMerkelProof(userOp, sessionKeyPrivateKey);
+        userOp.signature = _generateUserOpSignatureWithMerkleProof(userOp, sessionKeyPrivateKey);
 
         userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
