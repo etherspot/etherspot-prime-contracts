@@ -30,6 +30,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     TestERC20 internal dai;
     TestERC20 internal uni;
     TestUSDC internal usdc;
+    TestERC20 internal aave;
 
     // Test addresses and keys
     address internal alice;
@@ -71,6 +72,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         dai = new TestERC20();
         uni = new TestERC20();
         usdc = new TestUSDC();
+        aave = new TestERC20();
         // Set up test addresses and keys
         (alice, aliceKey) = makeAddrAndKey("alice");
         (sessionKey, sessionKeyPrivateKey) = makeAddrAndKey("sessionKey");
@@ -130,7 +132,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         ModularEtherspotWallet _modularWallet,
         bytes4 _functionSelector
     ) public returns (address, ICredibleAccountValidator.SessionData memory) {
-        
+
         usdc.mint(address(_modularWallet), amounts[0]);
         assertEq(usdc.balanceOf(address(_modularWallet)), amounts[0]);
         usdc.approve(address(_modularWallet), amounts[0]);

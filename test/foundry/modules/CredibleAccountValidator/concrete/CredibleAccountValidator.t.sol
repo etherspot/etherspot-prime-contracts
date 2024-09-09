@@ -406,6 +406,22 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         );
 
         assertTrue(isValid, "validate single-call should be valid");
+
+        userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(aave), uint256(0), data)
+            )
+        );
+
+        isValid = credibleAccountValidatorHarness.exposed_validateSingleCall(
+            userOpCalldata,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertFalse(isValid, "validate single-call should be in-valid");
     }
 
     function test_exposed_validateBatchCall() public {
@@ -416,12 +432,19 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             ICredibleAccountValidator.SessionData memory sessionDataStruct
         ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
 
-        // Prepare user operation data
+        Execution[] memory executions = new Execution[](3);
+
         bytes memory data_usdc = _createTokenTransferFromExecution(
             address(mew),
             address(alice),
             amounts[0]
         );
+
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: data_usdc
+        });
 
         bytes memory data_dai = _createTokenTransferFromExecution(
             address(mew),
@@ -429,25 +452,17 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             amounts[1]
         );
 
-        bytes memory data_uni = _createTokenTransferFromExecution(
-            address(mew),
-            address(alice),
-            amounts[2]
-        );
-
-        // Create the executions
-        Execution[] memory executions = new Execution[](3);
-
-        executions[0] = Execution({
-            target: address(usdc),
-            value: 0,
-            callData: data_usdc
-        });
         executions[1] = Execution({
             target: address(dai),
             value: 0,
             callData: data_dai
         });
+
+        bytes memory data_uni = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[2]
+        );
 
         executions[2] = Execution({
             target: address(uni),
@@ -468,6 +483,32 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         );
 
         assertTrue(isValid, "validate batch-call should be valid");
+
+        bytes memory data_aave = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[2]
+        );
+    
+        executions[2] = Execution({
+            target: address(aave),
+            value: 0,
+            callData: data_aave
+        });
+
+        // Encode the call into the calldata for the userOp
+        userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+
+        isValid = credibleAccountValidatorHarness.exposed_validateBatchCall(
+            userOpCalldata,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertFalse(isValid, "validate batch-call should be in-valid");
     }
 
     function test_exposed_validateTokenData() public {
@@ -493,5 +534,16 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         );
 
         assertTrue(isValid, "validate token-data should be valid");
+
+        isValid = credibleAccountValidatorHarness.exposed_validateTokenData(
+            tokens_data,
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(mew),
+            amounts[0],
+            address(aave)
+        );
+
+        assertFalse(isValid, "validate token-data should be in-valid");
     }
 }
