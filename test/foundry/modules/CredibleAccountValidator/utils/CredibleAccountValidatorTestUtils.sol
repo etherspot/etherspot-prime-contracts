@@ -184,11 +184,10 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         assertEq(sessionData.amounts.length, 0);
     }
 
-    function _createUserOperation(
+    function _createUserOpWithSignature(
         address _account,
         bytes memory _callData,
-        uint256 _signerKey
-    ) internal view returns (bytes32, PackedUserOperation memory) {
+        uint256 _signerKey) internal view returns (PackedUserOperation memory, bytes32, uint8, bytes32, bytes32) {
         PackedUserOperation memory userOp = entrypoint.fillUserOp(
             _account,
             _callData
@@ -199,7 +198,18 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
             _signerKey,
             ECDSA.toEthSignedMessageHash(hash)
         );
-        
+
+        return (userOp, hash, v, r, s);
+    }
+
+    function _createUserOperation(
+        address _account,
+        bytes memory _callData,
+        uint256 _signerKey
+    ) internal view returns (bytes32, PackedUserOperation memory) {
+
+        (PackedUserOperation memory userOp, bytes32 hash, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(_account, _callData, _signerKey);
+
         (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
 
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
@@ -213,17 +223,8 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         bytes memory _callData,
         uint256 _signerKey
     ) internal view returns (bytes32, PackedUserOperation memory) {
-        PackedUserOperation memory userOp = entrypoint.fillUserOp(
-            _account,
-            _callData
-        );
-        userOp.nonce = getNonce(_account, address(credibleAccountValidator));
-        bytes32 hash = entrypoint.getUserOpHash(userOp);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            _signerKey,
-            ECDSA.toEthSignedMessageHash(hash)
-        );
-        
+        (PackedUserOperation memory userOp, bytes32 hash, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(_account, _callData, _signerKey);
+
         (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
 
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature

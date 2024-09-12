@@ -546,4 +546,57 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
 
         assertFalse(isValid, "validate token-data should be in-valid");
     }
+
+    function test_exposedSignatureDigest() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[0]
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+
+        (
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperation(
+                address(mew),
+                userOpCalldata,
+                sessionKeyPrivateKey
+            );
+
+        (bytes memory signature, bytes32 merkleRoot, bytes32[] memory merkleProof) = credibleAccountValidatorHarness.exposed_digestSignature(userOp.signature);
+
+        // get expected signature
+        (,, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        bytes memory expectedSignature = abi.encodePacked(r,s,v);
+
+        assertEq(signature, expectedSignature, "signature should match");
+
+        (bytes32 expectedMerkleRoot, bytes32[] memory expectedMerkleProof) = getDummyMerkleRootAndProof();
+
+        assertEq(merkleProof.length, expectedMerkleProof.length, "merkleProof should match");
+
+        for (uint i = 0; i < merkleProof.length; i++) {
+            assertEq(merkleProof[i], expectedMerkleProof[i], "merkleProof should match");
+        }
+
+        assertEq(merkleRoot, expectedMerkleRoot, "merkleRoot should match");
+    }
 }
