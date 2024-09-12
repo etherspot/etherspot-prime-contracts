@@ -232,8 +232,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         if (userOp.signature.length < 129) {
             return VALIDATION_FAILED;
         }
-   
-        (bytes memory signature, bytes32 merkleRoot, bytes32[] memory merkleProof) = _digestSignature(userOp.signature);
+
+        (
+            bytes memory signature,
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        ) = _digestSignature(userOp.signature);
 
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
@@ -255,19 +259,21 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
-    function _digestSignature(bytes memory signatureWithMerkleProof) internal view returns (bytes memory signature, bytes32 merkleRoot, bytes32[] memory merkleProof) {
-        
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-        bytes32 merkleRoot;
-
-        assembly {
-            r := mload(add(signatureWithMerkleProof, 0x20))
-            s := mload(add(signatureWithMerkleProof, 0x40))
-            v := byte(0, mload(add(signatureWithMerkleProof, 0x60)))
-            merkleRoot := mload(add(signatureWithMerkleProof, 0x80))
-        }
+    function _digestSignature(
+        bytes calldata signatureWithMerkleProof
+    )
+        internal
+        view
+        returns (
+            bytes memory signature,
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        )
+    {
+        bytes32 r = bytes32(signatureWithMerkleProof[0:32]);
+        bytes32 s = bytes32(signatureWithMerkleProof[32:64]);
+        uint8 v = uint8(signatureWithMerkleProof[64]);
+        bytes32 merkleRoot = bytes32(signatureWithMerkleProof[65:97]);
 
         bytes memory signature = abi.encodePacked(r, s, v);
 
@@ -276,13 +282,13 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
         bytes32[] memory merkleProof = new bytes32[](proofLength);
 
-        if(proofLength > 0) {
-           assembly {
-                // 97 byte offset (32 byte r, 32 byte s, 1 byte v, 32 byte merkleRoot)
-                let proofStart := add(signatureWithMerkleProof, 0x61) 
-                for { let i := 0 } lt(i, proofLength) { i := add(i, 1) } {
-                    mstore(add(merkleProof, add(0x20, mul(i, 0x20))), mload(add(proofStart, mul(i, 0x20))))
-                }
+        if (proofLength > 0) {
+            uint256 proofStart = 97; // 32 byte r + 32 byte s + 1 byte v + 32 byte merkleRoot
+            for (uint256 i = 0; i < proofLength; i++) {
+                merkleProof[i] = bytes32(
+                    signatureWithMerkleProof[proofStart + (i * 32):proofStart +
+                        ((i + 1) * 32)]
+                );
             }
         }
 

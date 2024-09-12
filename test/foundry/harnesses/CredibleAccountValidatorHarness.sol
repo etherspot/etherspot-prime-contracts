@@ -21,7 +21,7 @@ contract CredibleAccountValidatorHarness is CredibleAccountValidator {
         return _validateBatchCall(callData, sd, userOpSender);
     }
 
-     function exposed_validateTokenData(
+    function exposed_validateTokenData(
         address[] memory tokens,
         bytes4 selector,
         address userOpSender,
@@ -29,17 +29,38 @@ contract CredibleAccountValidatorHarness is CredibleAccountValidator {
         uint256 amount,
         address token
     ) external view returns (bool) {
-        return _validateTokenData(tokens, selector, userOpSender, from, amount, token);
+        return
+            _validateTokenData(
+                tokens,
+                selector,
+                userOpSender,
+                from,
+                amount,
+                token
+            );
     }
 
     function exposed_digest(
         bytes calldata _data
-    ) external pure returns (bytes4 selector, address from, address to, uint256 amount)
+    )
+        external
+        pure
+        returns (bytes4 selector, address from, address to, uint256 amount)
     {
         return _digest(_data);
     }
 
-    function exposed_digestSignature(bytes memory signatureWithMerkleProof) external view returns (bytes memory signature, bytes32 merkleRoot, bytes32[] memory merkleProof) {
+    function exposed_digestSignature(
+        bytes calldata signatureWithMerkleProof
+    )
+        external
+        view
+        returns (
+            bytes memory signature,
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        )
+    {
         return _digestSignature(signatureWithMerkleProof);
     }
 }
