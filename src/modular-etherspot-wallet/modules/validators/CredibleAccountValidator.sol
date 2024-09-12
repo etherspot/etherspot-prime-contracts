@@ -233,43 +233,15 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             return VALIDATION_FAILED;
         }
    
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-        bytes32 merkleRoot;
-        bytes memory signature = userOp.signature;
-
-        assembly {
-            r := mload(add(signature, 0x20))
-            s := mload(add(signature, 0x40))
-            v := byte(0, mload(add(signature, 0x60)))
-            merkleRoot := mload(add(signature, 0x80))
-        }
+        (bytes memory signature, bytes32 merkleRoot, bytes32[] memory merkleProof) = _digestSignature(userOp.signature);
 
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
-            abi.encodePacked(r, s, v)
+            signature
         );
 
         if (!validateSessionKeyParams(sessionKeySigner, userOp)) {
             return VALIDATION_FAILED;
-        }
-
-        // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
-        uint256 proofLength = (signature.length - 97) / 32;
-
-        if(proofLength == 0) {
-           return VALIDATION_FAILED;
-        }
-
-        bytes32[] memory merkleProof = new bytes32[](proofLength);
-
-        assembly {
-            // 97 byte offset (32 byte r, 32 byte s, 1 byte v, 32 byte merkleRoot)
-            let proofStart := add(signature, 0x61) 
-            for { let i := 0 } lt(i, proofLength) { i := add(i, 1) } {
-                mstore(add(merkleProof, add(0x20, mul(i, 0x20))), mload(add(proofStart, mul(i, 0x20))))
-            }
         }
 
         // Validate the Merkle proof (userOpHash is considered the leaf)
@@ -283,12 +255,50 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
+    function _digestSignature(bytes memory signatureWithMerkleProof) internal view returns (bytes memory signature, bytes32 merkleRoot, bytes32[] memory merkleProof) {
+        
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+        bytes32 merkleRoot;
+
+        assembly {
+            r := mload(add(signatureWithMerkleProof, 0x20))
+            s := mload(add(signatureWithMerkleProof, 0x40))
+            v := byte(0, mload(add(signatureWithMerkleProof, 0x60)))
+            merkleRoot := mload(add(signatureWithMerkleProof, 0x80))
+        }
+
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
+        uint256 proofLength = (signatureWithMerkleProof.length - 97) / 32;
+
+        bytes32[] memory merkleProof = new bytes32[](proofLength);
+
+        if(proofLength > 0) {
+           assembly {
+                // 97 byte offset (32 byte r, 32 byte s, 1 byte v, 32 byte merkleRoot)
+                let proofStart := add(signatureWithMerkleProof, 0x61) 
+                for { let i := 0 } lt(i, proofLength) { i := add(i, 1) } {
+                    mstore(add(merkleProof, add(0x20, mul(i, 0x20))), mload(add(proofStart, mul(i, 0x20))))
+                }
+            }
+        }
+
+        return (signature, merkleRoot, merkleProof);
+    }
+
     // Stub method to validate Merkle proof
     function validateProof(
         bytes32[] memory proof,
         bytes32 root,
         bytes32 leaf
     ) public pure returns (bool) {
+        if (proof.length == 0 || root == bytes32(0)) {
+            return false;
+        }
+
         // Placeholder for actual Merkle proof validation logic
         return true;
     }
