@@ -422,8 +422,8 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         uint256 amount,
         address token
     ) internal view returns (bool) {
-        bool tokenFound = false;
-        for (uint256 i = 0; i < tokens.length; i++) {
+        bool tokenFound;
+        for (uint256 i = 0; i < tokens.length; ++i) {
             if (tokens[i] == token) {
                 tokenFound = true;
                 break;
