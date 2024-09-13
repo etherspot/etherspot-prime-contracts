@@ -212,22 +212,101 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         return sessionData[_sessionKey][msg.sender];
     }
 
-    // @inheritdoc ICredibleAccountValidator
+    /**
+     * @notice Validates a user operation.
+     * @dev This function checks the length of the signature and extracts the necessary components.
+     *      The signature must be at least 129 bytes long to include the following:
+     *      - 32 bytes for `r`
+     *      - 32 bytes for `s`
+     *      - 1 byte for `v`
+     *      - 32 bytes for `merkleRoot`
+     *      - 32 bytes for at least one entry in the `merkleProof`
+     * @param userOp The packed user operation containing the signature and other data.
+     * @param userOpHash The hash of the user operation.
+     * @return A status code indicating the result of the validation.
+     */
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
+        if (userOp.signature.length < 129) {
+            return VALIDATION_FAILED;
+        }
+
+        (
+            bytes memory signature,
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        ) = _digestSignature(userOp.signature);
+
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
-            userOp.signature
+            signature
         );
+
         if (!validateSessionKeyParams(sessionKeySigner, userOp)) {
+            return VALIDATION_FAILED;
+        }
+
+        // Validate the Merkle proof (userOpHash is considered the leaf)
+        // this is only stub method and to be replaced with actual Merkle proof validation logic
+        if (!validateProof(merkleProof, merkleRoot, userOpHash)) {
             return VALIDATION_FAILED;
         }
 
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
 
         return _packValidationData(false, sd.validUntil, sd.validAfter);
+    }
+
+    function _digestSignature(
+        bytes calldata signatureWithMerkleProof
+    )
+        internal
+        view
+        returns (
+            bytes memory signature,
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        )
+    {
+        bytes32 r = bytes32(signatureWithMerkleProof[0:32]);
+        bytes32 s = bytes32(signatureWithMerkleProof[32:64]);
+        uint8 v = uint8(signatureWithMerkleProof[64]);
+        bytes32 merkleRoot = bytes32(signatureWithMerkleProof[65:97]);
+
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
+        uint256 proofLength = (signatureWithMerkleProof.length - 97) / 32;
+
+        bytes32[] memory merkleProof = new bytes32[](proofLength);
+
+        if (proofLength > 0) {
+            uint256 proofStart = 97; // 32 byte r + 32 byte s + 1 byte v + 32 byte merkleRoot
+            for (uint256 i = 0; i < proofLength; i++) {
+                merkleProof[i] = bytes32(
+                    signatureWithMerkleProof[proofStart + (i * 32):proofStart +
+                        ((i + 1) * 32)]
+                );
+            }
+        }
+
+        return (signature, merkleRoot, merkleProof);
+    }
+
+    // Stub method to validate Merkle proof
+    function validateProof(
+        bytes32[] memory proof,
+        bytes32 root,
+        bytes32 leaf
+    ) public pure returns (bool) {
+        if (proof.length == 0 || root == bytes32(0)) {
+            return false;
+        }
+
+        // Placeholder for actual Merkle proof validation logic
+        return true;
     }
 
     // @inheritdoc ICredibleAccountValidator
@@ -329,6 +408,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         return true;
     }
 
+    /**
+     * @notice check if the tokenAddress in calldata of userOp is part of the session data and wallet has sufficient token balance
+     * @dev locked tokenBalance check is done in the CredibleAccountHook
+     * @dev for `transfer` as function-selector, then check for the wallet balance
+     * @dev for `transferFrom` as function-selector, then check for the wallet balance and allowance
+     */
     function _validateTokenData(
         address[] memory tokens,
         bytes4 selector,
@@ -337,11 +422,16 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         uint256 amount,
         address token
     ) internal view returns (bool) {
-        (bool tokenFound, ) = _findTokenIndex(tokens, token);
+        bool tokenFound;
+        for (uint256 i = 0; i < tokens.length; ++i) {
+            if (tokens[i] == token) {
+                tokenFound = true;
+                break;
+            }
+        }
 
         if (!tokenFound) return false;
 
-        // Validate if wallet has sufficient balance
         if (selector == IERC20.transfer.selector) {
             if (IERC20(token).balanceOf(userOpSender) < amount) {
                 return false;
@@ -356,18 +446,6 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         }
 
         return true;
-    }
-
-    function _findTokenIndex(
-        address[] memory tokens,
-        address target
-    ) internal pure returns (bool, uint256) {
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (tokens[i] == target) {
-                return (true, i);
-            }
-        }
-        return (false, 0);
     }
 
     function _digest(

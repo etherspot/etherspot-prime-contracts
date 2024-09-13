@@ -235,7 +235,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     }
 
     // Test: Verify that a user operation can be validated
-    function test_validateUserOp() public {
+    function test_CA_validateUserOp() public {
         // Set up the test environment and enable a session key
         _testSetup();
         (
@@ -255,6 +255,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
                 ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
             )
         );
+
         (
             bytes32 hash,
             PackedUserOperation memory userOp
@@ -375,5 +376,227 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             amounts[0],
             "Alice's balance should match the transferred amount"
         );
+    }
+
+    function test_exposed_validateSingleCall() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[0]
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+
+        bool isValid = credibleAccountValidatorHarness.exposed_validateSingleCall(
+            userOpCalldata,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertTrue(isValid, "validate single-call should be valid");
+
+        userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(aave), uint256(0), data)
+            )
+        );
+
+        isValid = credibleAccountValidatorHarness.exposed_validateSingleCall(
+            userOpCalldata,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertFalse(isValid, "validate single-call should be in-valid");
+    }
+
+    function test_exposed_validateBatchCall() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+
+        Execution[] memory executions = new Execution[](3);
+
+        bytes memory data_usdc = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[0]
+        );
+
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: data_usdc
+        });
+
+        bytes memory data_dai = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[1]
+        );
+
+        executions[1] = Execution({
+            target: address(dai),
+            value: 0,
+            callData: data_dai
+        });
+
+        bytes memory data_uni = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[2]
+        );
+
+        executions[2] = Execution({
+            target: address(uni),
+            value: 0,
+            callData: data_uni
+        });
+
+        // Encode the call into the calldata for the userOp
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+
+        bool isValid = credibleAccountValidatorHarness.exposed_validateBatchCall(
+            userOpCalldata,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertTrue(isValid, "validate batch-call should be valid");
+
+        bytes memory data_aave = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[2]
+        );
+    
+        executions[2] = Execution({
+            target: address(aave),
+            value: 0,
+            callData: data_aave
+        });
+
+        // Encode the call into the calldata for the userOp
+        userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+
+        isValid = credibleAccountValidatorHarness.exposed_validateBatchCall(
+            userOpCalldata,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertFalse(isValid, "validate batch-call should be in-valid");
+    }
+
+    function test_exposed_validateTokenData() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+
+        address[] memory tokens_data = new address[](3);
+        tokens_data[0] = address(usdc);
+        tokens_data[1] = address(dai);
+        tokens_data[2] = address(uni);
+
+        bool isValid = credibleAccountValidatorHarness.exposed_validateTokenData(
+            tokens_data,
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(mew),
+            amounts[0],
+            address(usdc)
+        );
+
+        assertTrue(isValid, "validate token-data should be valid");
+
+        isValid = credibleAccountValidatorHarness.exposed_validateTokenData(
+            tokens_data,
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(mew),
+            amounts[0],
+            address(aave)
+        );
+
+        assertFalse(isValid, "validate token-data should be in-valid");
+    }
+
+    function test_exposedSignatureDigest() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[0]
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+
+        (
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperation(
+                address(mew),
+                userOpCalldata,
+                sessionKeyPrivateKey
+            );
+
+        (bytes memory signature, bytes32 merkleRoot, bytes32[] memory merkleProof) = credibleAccountValidatorHarness.exposed_digestSignature(userOp.signature);
+
+        // get expected signature
+        (,, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        bytes memory expectedSignature = abi.encodePacked(r,s,v);
+
+        assertEq(signature, expectedSignature, "signature should match");
+
+        (bytes32 expectedMerkleRoot, bytes32[] memory expectedMerkleProof) = getDummyMerkleRootAndProof();
+
+        assertEq(merkleProof.length, expectedMerkleProof.length, "merkleProof should match");
+
+        for (uint i = 0; i < merkleProof.length; i++) {
+            assertEq(merkleProof[i], expectedMerkleProof[i], "merkleProof should match");
+        }
+
+        assertEq(merkleRoot, expectedMerkleRoot, "merkleRoot should match");
     }
 }

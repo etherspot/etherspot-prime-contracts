@@ -6,6 +6,7 @@ pragma solidity 0.8.23;
 import "forge-std/Test.sol";
 import {ModularEtherspotWallet} from "../../../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {ICredibleAccountValidator} from "../../../../../src/modular-etherspot-wallet/interfaces/ICredibleAccountValidator.sol";
+import {CredibleAccountValidatorHarness} from "../../../harnesses/CredibleAccountValidatorHarness.sol";
 import {TestERC20} from "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import {TestUSDC} from "../../../../../src/modular-etherspot-wallet/test/TestUSDC.sol";
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
@@ -25,9 +26,11 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
 
     // Contract instances
     ModularEtherspotWallet internal mew;
+    CredibleAccountValidatorHarness internal credibleAccountValidatorHarness;
     TestERC20 internal dai;
     TestERC20 internal uni;
     TestUSDC internal usdc;
+    TestERC20 internal aave;
 
     // Test addresses and keys
     address internal alice;
@@ -65,9 +68,11 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     function _testSetup() internal {
         // Set up contracts and wallet
         mew = setupMEWWithCredibleAccountValidator();
+        credibleAccountValidatorHarness = new CredibleAccountValidatorHarness();
         dai = new TestERC20();
         uni = new TestERC20();
         usdc = new TestUSDC();
+        aave = new TestERC20();
         // Set up test addresses and keys
         (alice, aliceKey) = makeAddrAndKey("alice");
         (sessionKey, sessionKeyPrivateKey) = makeAddrAndKey("sessionKey");
@@ -127,18 +132,19 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         ModularEtherspotWallet _modularWallet,
         bytes4 _functionSelector
     ) public returns (address, ICredibleAccountValidator.SessionData memory) {
+
         usdc.mint(address(_modularWallet), amounts[0]);
         assertEq(usdc.balanceOf(address(_modularWallet)), amounts[0]);
-        usdc.approve(address(alice), amounts[0]);
         usdc.approve(address(_modularWallet), amounts[0]);
 
         dai.mint(address(_modularWallet), amounts[1]);
         assertEq(dai.balanceOf(address(_modularWallet)), amounts[1]);
-        dai.approve(address(alice), amounts[1]);
+        dai.approve(address(_modularWallet), amounts[1]);
 
         uni.mint(address(_modularWallet), amounts[2]);
         assertEq(uni.balanceOf(address(_modularWallet)), amounts[2]);
-        uni.approve(address(alice), amounts[2]);
+        uni.approve(address(_modularWallet), amounts[2]);
+
         // Enable session
         bytes memory sessionData = _getDefaultSessionData(_functionSelector);
         credibleAccountValidator.enableSessionKey(sessionData);
@@ -178,11 +184,10 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         assertEq(sessionData.amounts.length, 0);
     }
 
-    function _createUserOperation(
+    function _createUserOpWithSignature(
         address _account,
         bytes memory _callData,
-        uint256 _signerKey
-    ) internal view returns (bytes32, PackedUserOperation memory) {
+        uint256 _signerKey) internal view returns (PackedUserOperation memory, bytes32, uint8, bytes32, bytes32) {
         PackedUserOperation memory userOp = entrypoint.fillUserOp(
             _account,
             _callData
@@ -193,9 +198,41 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
             _signerKey,
             ECDSA.toEthSignedMessageHash(hash)
         );
-        userOp.signature = abi.encodePacked(r, s, v);
+
+        return (userOp, hash, v, r, s);
+    }
+
+    function _createUserOperation(
+        address _account,
+        bytes memory _callData,
+        uint256 _signerKey
+    ) internal view returns (bytes32, PackedUserOperation memory) {
+
+        (PackedUserOperation memory userOp, bytes32 hash, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(_account, _callData, _signerKey);
+
+        (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
+
+        // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
+        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+
         return (hash, userOp);
     }
+
+    function _createUserOperationWithInvalidMessageProof(
+        address _account,
+        bytes memory _callData,
+        uint256 _signerKey
+    ) internal view returns (bytes32, PackedUserOperation memory) {
+        (PackedUserOperation memory userOp, bytes32 hash, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(_account, _callData, _signerKey);
+
+        (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
+
+        // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
+        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+
+        return (hash, userOp);
+    }
+
 
     function _executeUserOperation(
         PackedUserOperation memory _userOp
