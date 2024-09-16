@@ -13,6 +13,8 @@ gas_reports = [
   "TokenLockHook",
 ]
 
+[fuzz]
+runs = 1000
 
 [rpc_endpoints]
 # mainnets

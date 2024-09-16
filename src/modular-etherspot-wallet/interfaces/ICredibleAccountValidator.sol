@@ -9,6 +9,32 @@ import {PackedUserOperation} from "../../../account-abstraction/contracts/interf
 /// @author Etherspot
 /// @notice This interface defines the functions and events of the CredibleAccountValidator contract.
 interface ICredibleAccountValidator is IValidator {
+    /*//////////////////////////////////////////////////////////////
+                            STRUCTS/ENUMS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Struct representing the data associated with a session key.
+    struct SessionData {
+        address[] tokens; // The array of ERC20 token contract addresses.
+        bytes4 funcSelector; // The function selector for the allowed operation (e.g., transfer, transferFrom).
+        uint256[] amounts; // The array of lockedAmounts that has been locked for this session key.
+        address solverAddress; // The address of the solver.
+        uint48 validAfter; // The timestamp after which the session key is valid.
+        uint48 validUntil; // The timestamp until which the session key is valid.
+        bool live; // Flag indicating whether the session key is paused or not.
+    }
+
+    struct ExecData {
+        bytes4 selector;
+        address from;
+        address to;
+        uint256 amount;
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                                EVENTS
+    //////////////////////////////////////////////////////////////*/
+
     /// @notice Emitted when the ERC20 Session Key Validator module is installed for a wallet.
     /// @param wallet The address of the wallet for which the module is installed.
     event CredibleAccountValidator_ModuleInstalled(address wallet);
@@ -49,23 +75,9 @@ interface ICredibleAccountValidator is IValidator {
         address wallet
     );
 
-    /// @notice Struct representing the data associated with a session key.
-    struct SessionData {
-        address[] tokens; // The array of ERC20 token contract addresses.
-        bytes4 funcSelector; // The function selector for the allowed operation (e.g., transfer, transferFrom).
-        uint256[] amounts; // The array of lockedAmounts that has been locked for this session key.
-        address solverAddress; // The address of the solver.
-        uint48 validAfter; // The timestamp after which the session key is valid.
-        uint48 validUntil; // The timestamp until which the session key is valid.
-        bool live; // Flag indicating whether the session key is paused or not.
-    }
-
-    struct ExecData {
-        bytes4 selector;
-        address from;
-        address to;
-        uint256 amount;
-    }
+    /*//////////////////////////////////////////////////////////////
+                              FUNCTIONS
+    //////////////////////////////////////////////////////////////*/
 
     /// @notice Enables a new session key for the caller's wallet.
     /// @param _sessionData The encoded session data containing the session key address, token address, interface ID, function selector, spending limit, valid after timestamp, and valid until timestamp.
@@ -74,14 +86,6 @@ interface ICredibleAccountValidator is IValidator {
     /// @notice Disables a session key for the caller's wallet.
     /// @param _session The address of the session key to disable.
     function disableSessionKey(address _session) external;
-
-    /// @notice Rotates a session key by disabling the old one and enabling a new one.
-    /// @param _oldSessionKey The address of the old session key to disable.
-    /// @param _newSessionData The encoded session data for the new session key.
-    function rotateSessionKey(
-        address _oldSessionKey,
-        bytes calldata _newSessionData
-    ) external;
 
     /// @notice Toggles the pause state of a session key for the caller's wallet.
     /// @param _sessionKey The address of the session key to toggle the pause state for.

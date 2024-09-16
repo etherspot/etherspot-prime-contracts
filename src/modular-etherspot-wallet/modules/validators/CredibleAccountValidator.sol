@@ -12,6 +12,8 @@ import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ICredibleAccountValidator} from "../../interfaces/ICredibleAccountValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
+import "forge-std/console2.sol";
+
 contract CredibleAccountValidator is ICredibleAccountValidator {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
@@ -90,7 +92,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         offset += 32;
 
         address[] memory tokens = new address[](tokensLength);
-        for (uint256 i = 0; i < tokensLength; i++) {
+        for (uint256 i; i < tokensLength; ++i) {
             tokens[i] = address(
                 uint160(uint256(bytes32(_sessionData[offset:offset + 32])))
             );
@@ -104,7 +106,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
         // Decode amounts array
         uint256[] memory amounts = new uint256[](amountsLength);
-        for (uint256 i = 0; i < amountsLength; i++) {
+        for (uint256 i; i < amountsLength; ++i) {
             amounts[i] = uint256(bytes32(_sessionData[offset:offset + 32]));
             offset += 32;
         }
@@ -137,15 +139,6 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             _session
         );
         emit CredibleAccountValidator_SessionKeyDisabled(_session, msg.sender);
-    }
-
-    // @inheritdoc ICredibleAccountValidator
-    function rotateSessionKey(
-        address _oldSessionKey,
-        bytes calldata _newSessionData
-    ) external {
-        disableSessionKey(_oldSessionKey);
-        enableSessionKey(_newSessionData);
     }
 
     // @inheritdoc ICredibleAccountValidator
@@ -259,42 +252,6 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
-    function _digestSignature(
-        bytes calldata signatureWithMerkleProof
-    )
-        internal
-        view
-        returns (
-            bytes memory signature,
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
-        )
-    {
-        bytes32 r = bytes32(signatureWithMerkleProof[0:32]);
-        bytes32 s = bytes32(signatureWithMerkleProof[32:64]);
-        uint8 v = uint8(signatureWithMerkleProof[64]);
-        bytes32 merkleRoot = bytes32(signatureWithMerkleProof[65:97]);
-
-        bytes memory signature = abi.encodePacked(r, s, v);
-
-        // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
-        uint256 proofLength = (signatureWithMerkleProof.length - 97) / 32;
-
-        bytes32[] memory merkleProof = new bytes32[](proofLength);
-
-        if (proofLength > 0) {
-            uint256 proofStart = 97; // 32 byte r + 32 byte s + 1 byte v + 32 byte merkleRoot
-            for (uint256 i = 0; i < proofLength; i++) {
-                merkleProof[i] = bytes32(
-                    signatureWithMerkleProof[proofStart + (i * 32):proofStart +
-                        ((i + 1) * 32)]
-                );
-            }
-        }
-
-        return (signature, merkleRoot, merkleProof);
-    }
-
     // Stub method to validate Merkle proof
     function validateProof(
         bytes32[] memory proof,
@@ -356,6 +313,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
                                INTERNAL
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice Validates a single call within a user operation against the session data
+    /// @dev This function decodes the call data, extracts relevant information, and performs validation checks
+    /// @param callData The encoded call data from the user operation
+    /// @param sd The session data
+    /// @param userOpSender The address of the account initiating the user operation
+    /// @return bool Returns true if the call is valid according to the session data, false otherwise
     function _validateSingleCall(
         bytes calldata callData,
         SessionData memory sd,
@@ -379,7 +342,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             );
     }
 
-    // Internal function to validate batch call
+    /// @notice Validates a batch of calls within a user operation against the session data
+    /// @dev This function decodes multiple executions, extracts relevant information, and performs validation checks for each
+    /// @param callData The encoded call data from the user operation containing multiple executions
+    /// @param sd The session data
+    /// @param userOpSender The address of the account initiating the user operation
+    /// @return bool Returns true if all calls in the batch are valid according to the session data, false otherwise
     function _validateBatchCall(
         bytes calldata callData,
         SessionData memory sd,
@@ -423,13 +391,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         address token
     ) internal view returns (bool) {
         bool tokenFound;
-        for (uint256 i = 0; i < tokens.length; ++i) {
+        for (uint256 i; i < tokens.length; ++i) {
             if (tokens[i] == token) {
                 tokenFound = true;
                 break;
             }
         }
-
         if (!tokenFound) return false;
 
         if (selector == IERC20.transfer.selector) {
@@ -448,6 +415,13 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         return true;
     }
 
+    /// @notice Extracts and decodes relevant information from ERC20 function call data
+    /// @dev Supports approve, transfer, and transferFrom functions of ERC20 tokens
+    /// @param _data The calldata of the ERC20 function call
+    /// @return selector The function selector (4 bytes)
+    /// @return from The address tokens are transferred from (for transferFrom)
+    /// @return to The address tokens are transferred to or approved for
+    /// @return amount The amount of tokens involved in the transaction
     function _digest(
         bytes calldata _data
     )
@@ -471,5 +445,47 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         } else {
             return (bytes4(0), address(0), address(0), 0);
         }
+    }
+
+    /// @notice Extracts signature components, merkle root, and merkle proof from the provided data
+    /// @dev Decodes the signature, merkle root, and merkle proof from a single bytes array
+    /// @param signatureWithMerkleProof The combined signature, merkle root, and merkle proof data
+    /// @return signature The extracted signature (r, s, v)
+    /// @return merkleRoot The extracted merkle root
+    /// @return merkleProof The extracted merkle proof as an array of bytes32
+    function _digestSignature(
+        bytes calldata signatureWithMerkleProof
+    )
+        internal
+        view
+        returns (
+            bytes memory signature,
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        )
+    {
+        bytes32 r = bytes32(signatureWithMerkleProof[0:32]);
+        bytes32 s = bytes32(signatureWithMerkleProof[32:64]);
+        uint8 v = uint8(signatureWithMerkleProof[64]);
+        bytes32 merkleRoot = bytes32(signatureWithMerkleProof[65:97]);
+
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
+        uint256 proofLength = (signatureWithMerkleProof.length - 97) / 32;
+
+        bytes32[] memory merkleProof = new bytes32[](proofLength);
+
+        if (proofLength > 0) {
+            uint256 proofStart = 97; // 32 byte r + 32 byte s + 1 byte v + 32 byte merkleRoot
+            for (uint256 i; i < proofLength; ++i) {
+                merkleProof[i] = bytes32(
+                    signatureWithMerkleProof[proofStart + (i * 32):proofStart +
+                        ((i + 1) * 32)]
+                );
+            }
+        }
+
+        return (signature, merkleRoot, merkleProof);
     }
 }

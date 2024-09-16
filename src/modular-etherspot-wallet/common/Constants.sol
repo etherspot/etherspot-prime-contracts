@@ -9,3 +9,10 @@ import {ModeSelector} from "../erc7579-ref-impl/libs/ModeLib.sol";
 ModeSelector constant MODE_SELECTOR_CREDIBLE_ACCOUNT = ModeSelector.wrap(
     bytes4(keccak256("etherspot.credibleaccount.action"))
 );
+
+enum SessionKeyStatus {
+    NotImplemented,
+    Live,
+    Claimed,
+    Expired
+}
