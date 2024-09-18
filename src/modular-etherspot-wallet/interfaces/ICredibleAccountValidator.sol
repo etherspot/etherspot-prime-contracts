@@ -13,6 +13,13 @@ interface ICredibleAccountValidator is IValidator {
                             STRUCTS/ENUMS
     //////////////////////////////////////////////////////////////*/
 
+    enum SessionKeyStatus {
+        NA,
+        Live,
+        Claimed,
+        Expired
+    }
+
     /// @notice Struct representing the data associated with a session key.
     struct SessionData {
         address[] tokens; // The array of ERC20 token contract addresses.
@@ -21,7 +28,7 @@ interface ICredibleAccountValidator is IValidator {
         address solverAddress; // The address of the solver.
         uint48 validAfter; // The timestamp after which the session key is valid.
         uint48 validUntil; // The timestamp until which the session key is valid.
-        bool live; // Flag indicating whether the session key is paused or not.
+        SessionKeyStatus status; // The session key status.
     }
 
     struct ExecData {
@@ -87,16 +94,12 @@ interface ICredibleAccountValidator is IValidator {
     /// @param _session The address of the session key to disable.
     function disableSessionKey(address _session) external;
 
-    /// @notice Toggles the pause state of a session key for the caller's wallet.
-    /// @param _sessionKey The address of the session key to toggle the pause state for.
-    function toggleSessionKeyPause(address _sessionKey) external;
-
-    /// @notice Checks if a session key is paused for the caller's wallet.
-    /// @param _sessionKey The address of the session key to check.
-    /// @return paused True if the session key is paused, false otherwise.
-    function isSessionKeyLive(
+    /// @notice Returns the session key status for a given session key.
+    /// @param _sessionKey The address of the session key.
+    /// @return status The status of the session key.
+    function getSessionKeyStatus(
         address _sessionKey
-    ) external view returns (bool paused);
+    ) external view returns (SessionKeyStatus);
 
     /// @notice Validates the parameters of a session key for a given user operation.
     /// @param _sessionKey The address of the session key.

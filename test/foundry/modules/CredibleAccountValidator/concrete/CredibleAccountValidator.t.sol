@@ -141,59 +141,18 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         _disableSessionKeyAndValidate(mew, sessionKey);
     }
 
-    // Test: Verify that a session key can be paused and unpaused
-    function test_toggleSessionKeyPause() public {
+    // Test: Get current SessionKeyStatus
+    function test_getSessionKeyStatus() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        (address sessionKey, ) = _enableSessionKeyAndValidate(
-            mew,
-            IERC20.transfer.selector
+        (
+            address sessionKey,
+            ICredibleAccountValidator.SessionData memory sessionData
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transfer.selector);
+        assertEq(
+            uint256(sessionData.status),
+            uint256(ICredibleAccountValidator.SessionKeyStatus.Live)
         );
-        // Pause the session key
-        vm.expectEmit(true, true, true, true);
-        emit CredibleAccountValidator_SessionKeyPaused(
-            sessionKey,
-            address(mew)
-        );
-        credibleAccountValidator.toggleSessionKeyPause(sessionKey);
-        // Verify the session key is paused
-        ICredibleAccountValidator.SessionData
-            memory sessionDataAfterToggle = credibleAccountValidator
-                .getSessionKeyData(sessionKey);
-        assertFalse(
-            sessionDataAfterToggle.live,
-            "Session key should be paused"
-        );
-        // Unpause the session key
-        vm.expectEmit(true, true, true, true);
-        emit CredibleAccountValidator_SessionKeyUnpaused(
-            sessionKey,
-            address(mew)
-        );
-        credibleAccountValidator.toggleSessionKeyPause(sessionKey);
-        // Verify the session key is unpaused
-        sessionDataAfterToggle = credibleAccountValidator.getSessionKeyData(
-            sessionKey
-        );
-        assertTrue(
-            sessionDataAfterToggle.live,
-            "Session key should be unpaused"
-        );
-    }
-
-    // Test: Verify that toggling pause for an invalid session key fails
-    function test_fail_toggleSessionKeyPause() public {
-        // Set up the test environment
-        _testSetup();
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                CredibleAccountValidator
-                    .CredibleAccountValidator_SessionKeyDoesNotExist
-                    .selector,
-                invalidSessionKey
-            )
-        );
-        credibleAccountValidator.toggleSessionKeyPause(invalidSessionKey);
     }
 
     // Test: Verify that session key parameters can be validated
@@ -345,6 +304,169 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         assertEq(validationData, VALIDATION_FAILED, "Validation should fail");
     }
 
+    function test_validateUserOp_setsSessionStatusAsClaimedIfSuccessful()
+        public
+    {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transfer.selector);
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferExecution(solver, amounts[1]);
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(tokens[1], uint256(0), data)
+            )
+        );
+        // Create the UserOperation
+        (, PackedUserOperation memory userOp) = _createUserOperation(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        // Execute the UserOperation
+        _executeUserOperation(userOp);
+        // Validate session status has been updated to claimed
+        assertEq(
+            uint256(credibleAccountValidator.getSessionKeyStatus(sessionKey)),
+            uint256(ICredibleAccountValidator.SessionKeyStatus.Claimed)
+        );
+    }
+
+    // TODO: test validateUserOp sets session status as expired if encoded sig time > validUntil
+    // NOTE: need to rethink this logic as if failed op will revert state changes and leave as live
+    function test_validateUserOp_setsSessionStatusAsExpired_ifSessionValidityExpired()
+        public
+    {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICredibleAccountValidator.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(mew, IERC20.transfer.selector);
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferExecution(solver, amounts[1]);
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(tokens[1], uint256(0), data)
+            )
+        );
+        // Create the UserOperation
+        (
+            PackedUserOperation memory userOp,
+            ,
+            uint8 v,
+            bytes32 r,
+            bytes32 s
+        ) = _createUserOpWithSignature(
+                address(mew),
+                userOpCalldata,
+                sessionKeyPrivateKey
+            );
+        (
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        ) = getDummyMerkleRootAndProof();
+        // Set the signature with an expired timestamp
+        userOp.signature = abi.encodePacked(
+            r,
+            s,
+            v,
+            uint48(block.timestamp + 2 days),
+            merkleRoot,
+            merkleProof
+        );
+        // Expect the operation to revert due to signature error
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Attempt to execute the UserOperation
+        _executeUserOperation(userOp);
+        // Validate session status has been updated to expired
+        assertEq(
+            uint256(credibleAccountValidator.getSessionKeyStatus(sessionKey)),
+            uint256(ICredibleAccountValidator.SessionKeyStatus.Expired)
+        );
+    }
+
+    // Test: validateUserOp reverts if session status is not live
+    function test_validateUserOp_revertsIf_sessionStatusIsNotLive() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        // Get default session data
+        bytes memory sessionData = _getDefaultSessionData(
+            IERC20.transfer.selector
+        );
+        // Enable session key on harness
+        credibleAccountValidatorHarness.enableSessionKey(sessionData);
+        // Set session status to expired
+        credibleAccountValidatorHarness.exposed_setSessionKeyStatus(
+            sessionKey,
+            ICredibleAccountValidator.SessionKeyStatus.Expired
+        );
+        // Validate session status has been updated to expired
+        assertEq(
+            uint256(
+                credibleAccountValidatorHarness.getSessionKeyStatus(sessionKey)
+            ),
+            uint256(ICredibleAccountValidator.SessionKeyStatus.Expired)
+        );
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferExecution(solver, amounts[1]);
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(tokens[1], uint256(0), data)
+            )
+        );
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            address(mew),
+            userOpCalldata
+        );
+        userOp.nonce = getNonce(
+            address(mew),
+            address(credibleAccountValidatorHarness)
+        );
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            sessionKeyPrivateKey,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+        (
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        ) = getDummyMerkleRootAndProof();
+        userOp.signature = abi.encodePacked(
+            r,
+            s,
+            v,
+            uint48(block.timestamp),
+            merkleRoot,
+            merkleProof
+        );
+        // Expect the operation to revert due to signature error (expired session)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Attempt to execute the UserOperation
+        _executeUserOperation(userOp);
+    }
+
     // Test: Verify end-to-end user operation handling
     function test_e2e_handleUserOp() public {
         // Set up the test environment and enable a session key
@@ -399,11 +521,12 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             )
         );
 
-        bool isValid = credibleAccountValidatorHarness.exposed_validateSingleCall(
-            userOpCalldata,
-            sessionDataStruct,
-            address(mew)
-        );
+        bool isValid = credibleAccountValidatorHarness
+            .exposed_validateSingleCall(
+                userOpCalldata,
+                sessionDataStruct,
+                address(mew)
+            );
 
         assertTrue(isValid, "validate single-call should be valid");
 
@@ -476,11 +599,12 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
         );
 
-        bool isValid = credibleAccountValidatorHarness.exposed_validateBatchCall(
-            userOpCalldata,
-            sessionDataStruct,
-            address(mew)
-        );
+        bool isValid = credibleAccountValidatorHarness
+            .exposed_validateBatchCall(
+                userOpCalldata,
+                sessionDataStruct,
+                address(mew)
+            );
 
         assertTrue(isValid, "validate batch-call should be valid");
 
@@ -489,7 +613,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             address(alice),
             amounts[2]
         );
-    
+
         executions[2] = Execution({
             target: address(aave),
             value: 0,
@@ -524,14 +648,15 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         tokens_data[1] = address(dai);
         tokens_data[2] = address(uni);
 
-        bool isValid = credibleAccountValidatorHarness.exposed_validateTokenData(
-            tokens_data,
-            IERC20.transferFrom.selector,
-            address(mew),
-            address(mew),
-            amounts[0],
-            address(usdc)
-        );
+        bool isValid = credibleAccountValidatorHarness
+            .exposed_validateTokenData(
+                tokens_data,
+                IERC20.transferFrom.selector,
+                address(mew),
+                address(mew),
+                amounts[0],
+                address(usdc)
+            );
 
         assertTrue(isValid, "validate token-data should be valid");
 
@@ -577,26 +702,76 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
                 sessionKeyPrivateKey
             );
 
-        (bytes memory signature, bytes32 merkleRoot, bytes32[] memory merkleProof) = credibleAccountValidatorHarness.exposed_digestSignature(userOp.signature);
+        (
+            bytes memory signature,
+            uint48 currentTimestamp,
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        ) = credibleAccountValidatorHarness.exposed_digestSignature(
+                userOp.signature
+            );
 
         // get expected signature
-        (,, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(
+        (, , uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(
             address(mew),
             userOpCalldata,
             sessionKeyPrivateKey
         );
-        bytes memory expectedSignature = abi.encodePacked(r,s,v);
+        bytes memory expectedSignature = abi.encodePacked(r, s, v);
 
         assertEq(signature, expectedSignature, "signature should match");
 
-        (bytes32 expectedMerkleRoot, bytes32[] memory expectedMerkleProof) = getDummyMerkleRootAndProof();
+        (
+            bytes32 expectedMerkleRoot,
+            bytes32[] memory expectedMerkleProof
+        ) = getDummyMerkleRootAndProof();
 
-        assertEq(merkleProof.length, expectedMerkleProof.length, "merkleProof should match");
+        assertEq(
+            merkleProof.length,
+            expectedMerkleProof.length,
+            "merkleProof should match"
+        );
 
         for (uint i = 0; i < merkleProof.length; i++) {
-            assertEq(merkleProof[i], expectedMerkleProof[i], "merkleProof should match");
+            assertEq(
+                merkleProof[i],
+                expectedMerkleProof[i],
+                "merkleProof should match"
+            );
         }
 
         assertEq(merkleRoot, expectedMerkleRoot, "merkleRoot should match");
+    }
+
+    function test_exposed_setSessionKeyStatus() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        // Get default session data
+        bytes memory sessionData = _getDefaultSessionData(
+            IERC20.transferFrom.selector
+        );
+        // Enable session key on harness
+        credibleAccountValidatorHarness.enableSessionKey(sessionData);
+        // Verify that session key is initialized with live status
+        assertEq(
+            uint256(
+                credibleAccountValidatorHarness.getSessionKeyStatus(sessionKey)
+            ),
+            uint256(ICredibleAccountValidator.SessionKeyStatus.Live),
+            "Session key status should be live"
+        );
+        // Change the session status to expired
+        credibleAccountValidatorHarness.exposed_setSessionKeyStatus(
+            sessionKey,
+            ICredibleAccountValidator.SessionKeyStatus.Expired
+        );
+        // Verify that session status is now expired
+        assertEq(
+            uint256(
+                credibleAccountValidatorHarness.getSessionKeyStatus(sessionKey)
+            ),
+            uint256(ICredibleAccountValidator.SessionKeyStatus.Expired),
+            "Session key status should be expired"
+        );
     }
 }

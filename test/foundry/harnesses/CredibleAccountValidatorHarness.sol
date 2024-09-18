@@ -57,10 +57,18 @@ contract CredibleAccountValidatorHarness is CredibleAccountValidator {
         view
         returns (
             bytes memory signature,
+            uint48 currentTimestamp,
             bytes32 merkleRoot,
             bytes32[] memory merkleProof
         )
     {
         return _digestSignature(signatureWithMerkleProof);
+    }
+
+    function exposed_setSessionKeyStatus(
+        address _sessionKey,
+        SessionKeyStatus _status
+    ) external {
+        return _setSessionKeyStatus(_sessionKey, _status);
     }
 }

@@ -220,28 +220,52 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
             ECDSA.toEthSignedMessageHash(hash)
         );
 
-        if(_validator == address(caValidator)) {
-            (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
+        if (_validator == address(caValidator)) {
+            (
+                bytes32 merkleRoot,
+                bytes32[] memory merkleProof
+            ) = getDummyMerkleRootAndProof();
             // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
-            userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+            userOp.signature = abi.encodePacked(
+                r,
+                s,
+                v,
+                uint48(block.timestamp),
+                merkleRoot,
+                merkleProof
+            );
         } else {
             userOp.signature = abi.encodePacked(r, s, v);
         }
-        
+
         return (hash, userOp);
     }
 
-    function _generateUserOpSignatureWithMerkleProof(PackedUserOperation memory userOp, uint256 signerKey) internal view returns (bytes memory) {
+    function _generateUserOpSignatureWithMerkleProof(
+        PackedUserOperation memory userOp,
+        uint256 signerKey
+    ) internal view returns (bytes memory) {
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             signerKey,
             ECDSA.toEthSignedMessageHash(hash)
         );
-        
-        (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
+
+        (
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        ) = getDummyMerkleRootAndProof();
 
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
-        return abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+        return
+            abi.encodePacked(
+                r,
+                s,
+                v,
+                uint48(block.timestamp),
+                merkleRoot,
+                merkleProof
+            );
     }
 
     function _executeUserOperation(
