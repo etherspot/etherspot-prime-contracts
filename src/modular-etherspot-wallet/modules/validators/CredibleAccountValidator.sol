@@ -19,6 +19,13 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     using ExecutionLib for bytes;
 
     /*//////////////////////////////////////////////////////////////
+                              CONSTANTS
+    //////////////////////////////////////////////////////////////*/
+
+    string constant NAME = "CredibleAccountValidator";
+    string constant VERSION = "1.0.0";
+
+    /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 
@@ -115,7 +122,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             solverAddress,
             validAfter,
             validUntil,
-            SessionKeyStatus.Live
+            true
         );
 
         walletSessionKeys[msg.sender].push(sessionKey);
@@ -135,10 +142,28 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     }
 
     // @inheritdoc ICredibleAccountValidator
-    function getSessionKeyStatus(
-        address _sessionKey
-    ) public view returns (SessionKeyStatus) {
-        return sessionData[_sessionKey][msg.sender].status;
+    function toggleSessionKeyPause(address _sessionKey) external {
+        SessionData storage sd = sessionData[_sessionKey][msg.sender];
+        if (sd.validUntil == 0)
+            revert CredibleAccountValidator_SessionKeyDoesNotExist(_sessionKey);
+        if (sd.live) {
+            sd.live = false;
+            emit CredibleAccountValidator_SessionKeyPaused(
+                _sessionKey,
+                msg.sender
+            );
+        } else {
+            sd.live = true;
+            emit CredibleAccountValidator_SessionKeyUnpaused(
+                _sessionKey,
+                msg.sender
+            );
+        }
+    }
+
+    // @inheritdoc ICredibleAccountValidator
+    function isSessionKeyLive(address _sessionKey) public view returns (bool) {
+        return sessionData[_sessionKey][msg.sender].live;
     }
 
     // @inheritdoc ICredibleAccountValidator
@@ -147,9 +172,10 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         PackedUserOperation calldata userOp
     ) public view returns (bool) {
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (getSessionKeyStatus(_sessionKey) != SessionKeyStatus.Live) {
+        if (!isSessionKeyLive(_sessionKey)) {
             return false;
         }
+
         bytes calldata callData = userOp.callData;
         if (bytes4(callData[:4]) == IERC7579Account.execute.selector) {
             ModeCode mode = ModeCode.wrap(bytes32(callData[4:36]));
@@ -186,7 +212,6 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
      *      - 32 bytes for `r`
      *      - 32 bytes for `s`
      *      - 1 byte for `v`
-     *      - 6 bytes for `currentTimestamp`
      *      - 32 bytes for `merkleRoot`
      *      - 32 bytes for at least one entry in the `merkleProof`
      * @param userOp The packed user operation containing the signature and other data.
@@ -197,39 +222,33 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        if (userOp.signature.length < 135) {
+        if (userOp.signature.length < 129) {
             return VALIDATION_FAILED;
         }
+
         (
             bytes memory signature,
-            uint48 currentTime,
             bytes32 merkleRoot,
             bytes32[] memory merkleProof
         ) = _digestSignature(userOp.signature);
+
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
             signature
         );
+
         if (!validateSessionKeyParams(sessionKeySigner, userOp)) {
             return VALIDATION_FAILED;
         }
+
         // Validate the Merkle proof (userOpHash is considered the leaf)
         // this is only stub method and to be replaced with actual Merkle proof validation logic
         if (!validateProof(merkleProof, merkleRoot, userOpHash)) {
             return VALIDATION_FAILED;
         }
+
         SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
-        // TODO: test logic
-        // Check currentTimestamp against validUntil and expire if needed and fail op
-        if (currentTime > sd.validUntil) {
-            // NOTE: this wont work as resets state if invalid op
-            _setSessionKeyStatus(sessionKeySigner, SessionKeyStatus.Expired);
-            return VALIDATION_FAILED;
-        }
-        // NOTE: Add claimed here for now
-        // TODO: test logic
-        // need to reassess the logic
-        _setSessionKeyStatus(sessionKeySigner, SessionKeyStatus.Claimed);
+
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
@@ -242,6 +261,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         if (proof.length == 0 || root == bytes32(0)) {
             return false;
         }
+
         // Placeholder for actual Merkle proof validation logic
         return true;
     }
@@ -292,13 +312,6 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     /*//////////////////////////////////////////////////////////////
                                INTERNAL
     //////////////////////////////////////////////////////////////*/
-
-    function _setSessionKeyStatus(
-        address _sessionKey,
-        SessionKeyStatus _status
-    ) internal {
-        sessionData[_sessionKey][msg.sender].status = _status;
-    }
 
     /// @notice Validates a single call within a user operation against the session data
     /// @dev This function decodes the call data, extracts relevant information, and performs validation checks
@@ -436,27 +449,35 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
     /// @notice Extracts signature components, merkle root, and merkle proof from the provided data
     /// @dev Decodes the signature, merkle root, and merkle proof from a single bytes array
-    /// @param signatureWithMerkleProof The combined signature, timestamp, merkle root, and merkle proof data
+    /// @param signatureWithMerkleProof The combined signature, merkle root, and merkle proof data
     /// @return signature The extracted signature (r, s, v)
-    /// @return currentTimestamp The extracted current timestamp
     /// @return merkleRoot The extracted merkle root
     /// @return merkleProof The extracted merkle proof as an array of bytes32
     function _digestSignature(
         bytes calldata signatureWithMerkleProof
-    ) internal view returns (bytes memory, uint48, bytes32, bytes32[] memory) {
+    )
+        internal
+        view
+        returns (
+            bytes memory signature,
+            bytes32 merkleRoot,
+            bytes32[] memory merkleProof
+        )
+    {
         bytes32 r = bytes32(signatureWithMerkleProof[0:32]);
         bytes32 s = bytes32(signatureWithMerkleProof[32:64]);
         uint8 v = uint8(signatureWithMerkleProof[64]);
-        uint48 currentTimestamp = uint48(
-            bytes6(signatureWithMerkleProof[65:71])
-        );
-        bytes32 merkleRoot = bytes32(signatureWithMerkleProof[71:103]);
+        bytes32 merkleRoot = bytes32(signatureWithMerkleProof[65:97]);
+
         bytes memory signature = abi.encodePacked(r, s, v);
-        // r (32 bytes) + s (32 bytes) + v (1 byte) + currentTimestamp (6 bytes) + merkleRoot (32 bytes) = 97 bytes.
-        uint256 proofLength = (signatureWithMerkleProof.length - 103) / 32;
+
+        // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
+        uint256 proofLength = (signatureWithMerkleProof.length - 97) / 32;
+
         bytes32[] memory merkleProof = new bytes32[](proofLength);
+
         if (proofLength > 0) {
-            uint256 proofStart = 103;
+            uint256 proofStart = 97; // 32 byte r + 32 byte s + 1 byte v + 32 byte merkleRoot
             for (uint256 i; i < proofLength; ++i) {
                 merkleProof[i] = bytes32(
                     signatureWithMerkleProof[proofStart + (i * 32):proofStart +
@@ -464,6 +485,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
                 );
             }
         }
-        return (signature, currentTimestamp, merkleRoot, merkleProof);
+
+        return (signature, merkleRoot, merkleProof);
     }
 }

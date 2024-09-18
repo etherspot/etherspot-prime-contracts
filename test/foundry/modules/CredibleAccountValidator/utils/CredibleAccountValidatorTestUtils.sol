@@ -132,6 +132,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         ModularEtherspotWallet _modularWallet,
         bytes4 _functionSelector
     ) public returns (address, ICredibleAccountValidator.SessionData memory) {
+
         usdc.mint(address(_modularWallet), amounts[0]);
         assertEq(usdc.balanceOf(address(_modularWallet)), amounts[0]);
         usdc.approve(address(_modularWallet), amounts[0]);
@@ -157,10 +158,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         assertEq(sessionDataQueried.tokens.length, tokens.length);
         assertEq(sessionDataQueried.amounts.length, amounts.length);
         assertEq(sessionDataQueried.solverAddress, solver);
-        assertEq(
-            uint256(sessionDataQueried.status),
-            uint256(ICredibleAccountValidator.SessionKeyStatus.Live)
-        );
+        assertTrue(sessionDataQueried.live);
         return (sessionKey, sessionDataQueried);
     }
 
@@ -189,12 +187,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     function _createUserOpWithSignature(
         address _account,
         bytes memory _callData,
-        uint256 _signerKey
-    )
-        internal
-        view
-        returns (PackedUserOperation memory, bytes32, uint8, bytes32, bytes32)
-    {
+        uint256 _signerKey) internal view returns (PackedUserOperation memory, bytes32, uint8, bytes32, bytes32) {
         PackedUserOperation memory userOp = entrypoint.fillUserOp(
             _account,
             _callData
@@ -214,28 +207,13 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         bytes memory _callData,
         uint256 _signerKey
     ) internal view returns (bytes32, PackedUserOperation memory) {
-        (
-            PackedUserOperation memory userOp,
-            bytes32 hash,
-            uint8 v,
-            bytes32 r,
-            bytes32 s
-        ) = _createUserOpWithSignature(_account, _callData, _signerKey);
 
-        (
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
-        ) = getDummyMerkleRootAndProof();
+        (PackedUserOperation memory userOp, bytes32 hash, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(_account, _callData, _signerKey);
+
+        (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
 
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
-        userOp.signature = abi.encodePacked(
-            r,
-            s,
-            v,
-            uint48(block.timestamp),
-            merkleRoot,
-            merkleProof
-        );
+        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
 
         return (hash, userOp);
     }
@@ -245,31 +223,16 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         bytes memory _callData,
         uint256 _signerKey
     ) internal view returns (bytes32, PackedUserOperation memory) {
-        (
-            PackedUserOperation memory userOp,
-            bytes32 hash,
-            uint8 v,
-            bytes32 r,
-            bytes32 s
-        ) = _createUserOpWithSignature(_account, _callData, _signerKey);
+        (PackedUserOperation memory userOp, bytes32 hash, uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(_account, _callData, _signerKey);
 
-        (
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
-        ) = getDummyMerkleRootAndProof();
+        (bytes32 merkleRoot, bytes32[] memory merkleProof) = getDummyMerkleRootAndProof();
 
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
-        userOp.signature = abi.encodePacked(
-            r,
-            s,
-            v,
-            uint48(block.timestamp),
-            merkleRoot,
-            merkleProof
-        );
+        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
 
         return (hash, userOp);
     }
+
 
     function _executeUserOperation(
         PackedUserOperation memory _userOp

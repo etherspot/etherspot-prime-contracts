@@ -102,10 +102,7 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
         assertEq(sessionDataQueried.tokens.length, tokens.length);
         assertEq(sessionDataQueried.amounts.length, amounts.length);
         assertEq(sessionDataQueried.solverAddress, tSolver);
-        assertEq(
-            uint256(sessionDataQueried.status),
-            uint256(ICredibleAccountValidator.SessionKeyStatus.Live)
-        );
+        assertTrue(sessionDataQueried.live);
         // Validate token balances
         assertEq(usdc.balanceOf(address(mew)), amounts[0]);
         assertEq(dai.balanceOf(address(mew)), amounts[1]);
@@ -353,9 +350,11 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
     function testFuzz_digestSignature(uint256 randomLength) public {
         // Define assumptions
         // Bound the length to a reasonable range
-        uint256 adjustedLength = bound(randomLength, 103, 1000);
+        uint256 adjustedLength = bound(randomLength, 97, 1000);
+
         // Ensure the length is valid for the merkle proof
-        adjustedLength = 103 + ((adjustedLength - 103) / 32) * 32;
+        adjustedLength = 97 + ((adjustedLength - 97) / 32) * 32;
+
         // Generate a random signature with merkle proof
         bytes memory fSignature = new bytes(adjustedLength);
         for (uint256 i; i < adjustedLength; ++i) {
@@ -368,7 +367,6 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
         // Digest signature
         (
             bytes memory signature,
-            ,
             bytes32 merkleRoot,
             bytes32[] memory merkleProof
         ) = credibleAccountValidatorHarness.exposed_digestSignature(fSignature);
@@ -385,7 +383,7 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
             r := mload(add(fSignature, 32))
             s := mload(add(fSignature, 64))
             v := byte(0, mload(add(fSignature, 65)))
-            expectedMerkleRoot := mload(add(fSignature, 103))
+            expectedMerkleRoot := mload(add(fSignature, 97))
             signatureR := mload(add(signature, 32))
             signatureS := mload(add(signature, 64))
             signatureV := byte(0, mload(add(signature, 65)))
@@ -396,13 +394,13 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
         // Verify merkle root
         assertEq(merkleRoot, expectedMerkleRoot);
         // Verify merkle proof
-        uint256 expectedProofLength = (fSignature.length - 103) / 32;
+        uint256 expectedProofLength = (fSignature.length - 97) / 32;
         assertEq(merkleProof.length, expectedProofLength);
         for (uint256 i; i < expectedProofLength; ++i) {
             bytes32 expectedProofElement;
             assembly {
                 expectedProofElement := mload(
-                    add(add(fSignature, 135), mul(i, 32))
+                    add(add(fSignature, 129), mul(i, 32))
                 )
             }
             assertEq(merkleProof[i], expectedProofElement);
