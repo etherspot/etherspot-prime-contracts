@@ -59,38 +59,31 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
     // @inheritdoc ICredibleAccountValidator
     function enableSessionKey(bytes calldata _sessionData) public {
-        uint256 offset = 0;
-
+        uint256 offset;
         address sessionKey = address(bytes20(_sessionData[offset:offset + 20]));
         offset += 20;
         if (sessionKey == address(0))
             revert CredibleAccountValidator_InvalidSessionKey();
-
         address solverAddress = address(
             bytes20(_sessionData[offset:offset + 20])
         );
         offset += 20;
-
         bytes4 funcSelector = bytes4(_sessionData[offset:offset + 4]);
         offset += 4;
         if (funcSelector == bytes4(0))
             revert CredibleAccountValidator_InvalidFunctionSelector();
-
         uint48 validAfter = uint48(bytes6(_sessionData[offset:offset + 6]));
         offset += 6;
         if (validAfter == 0)
             revert CredibleAccountValidator_InvalidValidAfter(validAfter);
-
         uint48 validUntil = uint48(bytes6(_sessionData[offset:offset + 6]));
         offset += 6;
         if (validUntil == 0)
             revert CredibleAccountValidator_InvalidValidUntil(validUntil);
-
         uint256 tokensLength = uint256(
             bytes32(_sessionData[offset:offset + 32])
         );
         offset += 32;
-
         address[] memory tokens = new address[](tokensLength);
         for (uint256 i; i < tokensLength; ++i) {
             tokens[i] = address(
@@ -98,22 +91,18 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             );
             offset += 32;
         }
-
         uint256 amountsLength = uint256(
             bytes32(_sessionData[offset:offset + 32])
         );
         offset += 32;
-
         // Decode amounts array
         uint256[] memory amounts = new uint256[](amountsLength);
         for (uint256 i; i < amountsLength; ++i) {
             amounts[i] = uint256(bytes32(_sessionData[offset:offset + 32]));
             offset += 32;
         }
-
         if (tokensLength != amountsLength)
             revert CredibleAccountValidator_InvalidTokenAmountData(sessionKey);
-
         // Store the decoded data in sessionData mapping
         sessionData[sessionKey][msg.sender] = SessionData(
             tokens,
@@ -122,7 +111,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             solverAddress,
             validAfter,
             validUntil,
-            true
+            false
         );
 
         walletSessionKeys[msg.sender].push(sessionKey);
@@ -142,28 +131,8 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     }
 
     // @inheritdoc ICredibleAccountValidator
-    function toggleSessionKeyPause(address _sessionKey) external {
-        SessionData storage sd = sessionData[_sessionKey][msg.sender];
-        if (sd.validUntil == 0)
-            revert CredibleAccountValidator_SessionKeyDoesNotExist(_sessionKey);
-        if (sd.live) {
-            sd.live = false;
-            emit CredibleAccountValidator_SessionKeyPaused(
-                _sessionKey,
-                msg.sender
-            );
-        } else {
-            sd.live = true;
-            emit CredibleAccountValidator_SessionKeyUnpaused(
-                _sessionKey,
-                msg.sender
-            );
-        }
-    }
-
-    // @inheritdoc ICredibleAccountValidator
-    function isSessionKeyLive(address _sessionKey) public view returns (bool) {
-        return sessionData[_sessionKey][msg.sender].live;
+    function isSessionClaimed(address _sessionKey) public view returns (bool) {
+        return sessionData[_sessionKey][msg.sender].claimed;
     }
 
     // @inheritdoc ICredibleAccountValidator
@@ -172,7 +141,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         PackedUserOperation calldata userOp
     ) public view returns (bool) {
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (!isSessionKeyLive(_sessionKey)) {
+        if (isSessionClaimed(_sessionKey)) {
             return false;
         }
 
@@ -225,30 +194,25 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         if (userOp.signature.length < 129) {
             return VALIDATION_FAILED;
         }
-
         (
             bytes memory signature,
             bytes32 merkleRoot,
             bytes32[] memory merkleProof
         ) = _digestSignature(userOp.signature);
-
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
             signature
         );
-
         if (!validateSessionKeyParams(sessionKeySigner, userOp)) {
             return VALIDATION_FAILED;
         }
-
         // Validate the Merkle proof (userOpHash is considered the leaf)
         // this is only stub method and to be replaced with actual Merkle proof validation logic
         if (!validateProof(merkleProof, merkleRoot, userOpHash)) {
             return VALIDATION_FAILED;
         }
-
-        SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
-
+        SessionData storage sd = sessionData[sessionKeySigner][msg.sender];
+        sd.claimed = true;
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 

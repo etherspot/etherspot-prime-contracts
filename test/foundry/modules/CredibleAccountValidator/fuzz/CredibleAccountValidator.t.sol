@@ -102,7 +102,7 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
         assertEq(sessionDataQueried.tokens.length, tokens.length);
         assertEq(sessionDataQueried.amounts.length, amounts.length);
         assertEq(sessionDataQueried.solverAddress, tSolver);
-        assertTrue(sessionDataQueried.live);
+        assertFalse(sessionDataQueried.claimed);
         // Validate token balances
         assertEq(usdc.balanceOf(address(mew)), amounts[0]);
         assertEq(dai.balanceOf(address(mew)), amounts[1]);
