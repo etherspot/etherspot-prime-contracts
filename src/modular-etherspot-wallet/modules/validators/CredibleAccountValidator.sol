@@ -41,6 +41,8 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     error CredibleAccountValidator_SessionKeyAlreadyExists(address sessionKey);
     error CredibleAccountValidator_SessionKeyDoesNotExist(address session);
     error CredibleAccountValidator_SessionPaused(address sessionKey);
+    error CredibleAccountValidator_SessionKeyActive(address sessionKey);
+    error CredibleAccountValidator_LockedTokensNotClaimed(address sessionKey);
     error NotImplemented();
 
     /*//////////////////////////////////////////////////////////////
@@ -113,8 +115,24 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
     // @inheritdoc ICredibleAccountValidator
     function disableSessionKey(address _session) public {
-        if (sessionData[_session][msg.sender].validUntil == 0)
+        if (sessionData[_session][msg.sender].validUntil == 0) {
             revert CredibleAccountValidator_SessionKeyDoesNotExist(_session);
+        }
+
+        if(sessionData[_session][msg.sender].validAfter > block.timestamp) {
+            revert CredibleAccountValidator_SessionKeyActive(_session);
+        }
+
+        // for each token in sessionData, getTokenAmounts and check if claimedAmount == lockedAmount
+        uint256 tokenCount = sessionData[_session][msg.sender].lockedTokens.length;
+        for (uint256 i; i < tokenCount; ++i) {
+            (uint256 lockedAmount, uint256 claimedAmount) = 
+            getTokenAmounts(_session, sessionData[_session][msg.sender].lockedTokens[i].token);
+            if (lockedAmount != claimedAmount) {
+                revert CredibleAccountValidator_LockedTokensNotClaimed(_session);
+            }
+        }
+
         delete sessionData[_session][msg.sender];
         walletSessionKeys[msg.sender] = ArrayLib._removeElement(
             getAssociatedSessionKeys(),
