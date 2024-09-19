@@ -6,37 +6,41 @@ import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol"
 
 contract CredibleAccountValidatorHarness is CredibleAccountValidator {
     function exposed_validateSingleCall(
-        bytes calldata callData,
-        SessionData memory sd,
-        address userOpSender
-    ) external view returns (bool) {
-        return _validateSingleCall(callData, sd, userOpSender);
+        bytes calldata _callData,
+        address _sessionKey,
+        SessionData memory _sd,
+        address _userOpSender
+    ) external returns (bool) {
+        return _validateSingleCall(_callData, _sessionKey, _sd, _userOpSender);
     }
 
     function exposed_validateBatchCall(
-        bytes calldata callData,
-        SessionData memory sd,
-        address userOpSender
-    ) external view returns (bool) {
-        return _validateBatchCall(callData, sd, userOpSender);
+        bytes calldata _callData,
+        address _sessionKey,
+        SessionData memory _sd,
+        address _userOpSender
+    ) external returns (bool) {
+        return _validateBatchCall(_callData, _sessionKey, _sd, _userOpSender);
     }
 
     function exposed_validateTokenData(
-        address[] memory tokens,
-        bytes4 selector,
-        address userOpSender,
-        address from,
-        uint256 amount,
-        address token
-    ) external view returns (bool) {
+        address _sessionKey,
+        LockedToken[] memory _lockedTokens,
+        bytes4 _selector,
+        address _userOpSender,
+        address _from,
+        uint256 _amount,
+        address _token
+    ) external returns (bool) {
         return
             _validateTokenData(
-                tokens,
-                selector,
-                userOpSender,
-                from,
-                amount,
-                token
+                _sessionKey,
+                _lockedTokens,
+                _selector,
+                _userOpSender,
+                _from,
+                _amount,
+                _token
             );
     }
 
@@ -51,7 +55,7 @@ contract CredibleAccountValidatorHarness is CredibleAccountValidator {
     }
 
     function exposed_digestSignature(
-        bytes calldata signatureWithMerkleProof
+        bytes calldata _signatureWithMerkleProof
     )
         external
         view
@@ -61,6 +65,6 @@ contract CredibleAccountValidatorHarness is CredibleAccountValidator {
             bytes32[] memory merkleProof
         )
     {
-        return _digestSignature(signatureWithMerkleProof);
+        return _digestSignature(_signatureWithMerkleProof);
     }
 }

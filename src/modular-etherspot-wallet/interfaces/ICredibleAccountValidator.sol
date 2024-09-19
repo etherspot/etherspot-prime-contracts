@@ -14,14 +14,17 @@ interface ICredibleAccountValidator is IValidator {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Struct representing the data associated with a session key.
+    struct LockedToken {
+        address token;
+        uint256 lockedAmount;
+        uint256 claimedAmount;
+    }
     struct SessionData {
-        address[] tokens; // The array of ERC20 token contract addresses.
-        bytes4 funcSelector; // The function selector for the allowed operation (e.g., transfer, transferFrom).
-        uint256[] amounts; // The array of lockedAmounts that has been locked for this session key.
-        address solverAddress; // The address of the solver.
-        uint48 validAfter; // The timestamp after which the session key is valid.
-        uint48 validUntil; // The timestamp until which the session key is valid.
-        bool claimed; // Flag indicating whether solver has claimed reimbursement.
+        uint48 validAfter;
+        uint48 validUntil;
+        address solver;
+        bytes4 selector;
+        LockedToken[] lockedTokens;
     }
 
     struct ExecData {
@@ -86,11 +89,6 @@ interface ICredibleAccountValidator is IValidator {
     /// @notice Disables a session key for the caller's wallet.
     /// @param _session The address of the session key to disable.
     function disableSessionKey(address _session) external;
-
-    /// @notice Checks if a solver has claimed reimbursement for a session key.
-    /// @param _sessionKey The address of the session key to check.
-    /// @return True if the session key is claimed, false otherwise.
-    function isSessionClaimed(address _sessionKey) external view returns (bool);
 
     /// @notice Validates the parameters of a session key for a given user operation.
     /// @param _sessionKey The address of the session key.

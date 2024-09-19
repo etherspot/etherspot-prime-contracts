@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {ICredibleAccountValidator} from "../../../../../src/modular-etherspot-wallet/interfaces/ICredibleAccountValidator.sol";
+import {ICredibleAccountValidator as ICAV} from "../../../../../src/modular-etherspot-wallet/interfaces/ICredibleAccountValidator.sol";
 import {CredibleAccountValidatorTestUtils as CAV_TestUtils} from "../utils/CredibleAccountValidatorTestUtils.sol";
 import "../../../TestAdvancedUtils.t.sol";
 import "../../../../../account-abstraction/contracts/core/Helpers.sol";
@@ -88,21 +88,19 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
         );
         credibleAccountValidator.enableSessionKey(sessionData);
         // Validate session key data
-        ICredibleAccountValidator.SessionData
-            memory sessionDataQueried = credibleAccountValidator
-                .getSessionKeyData(sessionKey);
+        ICAV.SessionData memory sessionDataQueried = credibleAccountValidator
+            .getSessionKeyData(sessionKey);
         assertEq(credibleAccountValidator.getAssociatedSessionKeys().length, 1);
         assertEq(sessionDataQueried.validUntil, validUntil);
         assertEq(sessionDataQueried.validAfter, validAfter);
-        assertEq(sessionDataQueried.funcSelector, functionSelector);
+        assertEq(sessionDataQueried.selector, functionSelector);
         assertTrue(
-            sessionDataQueried.funcSelector == IERC20.transfer.selector ||
-                sessionDataQueried.funcSelector == IERC20.transferFrom.selector
+            sessionDataQueried.selector == IERC20.transfer.selector ||
+                sessionDataQueried.selector == IERC20.transferFrom.selector
         );
-        assertEq(sessionDataQueried.tokens.length, tokens.length);
-        assertEq(sessionDataQueried.amounts.length, amounts.length);
-        assertEq(sessionDataQueried.solverAddress, tSolver);
-        assertFalse(sessionDataQueried.claimed);
+        assertEq(sessionDataQueried.lockedTokens.length, tokens.length);
+        assertEq(sessionDataQueried.lockedTokens.length, amounts.length);
+        assertEq(sessionDataQueried.solver, tSolver);
         // Validate token balances
         assertEq(usdc.balanceOf(address(mew)), amounts[0]);
         assertEq(dai.balanceOf(address(mew)), amounts[1]);
@@ -232,71 +230,6 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
                         INTERNAL HARNESS TESTS
     //////////////////////////////////////////////////////////////*/
 
-    function testFuzz_validateTokenData(
-        uint8 tokenCount,
-        bool useTransferSelector,
-        address userOpSender,
-        address from,
-        uint256 amount,
-        uint8 tokenIndex
-    ) public {
-        // Define assumptions
-        vm.assume(tokenCount > 0 && tokenCount <= 10);
-        vm.assume(tokenIndex < tokenCount);
-        vm.assume(userOpSender != address(0) && from != address(0));
-        // Setup test environment
-        _testSetup();
-        // Set function selector based on fuzzed boolean
-        bytes4 tSelector = useTransferSelector
-            ? IERC20.transfer.selector
-            : IERC20.transferFrom.selector;
-        // Set up token data
-        address[] memory tokens = new address[](tokenCount);
-        for (uint8 i; i < tokenCount; ++i) {
-            tokens[i] = address(uint160(i + 1));
-        }
-        address token = tokens[tokenIndex];
-        // Mock token balance and allowance
-        uint256 balance = amount == type(uint256).max ? amount : amount + 1;
-        uint256 allowance = amount == type(uint256).max ? amount : amount + 1;
-        vm.mockCall(
-            token,
-            abi.encodeWithSelector(IERC20.balanceOf.selector, userOpSender),
-            abi.encode(balance)
-        );
-        vm.mockCall(
-            token,
-            abi.encodeWithSelector(
-                IERC20.allowance.selector,
-                userOpSender,
-                from
-            ),
-            abi.encode(allowance)
-        );
-        // Validate valid token data
-        bool result = credibleAccountValidatorHarness.exposed_validateTokenData(
-            tokens,
-            tSelector,
-            userOpSender,
-            from,
-            amount,
-            token
-        );
-        assertTrue(result);
-        // Test with invalid token
-        address invalidToken = address(uint160(tokenCount + 1));
-        result = credibleAccountValidatorHarness.exposed_validateTokenData(
-            tokens,
-            tSelector,
-            userOpSender,
-            from,
-            amount,
-            invalidToken
-        );
-
-        assertFalse(result);
-    }
-
     function testFuzz_digest(
         bool useApprovedSelector,
         address from,
@@ -326,7 +259,7 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
             address resultFrom,
             address resultTo,
             uint256 resultAmount
-        ) = credibleAccountValidatorHarness.exposed_digest(data);
+        ) = harness.exposed_digest(data);
         // Check digest dependant on fuzzed selector
         if (useApprovedSelector) {
             assertEq(resultSelector, selector);
@@ -369,7 +302,7 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
             bytes memory signature,
             bytes32 merkleRoot,
             bytes32[] memory merkleProof
-        ) = credibleAccountValidatorHarness.exposed_digestSignature(fSignature);
+        ) = harness.exposed_digestSignature(fSignature);
         // Verify signature components
         assertEq(signature.length, 65);
         bytes32 r;

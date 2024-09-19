@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../../../../../src/modular-etherspot-wallet/modules/validators/CredibleAccountValidator.sol";
+import {ICredibleAccountValidator as ICAV} from "../../../../../src/modular-etherspot-wallet/interfaces/ICredibleAccountValidator.sol";
 import "../../../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
 import {CredibleAccountValidatorTestUtils as CAV_TestUtils} from "../utils/CredibleAccountValidatorTestUtils.sol";
 import "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
@@ -71,7 +72,11 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     function test_uninstallModule() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        _enableSessionKeyAndValidate(mew, IERC20.transfer.selector);
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
         assertEq(
             credibleAccountValidator.getAssociatedSessionKeys().length,
             1,
@@ -126,7 +131,11 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     function test_enableSessionKey() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        _enableSessionKeyAndValidate(mew, IERC20.transfer.selector);
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
     }
 
     // Test: Verify that a session key can be disabled
@@ -134,6 +143,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         // Set up the test environment and enable a session key
         _testSetup();
         (address sessionKey, ) = _enableSessionKeyAndValidate(
+            credibleAccountValidator,
             mew,
             IERC20.transfer.selector
         );
@@ -146,6 +156,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         // Set up the test environment and enable a session key
         _testSetup();
         (address sessionKey, ) = _enableSessionKeyAndValidate(
+            credibleAccountValidator,
             mew,
             IERC20.transferFrom.selector
         );
@@ -185,8 +196,12 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         _testSetup();
         (
             ,
-            ICredibleAccountValidator.SessionData memory sessionDataStruct
-        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+            ICAV.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(
+                credibleAccountValidator,
+                mew,
+                IERC20.transferFrom.selector
+            );
         // Prepare user operation data
         bytes memory data = _createTokenTransferFromExecution(
             address(mew),
@@ -230,7 +245,11 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     function test_fail_validateUserOp_invalidFunctionSelector() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        _enableSessionKeyAndValidate(mew, IERC20.transfer.selector);
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
         // Prepare user operation data with invalid selector
         bytes memory data = _createTokenTransferFromExecution(
             address(mew),
@@ -264,7 +283,11 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     function test_fail_sessionSignedByInvalidKey() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transferFrom.selector
+        );
         // Prepare user operation data signed by an invalid key
         bytes memory data = _createTokenTransferFromExecution(
             address(mew),
@@ -294,7 +317,11 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     function test_e2e_handleUserOp() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transferFrom.selector
+        );
         // Prepare user operation data
         bytes memory data = _createTokenTransferFromExecution(
             address(mew),
@@ -323,18 +350,47 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         );
     }
 
-    function test_singleExecute_successfulSolverClaimIsClaimed() public {
+    function test_successfulSolverClaimIsClaimed() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        _enableSessionKeyAndValidate(mew, IERC20.transfer.selector);
-        // Prepare user operation data
-        bytes memory data = _createTokenTransferExecution(solver, amounts[1]);
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
+        // Prepare Executions
+        Execution[] memory executions = new Execution[](3);
+        bytes memory dataUSDC = _createTokenTransferExecution(
+            address(solver),
+            amounts[0]
+        );
+        bytes memory dataDAI = _createTokenTransferExecution(
+            address(solver),
+            amounts[1]
+        );
+        bytes memory dataUNI = _createTokenTransferExecution(
+            address(solver),
+            amounts[2]
+        );
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: dataUSDC
+        });
+        executions[1] = Execution({
+            target: address(dai),
+            value: 0,
+            callData: dataDAI
+        });
+        executions[2] = Execution({
+            target: address(uni),
+            value: 0,
+            callData: dataUNI
+        });
+        // Encode the call into the calldata for the userOp
         bytes memory userOpCalldata = abi.encodeCall(
             IERC7579Account.execute,
-            (
-                ModeLib.encodeSimpleSingle(),
-                ExecutionLib.encodeSingle(tokens[1], uint256(0), data)
-            )
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
         );
         (, PackedUserOperation memory userOp) = _createUserOperation(
             address(mew),
@@ -345,17 +401,111 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         _executeUserOperation(userOp);
         // Verify the token transfer
         assertEq(
+            usdc.balanceOf(address(solver)),
+            amounts[0],
+            "Solver's USDC balance should match the transferred amount"
+        );
+        assertEq(
             dai.balanceOf(address(solver)),
             amounts[1],
-            "Solver's balance should match the transferred amount"
+            "Solver's DAI balance should match the transferred amount"
+        );
+        assertEq(
+            uni.balanceOf(address(solver)),
+            amounts[2],
+            "Solver's UNI balance should match the transferred amount"
         );
         assertTrue(credibleAccountValidator.isSessionClaimed(sessionKey));
+    }
+
+    function test_successfulSolverPartialClaimIsNotClaimed() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
+        // Prepare Executions
+        Execution[] memory executions = new Execution[](3);
+        bytes memory dataUSDC = _createTokenTransferExecution(
+            address(solver),
+            amounts[0]
+        );
+        bytes memory dataDAI = _createTokenTransferExecution(
+            address(solver),
+            amounts[1]
+        );
+        bytes memory dataUNI = _createTokenTransferExecution(
+            address(solver),
+            amounts[2] - 1
+        );
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: dataUSDC
+        });
+        executions[1] = Execution({
+            target: address(dai),
+            value: 0,
+            callData: dataDAI
+        });
+        executions[2] = Execution({
+            target: address(uni),
+            value: 0,
+            callData: dataUNI
+        });
+        // Encode the call into the calldata for the userOp
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+        (, PackedUserOperation memory userOp) = _createUserOperation(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        // Execute the user operation
+        _executeUserOperation(userOp);
+        // Verify the token transfer
+        assertEq(
+            usdc.balanceOf(address(solver)),
+            amounts[0],
+            "Solver's USDC balance should match the transferred amount"
+        );
+        assertEq(
+            dai.balanceOf(address(solver)),
+            amounts[1],
+            "Solver's DAI balance should match the transferred amount"
+        );
+        assertEq(
+            uni.balanceOf(address(solver)),
+            amounts[2] - 1,
+            "Solver's UNI balance should match the transferred amount"
+        );
+        assertFalse(credibleAccountValidator.isSessionClaimed(sessionKey));
+        (uint256 usdcLocked, uint256 usdcClaimed) = credibleAccountValidator
+            .getTokenAmounts(sessionKey, tokens[0]);
+        (uint256 daiLocked, uint256 daiClaimed) = credibleAccountValidator
+            .getTokenAmounts(sessionKey, tokens[1]);
+        (uint256 uniLocked, uint256 uniClaimed) = credibleAccountValidator
+            .getTokenAmounts(sessionKey, tokens[2]);
+        assertEq(usdcLocked, amounts[0]);
+        assertEq(usdcClaimed, amounts[0]);
+        assertEq(daiLocked, amounts[1]);
+        assertEq(daiClaimed, amounts[1]);
+        assertEq(uniLocked, amounts[2]);
+        assertEq(uniClaimed, amounts[2] - 1);
     }
 
     function test_singleExecute_failedSolverClaimExpiredSession() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        _enableSessionKeyAndValidate(mew, IERC20.transfer.selector);
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
         // Prepare user operation data
         bytes memory data = _createTokenTransferExecution(solver, amounts[1]);
         bytes memory userOpCalldata = abi.encodeCall(
@@ -389,8 +539,12 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         _testSetup();
         (
             ,
-            ICredibleAccountValidator.SessionData memory sessionDataStruct
-        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+            ICAV.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(
+                harness,
+                mew,
+                IERC20.transferFrom.selector
+            );
         // Prepare user operation data
         bytes memory data = _createTokenTransferFromExecution(
             address(mew),
@@ -405,12 +559,12 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             )
         );
 
-        bool isValid = credibleAccountValidatorHarness
-            .exposed_validateSingleCall(
-                userOpCalldata,
-                sessionDataStruct,
-                address(mew)
-            );
+        bool isValid = harness.exposed_validateSingleCall(
+            userOpCalldata,
+            sessionKey,
+            sessionDataStruct,
+            address(mew)
+        );
 
         assertTrue(isValid, "validate single-call should be valid");
 
@@ -422,8 +576,9 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             )
         );
 
-        isValid = credibleAccountValidatorHarness.exposed_validateSingleCall(
+        isValid = harness.exposed_validateSingleCall(
             userOpCalldata,
+            sessionKey,
             sessionDataStruct,
             address(mew)
         );
@@ -436,8 +591,12 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         _testSetup();
         (
             ,
-            ICredibleAccountValidator.SessionData memory sessionDataStruct
-        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+            ICAV.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(
+                harness,
+                mew,
+                IERC20.transferFrom.selector
+            );
 
         Execution[] memory executions = new Execution[](3);
 
@@ -483,12 +642,12 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
         );
 
-        bool isValid = credibleAccountValidatorHarness
-            .exposed_validateBatchCall(
-                userOpCalldata,
-                sessionDataStruct,
-                address(mew)
-            );
+        bool isValid = harness.exposed_validateBatchCall(
+            userOpCalldata,
+            sessionKey,
+            sessionDataStruct,
+            address(mew)
+        );
 
         assertTrue(isValid, "validate batch-call should be valid");
 
@@ -510,8 +669,9 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
         );
 
-        isValid = credibleAccountValidatorHarness.exposed_validateBatchCall(
+        isValid = harness.exposed_validateBatchCall(
             userOpCalldata,
+            sessionKey,
             sessionDataStruct,
             address(mew)
         );
@@ -524,28 +684,45 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         _testSetup();
         (
             ,
-            ICredibleAccountValidator.SessionData memory sessionDataStruct
-        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
-
-        address[] memory tokens_data = new address[](3);
-        tokens_data[0] = address(usdc);
-        tokens_data[1] = address(dai);
-        tokens_data[2] = address(uni);
-
-        bool isValid = credibleAccountValidatorHarness
-            .exposed_validateTokenData(
-                tokens_data,
-                IERC20.transferFrom.selector,
-                address(mew),
-                address(mew),
-                amounts[0],
-                address(usdc)
+            ICAV.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(
+                harness,
+                mew,
+                IERC20.transferFrom.selector
             );
+
+        ICAV.LockedToken[] memory lockedTokens = new ICAV.LockedToken[](3);
+        lockedTokens[0] = ICAV.LockedToken({
+            token: tokens[0],
+            lockedAmount: amounts[0],
+            claimedAmount: 0
+        });
+        lockedTokens[1] = ICAV.LockedToken({
+            token: tokens[1],
+            lockedAmount: amounts[1],
+            claimedAmount: 0
+        });
+        lockedTokens[2] = ICAV.LockedToken({
+            token: tokens[2],
+            lockedAmount: amounts[2],
+            claimedAmount: 0
+        });
+
+        bool isValid = harness.exposed_validateTokenData(
+            sessionKey,
+            lockedTokens,
+            IERC20.transferFrom.selector,
+            address(mew),
+            address(mew),
+            amounts[0],
+            tokens[0]
+        );
 
         assertTrue(isValid, "validate token-data should be valid");
 
-        isValid = credibleAccountValidatorHarness.exposed_validateTokenData(
-            tokens_data,
+        isValid = harness.exposed_validateTokenData(
+            sessionKey,
+            lockedTokens,
             IERC20.transferFrom.selector,
             address(mew),
             address(mew),
@@ -561,8 +738,12 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         _testSetup();
         (
             ,
-            ICredibleAccountValidator.SessionData memory sessionDataStruct
-        ) = _enableSessionKeyAndValidate(mew, IERC20.transferFrom.selector);
+            ICAV.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(
+                harness,
+                mew,
+                IERC20.transferFrom.selector
+            );
         // Prepare user operation data
         bytes memory data = _createTokenTransferFromExecution(
             address(mew),
@@ -590,9 +771,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             bytes memory signature,
             bytes32 merkleRoot,
             bytes32[] memory merkleProof
-        ) = credibleAccountValidatorHarness.exposed_digestSignature(
-                userOp.signature
-            );
+        ) = harness.exposed_digestSignature(userOp.signature);
 
         // get expected signature
         (, , uint8 v, bytes32 r, bytes32 s) = _createUserOpWithSignature(

@@ -5,7 +5,7 @@ pragma solidity 0.8.23;
 
 import "forge-std/Test.sol";
 import {ModularEtherspotWallet} from "../../../../../src/modular-etherspot-wallet/wallet/ModularEtherspotWallet.sol";
-import {ICredibleAccountValidator} from "../../../../../src/modular-etherspot-wallet/interfaces/ICredibleAccountValidator.sol";
+import {ICredibleAccountValidator as ICAV} from "../../../../../src/modular-etherspot-wallet/interfaces/ICredibleAccountValidator.sol";
 import {CredibleAccountValidatorHarness} from "../../../harnesses/CredibleAccountValidatorHarness.sol";
 import {TestERC20} from "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import {TestUSDC} from "../../../../../src/modular-etherspot-wallet/test/TestUSDC.sol";
@@ -26,7 +26,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
 
     // Contract instances
     ModularEtherspotWallet internal mew;
-    CredibleAccountValidatorHarness internal credibleAccountValidatorHarness;
+    CredibleAccountValidatorHarness internal harness;
     TestERC20 internal dai;
     TestERC20 internal uni;
     TestUSDC internal usdc;
@@ -68,7 +68,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     function _testSetup() internal {
         // Set up contracts and wallet
         mew = setupMEWWithCredibleAccountValidator();
-        credibleAccountValidatorHarness = new CredibleAccountValidatorHarness();
+        harness = new CredibleAccountValidatorHarness();
         dai = new TestERC20();
         uni = new TestERC20();
         usdc = new TestUSDC();
@@ -129,9 +129,10 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     }
 
     function _enableSessionKeyAndValidate(
+        ICAV _validator,
         ModularEtherspotWallet _modularWallet,
         bytes4 _functionSelector
-    ) public returns (address, ICredibleAccountValidator.SessionData memory) {
+    ) public returns (address, ICAV.SessionData memory) {
         usdc.mint(address(_modularWallet), amounts[0]);
         assertEq(usdc.balanceOf(address(_modularWallet)), amounts[0]);
         usdc.approve(address(_modularWallet), amounts[0]);
@@ -146,18 +147,16 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
 
         // Enable session
         bytes memory sessionData = _getDefaultSessionData(_functionSelector);
-        credibleAccountValidator.enableSessionKey(sessionData);
-        ICredibleAccountValidator.SessionData
-            memory sessionDataQueried = credibleAccountValidator
-                .getSessionKeyData(sessionKey);
-        assertEq(credibleAccountValidator.getAssociatedSessionKeys().length, 1);
+        _validator.enableSessionKey(sessionData);
+        ICAV.SessionData memory sessionDataQueried = _validator
+            .getSessionKeyData(sessionKey);
+        assertEq(_validator.getAssociatedSessionKeys().length, 1);
         assertEq(sessionDataQueried.validUntil, validUntil);
         assertEq(sessionDataQueried.validAfter, validAfter);
-        assertEq(sessionDataQueried.funcSelector, _functionSelector);
-        assertEq(sessionDataQueried.tokens.length, tokens.length);
-        assertEq(sessionDataQueried.amounts.length, amounts.length);
-        assertEq(sessionDataQueried.solverAddress, solver);
-        assertFalse(sessionDataQueried.claimed);
+        assertEq(sessionDataQueried.selector, _functionSelector);
+        assertEq(sessionDataQueried.lockedTokens.length, tokens.length);
+        assertEq(sessionDataQueried.lockedTokens.length, amounts.length);
+        assertEq(sessionDataQueried.solver, solver);
         return (sessionKey, sessionDataQueried);
     }
 
@@ -166,21 +165,17 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         address _sessionKey
     ) public {
         vm.expectEmit(true, true, true, true);
-        emit ICredibleAccountValidator
-            .CredibleAccountValidator_SessionKeyDisabled(
-                _sessionKey,
-                address(_modularWallet)
-            );
+        emit ICAV.CredibleAccountValidator_SessionKeyDisabled(
+            _sessionKey,
+            address(_modularWallet)
+        );
         credibleAccountValidator.disableSessionKey(_sessionKey);
-        ICredibleAccountValidator.SessionData
-            memory sessionData = credibleAccountValidator.getSessionKeyData(
-                _sessionKey
-            );
+        ICAV.SessionData memory sessionData = credibleAccountValidator
+            .getSessionKeyData(_sessionKey);
         assertEq(sessionData.validUntil, 0);
         assertEq(sessionData.validAfter, 0);
-        assertEq(sessionData.funcSelector, bytes4(0));
-        assertEq(sessionData.tokens.length, 0);
-        assertEq(sessionData.amounts.length, 0);
+        assertEq(sessionData.selector, bytes4(0));
+        assertEq(sessionData.lockedTokens.length, 0);
     }
 
     function _createUserOpWithSignature(

@@ -64,13 +64,11 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         offset += 20;
         if (sessionKey == address(0))
             revert CredibleAccountValidator_InvalidSessionKey();
-        address solverAddress = address(
-            bytes20(_sessionData[offset:offset + 20])
-        );
+        address solver = address(bytes20(_sessionData[offset:offset + 20]));
         offset += 20;
-        bytes4 funcSelector = bytes4(_sessionData[offset:offset + 4]);
+        bytes4 selector = bytes4(_sessionData[offset:offset + 4]);
         offset += 4;
-        if (funcSelector == bytes4(0))
+        if (selector == bytes4(0))
             revert CredibleAccountValidator_InvalidFunctionSelector();
         uint48 validAfter = uint48(bytes6(_sessionData[offset:offset + 6]));
         offset += 6;
@@ -84,36 +82,31 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             bytes32(_sessionData[offset:offset + 32])
         );
         offset += 32;
-        address[] memory tokens = new address[](tokensLength);
+        SessionData storage newSessionData = sessionData[sessionKey][
+            msg.sender
+        ];
+        newSessionData.validAfter = validAfter;
+        newSessionData.validUntil = validUntil;
+        newSessionData.solver = solver;
+        newSessionData.selector = selector;
         for (uint256 i; i < tokensLength; ++i) {
-            tokens[i] = address(
+            address token = address(
                 uint160(uint256(bytes32(_sessionData[offset:offset + 32])))
             );
             offset += 32;
+            newSessionData.lockedTokens.push(
+                LockedToken({token: token, lockedAmount: 0, claimedAmount: 0})
+            );
         }
         uint256 amountsLength = uint256(
             bytes32(_sessionData[offset:offset + 32])
         );
         offset += 32;
-        // Decode amounts array
-        uint256[] memory amounts = new uint256[](amountsLength);
         for (uint256 i; i < amountsLength; ++i) {
-            amounts[i] = uint256(bytes32(_sessionData[offset:offset + 32]));
+            uint256 amount = uint256(bytes32(_sessionData[offset:offset + 32]));
             offset += 32;
+            newSessionData.lockedTokens[i].lockedAmount = amount;
         }
-        if (tokensLength != amountsLength)
-            revert CredibleAccountValidator_InvalidTokenAmountData(sessionKey);
-        // Store the decoded data in sessionData mapping
-        sessionData[sessionKey][msg.sender] = SessionData(
-            tokens,
-            funcSelector,
-            amounts,
-            solverAddress,
-            validAfter,
-            validUntil,
-            false
-        );
-
         walletSessionKeys[msg.sender].push(sessionKey);
         emit CredibleAccountValidator_SessionKeyEnabled(sessionKey, msg.sender);
     }
@@ -131,29 +124,34 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     }
 
     // @inheritdoc ICredibleAccountValidator
-    function isSessionClaimed(address _sessionKey) public view returns (bool) {
-        return sessionData[_sessionKey][msg.sender].claimed;
-    }
-
-    // @inheritdoc ICredibleAccountValidator
     function validateSessionKeyParams(
         address _sessionKey,
         PackedUserOperation calldata userOp
-    ) public view returns (bool) {
+    ) public returns (bool) {
         SessionData memory sd = sessionData[_sessionKey][msg.sender];
         if (isSessionClaimed(_sessionKey)) {
             return false;
         }
-
         bytes calldata callData = userOp.callData;
         if (bytes4(callData[:4]) == IERC7579Account.execute.selector) {
             ModeCode mode = ModeCode.wrap(bytes32(callData[4:36]));
             (CallType calltype, , , ) = ModeLib.decode(mode);
-
             if (calltype == CALLTYPE_SINGLE) {
-                return _validateSingleCall(callData, sd, userOp.sender);
+                return
+                    _validateSingleCall(
+                        callData,
+                        _sessionKey,
+                        sd,
+                        userOp.sender
+                    );
             } else if (calltype == CALLTYPE_BATCH) {
-                return _validateBatchCall(callData, sd, userOp.sender);
+                return
+                    _validateBatchCall(
+                        callData,
+                        _sessionKey,
+                        sd,
+                        userOp.sender
+                    );
             } else {
                 return false;
             }
@@ -172,6 +170,35 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         address _sessionKey
     ) public view returns (SessionData memory) {
         return sessionData[_sessionKey][msg.sender];
+    }
+
+    function getTokenAmounts(
+        address _sessionKey,
+        address _token
+    ) public view returns (uint256, uint256) {
+        SessionData memory sd = sessionData[_sessionKey][msg.sender];
+        for (uint256 i; i < sd.lockedTokens.length; ++i) {
+            if (sd.lockedTokens[i].token == _token) {
+                return (
+                    sd.lockedTokens[i].lockedAmount,
+                    sd.lockedTokens[i].claimedAmount
+                );
+            }
+        }
+        return (0, 0);
+    }
+
+    function isSessionClaimed(address _sessionKey) public view returns (bool) {
+        SessionData memory sd = sessionData[_sessionKey][msg.sender];
+        for (uint256 i; i < sd.lockedTokens.length; ++i) {
+            if (
+                sd.lockedTokens[i].lockedAmount !=
+                sd.lockedTokens[i].claimedAmount
+            ) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -212,20 +239,19 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             return VALIDATION_FAILED;
         }
         SessionData storage sd = sessionData[sessionKeySigner][msg.sender];
-        sd.claimed = true;
+        // sd.claimed = true;
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
     // Stub method to validate Merkle proof
     function validateProof(
-        bytes32[] memory proof,
-        bytes32 root,
-        bytes32 leaf
+        bytes32[] memory _proof,
+        bytes32 _root,
+        bytes32 _leaf
     ) public pure returns (bool) {
-        if (proof.length == 0 || root == bytes32(0)) {
+        if (_proof.length == 0 || _root == bytes32(0)) {
             return false;
         }
-
         // Placeholder for actual Merkle proof validation logic
         return true;
     }
@@ -279,28 +305,31 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
     /// @notice Validates a single call within a user operation against the session data
     /// @dev This function decodes the call data, extracts relevant information, and performs validation checks
-    /// @param callData The encoded call data from the user operation
-    /// @param sd The session data
-    /// @param userOpSender The address of the account initiating the user operation
+    /// @param _callData The encoded call data from the user operation
+    /// @param _sessionKey The session key
+    /// @param _sd The session data
+    /// @param _userOpSender The address of the account initiating the user operation
     /// @return bool Returns true if the call is valid according to the session data, false otherwise
     function _validateSingleCall(
-        bytes calldata callData,
-        SessionData memory sd,
-        address userOpSender
-    ) internal view returns (bool) {
+        bytes calldata _callData,
+        address _sessionKey,
+        SessionData memory _sd,
+        address _userOpSender
+    ) internal returns (bool) {
         address target;
         bytes calldata execData;
-        (target, , execData) = ExecutionLib.decodeSingle(callData[100:]);
+        (target, , execData) = ExecutionLib.decodeSingle(_callData[100:]);
 
-        (bytes4 selector, address from, , uint256 amount) = _digest(execData);
+        (bytes4 selector, , address to, uint256 amount) = _digest(execData);
 
-        if (selector != sd.funcSelector) return false;
+        if (selector != _sd.selector) return false;
         return
             _validateTokenData(
-                sd.tokens,
+                _sessionKey,
+                _sd.lockedTokens,
                 selector,
-                userOpSender,
-                from,
+                _userOpSender,
+                to,
                 amount,
                 target
             );
@@ -308,28 +337,31 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
     /// @notice Validates a batch of calls within a user operation against the session data
     /// @dev This function decodes multiple executions, extracts relevant information, and performs validation checks for each
-    /// @param callData The encoded call data from the user operation containing multiple executions
-    /// @param sd The session data
-    /// @param userOpSender The address of the account initiating the user operation
+    /// @param _callData The encoded call data from the user operation containing multiple executions
+    /// @param _sessionKey The session key
+    /// @param _sd The session data
+    /// @param _userOpSender The address of the account initiating the user operation
     /// @return bool Returns true if all calls in the batch are valid according to the session data, false otherwise
     function _validateBatchCall(
-        bytes calldata callData,
-        SessionData memory sd,
-        address userOpSender
-    ) internal view returns (bool) {
-        Execution[] calldata execs = ExecutionLib.decodeBatch(callData[100:]);
+        bytes calldata _callData,
+        address _sessionKey,
+        SessionData memory _sd,
+        address _userOpSender
+    ) internal returns (bool) {
+        Execution[] calldata execs = ExecutionLib.decodeBatch(_callData[100:]);
         for (uint256 i; i < execs.length; i++) {
             address target = execs[i].target;
-            (bytes4 selector, address from, , uint256 amount) = _digest(
+            (bytes4 selector, , address to, uint256 amount) = _digest(
                 execs[i].callData
             );
-            if (selector != sd.funcSelector) return false;
+            if (selector != _sd.selector) return false;
             if (
                 !_validateTokenData(
-                    sd.tokens,
+                    _sessionKey,
+                    _sd.lockedTokens,
                     selector,
-                    userOpSender,
-                    from,
+                    _userOpSender,
+                    to,
                     amount,
                     target
                 )
@@ -347,35 +379,33 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
      * @dev for `transferFrom` as function-selector, then check for the wallet balance and allowance
      */
     function _validateTokenData(
-        address[] memory tokens,
-        bytes4 selector,
-        address userOpSender,
-        address from,
-        uint256 amount,
-        address token
-    ) internal view returns (bool) {
+        address _sessionKey,
+        LockedToken[] memory _lockedTokens,
+        bytes4 _selector,
+        address _userOpSender,
+        address _to,
+        uint256 _amount,
+        address _token
+    ) internal returns (bool) {
         bool tokenFound;
-        for (uint256 i; i < tokens.length; ++i) {
-            if (tokens[i] == token) {
+        uint256 idx;
+        for (uint256 i; i < _lockedTokens.length; ++i) {
+            if (_lockedTokens[i].token == _token) {
                 tokenFound = true;
+                idx = i;
                 break;
             }
         }
         if (!tokenFound) return false;
 
-        if (selector == IERC20.transfer.selector) {
-            if (IERC20(token).balanceOf(userOpSender) < amount) {
-                return false;
-            }
-        } else if (selector == IERC20.transferFrom.selector) {
-            if (
-                IERC20(token).balanceOf(userOpSender) < amount ||
-                IERC20(token).allowance(userOpSender, from) < amount
-            ) {
-                return false;
-            }
+        if (_selector == IERC20.transfer.selector) {
+            if (IERC20(_token).balanceOf(_userOpSender) < _amount) return false;
+        } else if (_selector == IERC20.transferFrom.selector) {
+            if (IERC20(_token).balanceOf(_userOpSender) < _amount) return false;
         }
-
+        SessionData storage sd = sessionData[_sessionKey][_userOpSender];
+        // incrementing the claimed amount for the token
+        sd.lockedTokens[idx].claimedAmount += _amount;
         return true;
     }
 
@@ -413,12 +443,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
     /// @notice Extracts signature components, merkle root, and merkle proof from the provided data
     /// @dev Decodes the signature, merkle root, and merkle proof from a single bytes array
-    /// @param signatureWithMerkleProof The combined signature, merkle root, and merkle proof data
+    /// @param _signature The combined signature, merkle root, and merkle proof data
     /// @return signature The extracted signature (r, s, v)
     /// @return merkleRoot The extracted merkle root
     /// @return merkleProof The extracted merkle proof as an array of bytes32
     function _digestSignature(
-        bytes calldata signatureWithMerkleProof
+        bytes calldata _signature
     )
         internal
         view
@@ -428,15 +458,15 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             bytes32[] memory merkleProof
         )
     {
-        bytes32 r = bytes32(signatureWithMerkleProof[0:32]);
-        bytes32 s = bytes32(signatureWithMerkleProof[32:64]);
-        uint8 v = uint8(signatureWithMerkleProof[64]);
-        bytes32 merkleRoot = bytes32(signatureWithMerkleProof[65:97]);
+        bytes32 r = bytes32(_signature[0:32]);
+        bytes32 s = bytes32(_signature[32:64]);
+        uint8 v = uint8(_signature[64]);
+        bytes32 merkleRoot = bytes32(_signature[65:97]);
 
         bytes memory signature = abi.encodePacked(r, s, v);
 
         // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
-        uint256 proofLength = (signatureWithMerkleProof.length - 97) / 32;
+        uint256 proofLength = (_signature.length - 97) / 32;
 
         bytes32[] memory merkleProof = new bytes32[](proofLength);
 
@@ -444,7 +474,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             uint256 proofStart = 97; // 32 byte r + 32 byte s + 1 byte v + 32 byte merkleRoot
             for (uint256 i; i < proofLength; ++i) {
                 merkleProof[i] = bytes32(
-                    signatureWithMerkleProof[proofStart + (i * 32):proofStart +
+                    _signature[proofStart + (i * 32):proofStart +
                         ((i + 1) * 32)]
                 );
             }
