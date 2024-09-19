@@ -41,6 +41,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     error CredibleAccountValidator_SessionKeyAlreadyExists(address sessionKey);
     error CredibleAccountValidator_SessionKeyDoesNotExist(address session);
     error CredibleAccountValidator_SessionPaused(address sessionKey);
+    error CredibleAccountValidator_SessionIsActive(address sessionKey);
     error NotImplemented();
 
     /*//////////////////////////////////////////////////////////////
@@ -133,6 +134,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     function disableSessionKey(address _session) public {
         if (sessionData[_session][msg.sender].validUntil == 0)
             revert CredibleAccountValidator_SessionKeyDoesNotExist(_session);
+
+        if(block.timestamp < sessionData[_session][msg.sender].validUntil) {
+            revert CredibleAccountValidator_SessionIsActive(_session);  
+        }
+
+
         delete sessionData[_session][msg.sender];
         walletSessionKeys[msg.sender] = ArrayLib._removeElement(
             getAssociatedSessionKeys(),
