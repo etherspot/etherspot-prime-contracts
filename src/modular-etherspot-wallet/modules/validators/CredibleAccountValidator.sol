@@ -119,15 +119,15 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
             revert CredibleAccountValidator_SessionKeyDoesNotExist(_session);
         }
 
-        if(sessionData[_session][msg.sender].validAfter > block.timestamp) {
+        if(sessionData[_session][msg.sender].validUntil > block.timestamp) {
             revert CredibleAccountValidator_SessionKeyActive(_session);
         }
 
-        // for each token in sessionData, getTokenAmounts and check if claimedAmount == lockedAmount
         uint256 tokenCount = sessionData[_session][msg.sender].lockedTokens.length;
         for (uint256 i; i < tokenCount; ++i) {
+            address tokenAddress = sessionData[_session][msg.sender].lockedTokens[i].token;
             (uint256 lockedAmount, uint256 claimedAmount) = 
-            getTokenAmounts(_session, sessionData[_session][msg.sender].lockedTokens[i].token);
+            getTokenAmounts(_session, tokenAddress);
             if (lockedAmount != claimedAmount) {
                 revert CredibleAccountValidator_LockedTokensNotClaimed(_session);
             }
@@ -296,6 +296,9 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         address[] memory sessionKeys = getAssociatedSessionKeys();
         uint256 sessionKeysLength = sessionKeys.length;
         for (uint256 i; i < sessionKeysLength; i++) {
+            if ((sessionData[sessionKeys[i]][msg.sender].validUntil > block.timestamp) && !isSessionClaimed(sessionKeys[i])) {
+                revert CredibleAccountValidator_LockedTokensNotClaimed(sessionKeys[i]);
+            }
             delete sessionData[sessionKeys[i]][msg.sender];
         }
         delete walletSessionKeys[msg.sender];
@@ -479,14 +482,14 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         bytes32 r = bytes32(_signature[0:32]);
         bytes32 s = bytes32(_signature[32:64]);
         uint8 v = uint8(_signature[64]);
-        bytes32 merkleRoot = bytes32(_signature[65:97]);
+        merkleRoot = bytes32(_signature[65:97]);
 
-        bytes memory signature = abi.encodePacked(r, s, v);
+        signature = abi.encodePacked(r, s, v);
 
         // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
         uint256 proofLength = (_signature.length - 97) / 32;
 
-        bytes32[] memory merkleProof = new bytes32[](proofLength);
+        merkleProof = new bytes32[](proofLength);
 
         if (proofLength > 0) {
             uint256 proofStart = 97; // 32 byte r + 32 byte s + 1 byte v + 32 byte merkleRoot

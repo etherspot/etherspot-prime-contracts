@@ -40,6 +40,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     address internal invalidSessionKey;
     address payable internal immutable beneficiary;
     address payable internal immutable receiver;
+    address payable internal immutable dummySessionKey;
 
     // Test variables
     address internal immutable solver = address(0xdeadbeef);
@@ -62,6 +63,12 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         );
         receiver = payable(
             address(uint160(uint256(keccak256(abi.encodePacked("receiver")))))
+        );
+
+        dummySessionKey = payable(
+            address(
+                uint160(uint256(keccak256(abi.encodePacked("dummySessionKey"))))
+            )
         );
     }
 
@@ -158,24 +165,6 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         assertEq(sessionDataQueried.lockedTokens.length, amounts.length);
         assertEq(sessionDataQueried.solver, solver);
         return (sessionKey, sessionDataQueried);
-    }
-
-    function _disableSessionKeyAndValidate(
-        ModularEtherspotWallet _modularWallet,
-        address _sessionKey
-    ) public {
-        vm.expectEmit(true, true, true, true);
-        emit ICAV.CredibleAccountValidator_SessionKeyDisabled(
-            _sessionKey,
-            address(_modularWallet)
-        );
-        credibleAccountValidator.disableSessionKey(_sessionKey);
-        ICAV.SessionData memory sessionData = credibleAccountValidator
-            .getSessionKeyData(_sessionKey);
-        assertEq(sessionData.validUntil, 0);
-        assertEq(sessionData.validAfter, 0);
-        assertEq(sessionData.selector, bytes4(0));
-        assertEq(sessionData.lockedTokens.length, 0);
     }
 
     function _createUserOpWithSignature(

@@ -82,6 +82,51 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             1,
             "There should be one session key"
         );
+
+        // solver to claim the locked tokens before uninstalling the module
+
+        // Prepare Executions
+        Execution[] memory executions = new Execution[](3);
+        bytes memory dataUSDC = _createTokenTransferExecution(
+            address(solver),
+            amounts[0]
+        );
+        bytes memory dataDAI = _createTokenTransferExecution(
+            address(solver),
+            amounts[1]
+        );
+        bytes memory dataUNI = _createTokenTransferExecution(
+            address(solver),
+            amounts[2]
+        );
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: dataUSDC
+        });
+        executions[1] = Execution({
+            target: address(dai),
+            value: 0,
+            callData: dataDAI
+        });
+        executions[2] = Execution({
+            target: address(uni),
+            value: 0,
+            callData: dataUNI
+        });
+        // Encode the call into the calldata for the userOp
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+        (, PackedUserOperation memory claimUserOp) = _createUserOperation(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        // Execute the user operation (solver to claim all the locked tokens)
+        _executeUserOperation(claimUserOp);
+
         // Get the previous validator for linked list management
         address prevValidator = _getPrevValidator(
             address(credibleAccountValidator)
@@ -139,7 +184,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
     }
 
     // Test: Verify that a session key can be disabled
-    function test_disableSessionKey() public {
+    function test_successfulDisableSessionKey() public {
         // Set up the test environment and enable a session key
         _testSetup();
         (address sessionKey, ) = _enableSessionKeyAndValidate(
@@ -147,8 +192,157 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             mew,
             IERC20.transfer.selector
         );
+
+        // Prepare Executions
+        Execution[] memory executions = new Execution[](3);
+        bytes memory dataUSDC = _createTokenTransferExecution(
+            address(solver),
+            amounts[0]
+        );
+        bytes memory dataDAI = _createTokenTransferExecution(
+            address(solver),
+            amounts[1]
+        );
+        bytes memory dataUNI = _createTokenTransferExecution(
+            address(solver),
+            amounts[2]
+        );
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: dataUSDC
+        });
+        executions[1] = Execution({
+            target: address(dai),
+            value: 0,
+            callData: dataDAI
+        });
+        executions[2] = Execution({
+            target: address(uni),
+            value: 0,
+            callData: dataUNI
+        });
+        // Encode the call into the calldata for the userOp
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+        (, PackedUserOperation memory userOp) = _createUserOperation(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        // Execute the user operation (solver to claim all the locked tokens)
+        _executeUserOperation(userOp);
+
+        vm.expectEmit(true, true, true, true);
+        emit ICAV.CredibleAccountValidator_SessionKeyDisabled(
+            sessionKey,
+            address(mew)
+        );
+
+        vm.warp(block.timestamp + 1 days);
+
         // Disable the session key
-        _disableSessionKeyAndValidate(mew, sessionKey);
+        credibleAccountValidator.disableSessionKey(sessionKey);
+        ICAV.SessionData memory sessionData = credibleAccountValidator
+            .getSessionKeyData(sessionKey);
+        assertEq(sessionData.validUntil, 0);
+        assertEq(sessionData.validAfter, 0);
+        assertEq(sessionData.selector, bytes4(0));
+        assertEq(sessionData.lockedTokens.length, 0);
+    }
+
+    function test_fail_DisableSessionKey_With_PartialClaim() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (address sessionKey, ) = _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
+
+        // Prepare Executions
+        Execution[] memory executions = new Execution[](2);
+        bytes memory dataUSDC = _createTokenTransferExecution(
+            address(solver),
+            amounts[0]
+        );
+        bytes memory dataDAI = _createTokenTransferExecution(
+            address(solver),
+            amounts[1]
+        );
+
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: dataUSDC
+        });
+        executions[1] = Execution({
+            target: address(dai),
+            value: 0,
+            callData: dataDAI
+        });
+        
+        // Encode the call into the calldata for the userOp
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+        (, PackedUserOperation memory userOp) = _createUserOperation(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        // Execute the user operation (Solve to partial claim - claims only 2 out of 3 locked tokens)
+        _executeUserOperation(userOp);
+
+        vm.warp(block.timestamp + 1 days);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CredibleAccountValidator.CredibleAccountValidator_LockedTokensNotClaimed.selector,
+                sessionKey
+            )
+        );
+
+        // Disable the session key
+        credibleAccountValidator.disableSessionKey(sessionKey);
+    }
+
+    function test_fail_DisableSessionKey_With_ActiveSessionKey() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (address sessionKey, ) = _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CredibleAccountValidator.CredibleAccountValidator_SessionKeyActive.selector,
+                sessionKey
+            )
+        );
+
+        // Disable the session key
+        credibleAccountValidator.disableSessionKey(sessionKey);
+    }
+
+    function test_fail_DisableNonExistingSessionKey() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CredibleAccountValidator.CredibleAccountValidator_SessionKeyDoesNotExist.selector,
+                dummySessionKey
+            )
+        );
+
+        // Disable the session key
+        credibleAccountValidator.disableSessionKey(dummySessionKey);
     }
 
     // Test: Verify that session key parameters can be validated
