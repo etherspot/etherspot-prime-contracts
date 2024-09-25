@@ -40,6 +40,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     address internal invalidSessionKey;
     address payable internal immutable beneficiary;
     address payable internal immutable receiver;
+    address payable internal immutable dummySessionKey;
 
     // Test variables
     address internal immutable solver = address(0xdeadbeef);
@@ -62,6 +63,12 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         );
         receiver = payable(
             address(uint160(uint256(keccak256(abi.encodePacked("receiver")))))
+        );
+
+        dummySessionKey = payable(
+            address(
+                uint160(uint256(keccak256(abi.encodePacked("dummySessionKey"))))
+            )
         );
     }
 
@@ -160,24 +167,6 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
         return (sessionKey, sessionDataQueried);
     }
 
-    function _disableSessionKeyAndValidate(
-        ModularEtherspotWallet _modularWallet,
-        address _sessionKey
-    ) public {
-        vm.expectEmit(true, true, true, true);
-        emit ICAV.CredibleAccountValidator_SessionKeyDisabled(
-            _sessionKey,
-            address(_modularWallet)
-        );
-        credibleAccountValidator.disableSessionKey(_sessionKey);
-        ICAV.SessionData memory sessionData = credibleAccountValidator
-            .getSessionKeyData(_sessionKey);
-        assertEq(sessionData.validUntil, 0);
-        assertEq(sessionData.validAfter, 0);
-        assertEq(sessionData.selector, bytes4(0));
-        assertEq(sessionData.lockedTokens.length, 0);
-    }
-
     function _createUserOpWithSignature(
         address _account,
         bytes memory _callData,
@@ -214,13 +203,8 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
             bytes32 s
         ) = _createUserOpWithSignature(_account, _callData, _signerKey);
 
-        (
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
-        ) = getDummyMerkleRootAndProof();
-
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
-        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+        userOp.signature = abi.encodePacked(r, s, v, DUMMY_PROOF);
 
         return (hash, userOp);
     }
@@ -238,13 +222,8 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
             bytes32 s
         ) = _createUserOpWithSignature(_account, _callData, _signerKey);
 
-        (
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
-        ) = getDummyMerkleRootAndProof();
-
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
-        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+        userOp.signature = abi.encodePacked(r, s, v, DUMMY_PROOF);
 
         return (hash, userOp);
     }

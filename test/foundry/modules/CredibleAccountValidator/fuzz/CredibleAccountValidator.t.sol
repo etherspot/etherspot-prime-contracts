@@ -281,34 +281,35 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
     }
 
     function testFuzz_digestSignature(uint256 randomLength) public {
+
         // Define assumptions
         // Bound the length to a reasonable range
-        uint256 adjustedLength = bound(randomLength, 97, 1000);
-
-        // Ensure the length is valid for the merkle proof
-        adjustedLength = 97 + ((adjustedLength - 97) / 32) * 32;
+        uint256 adjustedLength = bound(randomLength, 65, 1000);
 
         // Generate a random signature with merkle proof
         bytes memory fSignature = new bytes(adjustedLength);
+
         for (uint256 i; i < adjustedLength; ++i) {
             fSignature[i] = bytes1(
                 uint8(bound(uint256(keccak256(abi.encodePacked(i))), 0, 255))
             );
         }
+
         // Setup test environment
         _testSetup();
+
         // Digest signature
         (
             bytes memory signature,
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
+            bytes memory proof
         ) = harness.exposed_digestSignature(fSignature);
+
         // Verify signature components
         assertEq(signature.length, 65);
+
         bytes32 r;
         bytes32 s;
         uint8 v;
-        bytes32 expectedMerkleRoot;
         bytes32 signatureR;
         bytes32 signatureS;
         uint8 signatureV;
@@ -316,7 +317,6 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
             r := mload(add(fSignature, 32))
             s := mload(add(fSignature, 64))
             v := byte(0, mload(add(fSignature, 65)))
-            expectedMerkleRoot := mload(add(fSignature, 97))
             signatureR := mload(add(signature, 32))
             signatureS := mload(add(signature, 64))
             signatureV := byte(0, mload(add(signature, 65)))
@@ -324,19 +324,11 @@ contract CredibleAccountValidator_Fuzz_Test is CAV_TestUtils {
         assertEq(signatureR, r);
         assertEq(signatureS, s);
         assertEq(signatureV, v);
-        // Verify merkle root
-        assertEq(merkleRoot, expectedMerkleRoot);
-        // Verify merkle proof
-        uint256 expectedProofLength = (fSignature.length - 97) / 32;
-        assertEq(merkleProof.length, expectedProofLength);
-        for (uint256 i; i < expectedProofLength; ++i) {
-            bytes32 expectedProofElement;
-            assembly {
-                expectedProofElement := mload(
-                    add(add(fSignature, 129), mul(i, 32))
-                )
-            }
-            assertEq(merkleProof[i], expectedProofElement);
-        }
+
+        // Verify proof
+        uint256 expectedProofLength = (fSignature.length - 65);
+        assertEq(proof.length, expectedProofLength);
+
+        
     }
 }

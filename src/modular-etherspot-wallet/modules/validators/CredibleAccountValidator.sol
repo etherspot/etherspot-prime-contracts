@@ -12,7 +12,7 @@ import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ICredibleAccountValidator} from "../../interfaces/ICredibleAccountValidator.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
-import "forge-std/console2.sol";
+import "forge-std/console.sol";
 
 contract CredibleAccountValidator is ICredibleAccountValidator {
     using ModeLib for ModeCode;
@@ -41,6 +41,8 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     error CredibleAccountValidator_SessionKeyAlreadyExists(address sessionKey);
     error CredibleAccountValidator_SessionKeyDoesNotExist(address session);
     error CredibleAccountValidator_SessionPaused(address sessionKey);
+    error CredibleAccountValidator_SessionKeyActive(address sessionKey);
+    error CredibleAccountValidator_LockedTokensNotClaimed(address sessionKey);
     error NotImplemented();
 
     /*//////////////////////////////////////////////////////////////
@@ -113,8 +115,21 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
     // @inheritdoc ICredibleAccountValidator
     function disableSessionKey(address _session) public {
-        if (sessionData[_session][msg.sender].validUntil == 0)
+        if (sessionData[_session][msg.sender].validUntil == 0) {
             revert CredibleAccountValidator_SessionKeyDoesNotExist(_session);
+        }
+
+        if(sessionData[_session][msg.sender].validUntil > block.timestamp) {
+            uint256 tokenCount = sessionData[_session][msg.sender].lockedTokens.length;
+            for (uint256 i; i < tokenCount; ++i) {
+                (uint256 lockedAmount, uint256 claimedAmount) = 
+                getTokenAmounts(_session, sessionData[_session][msg.sender].lockedTokens[i].token);
+                if (lockedAmount != claimedAmount) {
+                    revert CredibleAccountValidator_LockedTokensNotClaimed(_session);
+                }
+            }
+        }
+
         delete sessionData[_session][msg.sender];
         walletSessionKeys[msg.sender] = ArrayLib._removeElement(
             getAssociatedSessionKeys(),
@@ -208,8 +223,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
      *      - 32 bytes for `r`
      *      - 32 bytes for `s`
      *      - 1 byte for `v`
-     *      - 32 bytes for `merkleRoot`
-     *      - 32 bytes for at least one entry in the `merkleProof`
+     *      - 32 bytes for at least one entry in the `proof`
      * @param userOp The packed user operation containing the signature and other data.
      * @param userOpHash The hash of the user operation.
      * @return A status code indicating the result of the validation.
@@ -218,13 +232,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
     ) external override returns (uint256) {
-        if (userOp.signature.length < 129) {
+        if (userOp.signature.length < 65) {
             return VALIDATION_FAILED;
         }
         (
             bytes memory signature,
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
+            bytes memory proof
         ) = _digestSignature(userOp.signature);
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
@@ -233,9 +246,9 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         if (!validateSessionKeyParams(sessionKeySigner, userOp)) {
             return VALIDATION_FAILED;
         }
-        // Validate the Merkle proof (userOpHash is considered the leaf)
-        // this is only stub method and to be replaced with actual Merkle proof validation logic
-        if (!validateProof(merkleProof, merkleRoot, userOpHash)) {
+        // Validate the proof
+        // this is only stub method and to be replaced with actual proof validation logic
+        if (!validateProof(proof)) {
             return VALIDATION_FAILED;
         }
         SessionData storage sd = sessionData[sessionKeySigner][msg.sender];
@@ -245,11 +258,9 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
 
     // Stub method to validate Merkle proof
     function validateProof(
-        bytes32[] memory _proof,
-        bytes32 _root,
-        bytes32 _leaf
+        bytes memory proof
     ) public pure returns (bool) {
-        if (_proof.length == 0 || _root == bytes32(0)) {
+        if (proof.length == 0) {
             return false;
         }
         // Placeholder for actual Merkle proof validation logic
@@ -278,6 +289,9 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         address[] memory sessionKeys = getAssociatedSessionKeys();
         uint256 sessionKeysLength = sessionKeys.length;
         for (uint256 i; i < sessionKeysLength; i++) {
+            if ((sessionData[sessionKeys[i]][msg.sender].validUntil > block.timestamp) && !isSessionClaimed(sessionKeys[i])) {
+                revert CredibleAccountValidator_LockedTokensNotClaimed(sessionKeys[i]);
+            }
             delete sessionData[sessionKeys[i]][msg.sender];
         }
         delete walletSessionKeys[msg.sender];
@@ -403,6 +417,10 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         } else if (_selector == IERC20.transferFrom.selector) {
             if (IERC20(_token).balanceOf(_userOpSender) < _amount) return false;
         }
+
+        if((_amount > _lockedTokens[idx].lockedAmount) || 
+        (_amount + _lockedTokens[idx].claimedAmount > _lockedTokens[idx].lockedAmount)) return false;
+
         SessionData storage sd = sessionData[_sessionKey][_userOpSender];
         // incrementing the claimed amount for the token
         sd.lockedTokens[idx].claimedAmount += _amount;
@@ -441,12 +459,11 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         }
     }
 
-    /// @notice Extracts signature components, merkle root, and merkle proof from the provided data
-    /// @dev Decodes the signature, merkle root, and merkle proof from a single bytes array
-    /// @param _signature The combined signature, merkle root, and merkle proof data
+    /// @notice Extracts signature components and proof from the provided data
+    /// @dev Decodes the signature, and proof from a single bytes array
+    /// @param _signature The combined signature, proof data
     /// @return signature The extracted signature (r, s, v)
-    /// @return merkleRoot The extracted merkle root
-    /// @return merkleProof The extracted merkle proof as an array of bytes32
+    /// @return proof The proof
     function _digestSignature(
         bytes calldata _signature
     )
@@ -454,32 +471,31 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         view
         returns (
             bytes memory signature,
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
+            bytes memory proof
         )
     {
         bytes32 r = bytes32(_signature[0:32]);
         bytes32 s = bytes32(_signature[32:64]);
         uint8 v = uint8(_signature[64]);
-        bytes32 merkleRoot = bytes32(_signature[65:97]);
 
-        bytes memory signature = abi.encodePacked(r, s, v);
+        bytes memory proof = bytes(_signature[65:]);
 
-        // r (32 bytes) + s (32 bytes) + v (1 byte) + merkleRoot (32 bytes) = 97 bytes.
-        uint256 proofLength = (_signature.length - 97) / 32;
+        signature = abi.encodePacked(r, s, v);
 
-        bytes32[] memory merkleProof = new bytes32[](proofLength);
+        // r (32 bytes) + s (32 bytes) + v (1 byte) = 65 bytes.
+       // uint256 proofLength = _signature.length - 65;
+        
+        // proof = new bytes(proofLength);
 
-        if (proofLength > 0) {
-            uint256 proofStart = 97; // 32 byte r + 32 byte s + 1 byte v + 32 byte merkleRoot
-            for (uint256 i; i < proofLength; ++i) {
-                merkleProof[i] = bytes32(
-                    _signature[proofStart + (i * 32):proofStart +
-                        ((i + 1) * 32)]
-                );
-            }
-        }
+        // if (proofLength > 0) {
+        //     uint256 proofStart = 65; // 32 byte r + 32 byte s + 1 byte v
+        //     for (uint256 i; i < proofLength; ++i) {
+        //         proof[i] = _signature[proofStart + i];
+        //     }
+        // }
 
-        return (signature, merkleRoot, merkleProof);
+
+
+        return (signature, proof);
     }
 }
