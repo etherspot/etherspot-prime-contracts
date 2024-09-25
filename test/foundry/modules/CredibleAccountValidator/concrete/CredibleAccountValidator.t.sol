@@ -172,6 +172,49 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         );
     }
 
+        // Test: Verify that the CredibleAccountValidator module can be uninstalled
+    function test_fail_uninstallModule_withActiveUnclaimedSessions() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transfer.selector
+        );
+        assertEq(
+            credibleAccountValidator.getAssociatedSessionKeys().length,
+            1,
+            "There should be one session key"
+        );
+
+        // Get the previous validator for linked list management
+        address prevValidator = _getPrevValidator(
+            address(credibleAccountValidator)
+        );
+        // Prepare uninstallation call
+        Execution[] memory batchCall2 = new Execution[](1);
+        batchCall2[0].target = address(mew);
+        batchCall2[0].value = 0;
+        batchCall2[0].callData = abi.encodeWithSelector(
+            ModularEtherspotWallet.uninstallModule.selector,
+            uint256(1),
+            address(credibleAccountValidator),
+            abi.encode(prevValidator, hex"")
+        );
+        
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                CredibleAccountValidator.CredibleAccountValidator_LockedTokensNotClaimed.selector,
+                sessionKey
+            )
+        );
+
+        // Execute the uninstallation
+        defaultExecutor.execBatch(IERC7579Account(mew), batchCall2);
+
+    }
+
+
     // Test: Verify that a session key can be enabled
     function test_enableSessionKey() public {
         // Set up the test environment and enable a session key
@@ -253,7 +296,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
         assertEq(sessionData.lockedTokens.length, 0);
     }
 
-    function test_fail_DisableSessionKey_With_PartialClaim() public {
+    function test_Successful_DisableSessionKey_With_PartialClaim() public {
         // Set up the test environment and enable a session key
         _testSetup();
         (address sessionKey, ) = _enableSessionKeyAndValidate(
@@ -299,18 +342,11 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
 
         vm.warp(block.timestamp + 1 days);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                CredibleAccountValidator.CredibleAccountValidator_LockedTokensNotClaimed.selector,
-                sessionKey
-            )
-        );
-
         // Disable the session key
         credibleAccountValidator.disableSessionKey(sessionKey);
     }
 
-    function test_fail_DisableSessionKey_With_ActiveSessionKey() public {
+    function test_fail_DisableSessionKey_With_PartialClaim() public {
         // Set up the test environment and enable a session key
         _testSetup();
         (address sessionKey, ) = _enableSessionKeyAndValidate(
@@ -319,9 +355,44 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
             IERC20.transfer.selector
         );
 
+        // Prepare Executions
+        Execution[] memory executions = new Execution[](2);
+        bytes memory dataUSDC = _createTokenTransferExecution(
+            address(solver),
+            amounts[0]
+        );
+        bytes memory dataDAI = _createTokenTransferExecution(
+            address(solver),
+            amounts[1]
+        );
+
+        executions[0] = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: dataUSDC
+        });
+        executions[1] = Execution({
+            target: address(dai),
+            value: 0,
+            callData: dataDAI
+        });
+        
+        // Encode the call into the calldata for the userOp
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(executions))
+        );
+        (, PackedUserOperation memory userOp) = _createUserOperation(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        // Execute the user operation (Solve to partial claim - claims only 2 out of 3 locked tokens)
+        _executeUserOperation(userOp);
+
         vm.expectRevert(
             abi.encodeWithSelector(
-                CredibleAccountValidator.CredibleAccountValidator_SessionKeyActive.selector,
+                CredibleAccountValidator.CredibleAccountValidator_LockedTokensNotClaimed.selector,
                 sessionKey
             )
         );
@@ -963,8 +1034,7 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
 
         (
             bytes memory signature,
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
+            bytes memory proof
         ) = harness.exposed_digestSignature(userOp.signature);
 
         // get expected signature
@@ -977,25 +1047,120 @@ contract CredibleAccountValidator_Concrete_Test is CAV_TestUtils {
 
         assertEq(signature, expectedSignature, "signature should match");
 
-        (
-            bytes32 expectedMerkleRoot,
-            bytes32[] memory expectedMerkleProof
-        ) = getDummyMerkleRootAndProof();
-
         assertEq(
-            merkleProof.length,
-            expectedMerkleProof.length,
+            proof.length,
+            DUMMY_PROOF.length,
             "merkleProof should match"
         );
 
-        for (uint i = 0; i < merkleProof.length; i++) {
+        for (uint i = 0; i < proof.length; ++i) {
             assertEq(
-                merkleProof[i],
-                expectedMerkleProof[i],
+                proof[i],
+                DUMMY_PROOF[i],
                 "merkleProof should match"
             );
         }
+    }
 
-        assertEq(merkleRoot, expectedMerkleRoot, "merkleRoot should match");
+    function test_validateSingleCall_fail_if_unlockAmount_exceedsLockedAmount() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICAV.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(
+                harness,
+                mew,
+                IERC20.transferFrom.selector
+            );
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            amounts[0]+1
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+
+        bool isValid = harness.exposed_validateSingleCall(
+            userOpCalldata,
+            sessionKey,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertFalse(isValid, "validate single-call should be valid");
+    }
+
+    function test_validate_fail_unlock_makes_ClaimedAmount_exceed_LockedAmount() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        (
+            ,
+            ICAV.SessionData memory sessionDataStruct
+        ) = _enableSessionKeyAndValidate(
+            credibleAccountValidator,
+            mew,
+            IERC20.transferFrom.selector
+        );
+
+        uint256 lockedAmount = amounts[0];
+        uint256 unlockAmount = amounts[0] / 100;
+        uint256 remainingAmount = lockedAmount - unlockAmount;
+
+        // Prepare user operation data
+        bytes memory data = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            unlockAmount
+        );
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+        (, PackedUserOperation memory userOp) = _createUserOperation(
+            address(mew),
+            userOpCalldata,
+            sessionKeyPrivateKey
+        );
+        // Execute the user operation
+        _executeUserOperation(userOp);
+        // Verify the token transfer
+        assertEq(
+            usdc.balanceOf(address(alice)),
+            unlockAmount,
+            "Alice's balance should match the transferred amount"
+        );
+
+         // Prepare user operation data
+        data = _createTokenTransferFromExecution(
+            address(mew),
+            address(alice),
+            remainingAmount * 10
+        );
+        userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(usdc), uint256(0), data)
+            )
+        );
+
+        bool isValid = harness.exposed_validateSingleCall(
+            userOpCalldata,
+            sessionKey,
+            sessionDataStruct,
+            address(mew)
+        );
+
+        assertFalse(isValid, "validate single-call should be valid");
     }
 }

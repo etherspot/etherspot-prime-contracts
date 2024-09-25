@@ -203,13 +203,8 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
             bytes32 s
         ) = _createUserOpWithSignature(_account, _callData, _signerKey);
 
-        (
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
-        ) = getDummyMerkleRootAndProof();
-
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
-        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+        userOp.signature = abi.encodePacked(r, s, v, DUMMY_PROOF);
 
         return (hash, userOp);
     }
@@ -227,13 +222,8 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
             bytes32 s
         ) = _createUserOpWithSignature(_account, _callData, _signerKey);
 
-        (
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
-        ) = getDummyMerkleRootAndProof();
-
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
-        userOp.signature = abi.encodePacked(r, s, v, merkleRoot, merkleProof);
+        userOp.signature = abi.encodePacked(r, s, v, DUMMY_PROOF);
 
         return (hash, userOp);
     }

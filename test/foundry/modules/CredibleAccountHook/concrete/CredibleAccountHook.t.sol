@@ -10,6 +10,7 @@ import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLi
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
 import "../../../TestAdvancedUtils.t.sol";
 import "../../../../../src/modular-etherspot-wallet/utils/ERC4337Utils.sol";
+import "forge-std/console.sol";
 
 using ERC4337Utils for IEntryPoint;
 

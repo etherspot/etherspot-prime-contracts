@@ -55,16 +55,15 @@ contract CredibleAccountValidatorHarness is CredibleAccountValidator {
     }
 
     function exposed_digestSignature(
-        bytes calldata _signatureWithMerkleProof
+        bytes calldata _signatureWithProof
     )
         external
         view
         returns (
             bytes memory signature,
-            bytes32 merkleRoot,
-            bytes32[] memory merkleProof
+            bytes memory proof
         )
     {
-        return _digestSignature(_signatureWithMerkleProof);
+        return _digestSignature(_signatureWithProof);
     }
 }
