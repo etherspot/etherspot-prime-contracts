@@ -66,7 +66,7 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
         // Set up contracts and wallet
         mew = setupMEWWithCredibleAccountHook();
         harness = new CredibleAccountHookHarness();
-        caValidator = new CredibleAccountValidator();
+        caValidator = new CredibleAccountValidator(address(credibleAccountProofVerifier));
         token1 = new TestERC20();
         token2 = new TestERC20();
         // Set up test addresses and keys

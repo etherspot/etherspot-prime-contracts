@@ -75,7 +75,7 @@ contract CredibleAccountValidatorTestUtils is TestAdvancedUtils {
     function _testSetup() internal {
         // Set up contracts and wallet
         mew = setupMEWWithCredibleAccountValidator();
-        harness = new CredibleAccountValidatorHarness();
+        harness = new CredibleAccountValidatorHarness(address(credibleAccountProofVerifier));
         dai = new TestERC20();
         uni = new TestERC20();
         usdc = new TestUSDC();

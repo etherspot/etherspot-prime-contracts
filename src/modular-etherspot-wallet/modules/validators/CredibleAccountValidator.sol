@@ -10,9 +10,8 @@ import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ICredibleAccountValidator} from "../../interfaces/ICredibleAccountValidator.sol";
+import {ICredibleAccountProofVerifier} from "../../interfaces/ICredibleAccountProofVerifier.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
-
-import "forge-std/console.sol";
 
 contract CredibleAccountValidator is ICredibleAccountValidator {
     using ModeLib for ModeCode;
@@ -33,6 +32,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
     error CredibleAccountValidator_ModuleNotInstalled();
     error CredibleAccountValidator_InvalidSessionKey();
     error CredibleAccountValidator_InvalidToken();
+    error CredibleAccountValidator_InvalidProofVerifier();
     error CredibleAccountValidator_InvalidFunctionSelector();
     error CredibleAccountValidator_InvalidSpendingLimit();
     error CredibleAccountValidator_InvalidValidAfter(uint48 validAfter);
@@ -54,6 +54,18 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         public walletSessionKeys;
     mapping(address sessionKey => mapping(address wallet => SessionData))
         public sessionData;
+    ICredibleAccountProofVerifier public immutable credibleAccountProofVerifier;
+
+    /*//////////////////////////////////////////////////////////////
+                           CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
+
+    constructor(address _credibleAccountProofVerifier) {
+        if (_credibleAccountProofVerifier == address(0))
+            revert CredibleAccountValidator_InvalidProofVerifier();
+
+        credibleAccountProofVerifier = ICredibleAccountProofVerifier(_credibleAccountProofVerifier);
+    }
 
     /*//////////////////////////////////////////////////////////////
                            PUBLIC/EXTERNAL
@@ -248,23 +260,12 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         }
         // Validate the proof
         // this is only stub method and to be replaced with actual proof validation logic
-        if (!validateProof(proof)) {
+        if (!credibleAccountProofVerifier.verifyProof(proof)) {
             return VALIDATION_FAILED;
         }
         SessionData storage sd = sessionData[sessionKeySigner][msg.sender];
         // sd.claimed = true;
         return _packValidationData(false, sd.validUntil, sd.validAfter);
-    }
-
-    // Stub method to validate Merkle proof
-    function validateProof(
-        bytes memory proof
-    ) public pure returns (bool) {
-        if (proof.length == 0) {
-            return false;
-        }
-        // Placeholder for actual Merkle proof validation logic
-        return true;
     }
 
     // @inheritdoc ICredibleAccountValidator

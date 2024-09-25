@@ -19,6 +19,8 @@ import {MultipleOwnerECDSAValidator} from "../../src/modular-etherspot-wallet/mo
 import {ERC20SessionKeyValidator} from "../../src/modular-etherspot-wallet/modules/validators/ERC20SessionKeyValidator.sol";
 import {CredibleAccountHook} from "../../src/modular-etherspot-wallet/modules/hooks/CredibleAccountHook.sol";
 import {CredibleAccountValidator} from "../../src/modular-etherspot-wallet/modules/validators/CredibleAccountValidator.sol";
+import {CredibleAccountProofVerifier} from "../../src/modular-etherspot-wallet/proof/CredibleAccountProofVerifier.sol";
+import {ICredibleAccountProofVerifier} from "../../src/modular-etherspot-wallet/interfaces/ICredibleAccountProofVerifier.sol";
 
 contract TestAdvancedUtils is BootstrapUtil, Test {
     // singletons
@@ -34,6 +36,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     ERC20SessionKeyValidator sessionKeyValidator;
     CredibleAccountHook caHook;
     CredibleAccountValidator credibleAccountValidator;
+    ICredibleAccountProofVerifier credibleAccountProofVerifier;
 
     ModularEtherspotWallet mewAccount;
     MockTarget target;
@@ -70,8 +73,10 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         // CredibleAccountHook for MEW
         caHook = new CredibleAccountHook();
 
+        credibleAccountProofVerifier = new CredibleAccountProofVerifier();
+
         // CredibleAccountValidator for MEW
-        credibleAccountValidator = new CredibleAccountValidator();
+        credibleAccountValidator = new CredibleAccountValidator(address(credibleAccountProofVerifier));
 
         // Set up Target for testing
         target = new MockTarget();
