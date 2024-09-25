@@ -32,7 +32,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     MockFallback fallbackHandler;
     MultipleOwnerECDSAValidator ecdsaValidator;
     ERC20SessionKeyValidator sessionKeyValidator;
-    CredibleAccountHook caHook;
+    CredibleAccountHook credibleAccountHook;
     CredibleAccountValidator credibleAccountValidator;
 
     ModularEtherspotWallet mewAccount;
@@ -67,11 +67,13 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         // ERC20SessionKeyValidtor for MEW
         sessionKeyValidator = new ERC20SessionKeyValidator();
 
-        // CredibleAccountHook for MEW
-        caHook = new CredibleAccountHook();
-
         // CredibleAccountValidator for MEW
         credibleAccountValidator = new CredibleAccountValidator();
+
+        // CredibleAccountHook for MEW
+        credibleAccountHook = new CredibleAccountHook(
+            address(credibleAccountValidator)
+        );
 
         // Set up Target for testing
         target = new MockTarget();
@@ -284,19 +286,25 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return mewAccount;
     }
 
-    function setupMEWWithCredibleAccountHook()
+    function setupMEWWithCredibleAccountValidatorAndHook()
         internal
         returns (ModularEtherspotWallet mew)
     {
         // Create config for initial modules
         BootstrapConfig[] memory validators = new BootstrapConfig[](2);
         validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
-        validators[1] = _makeBootstrapConfig(address(sessionKeyValidator), "");
+        validators[1] = _makeBootstrapConfig(
+            address(credibleAccountValidator),
+            ""
+        );
         BootstrapConfig[] memory executors = makeBootstrapConfig(
             address(defaultExecutor),
             ""
         );
-        BootstrapConfig memory hook = _makeBootstrapConfig(address(caHook), "");
+        BootstrapConfig memory hook = _makeBootstrapConfig(
+            address(credibleAccountHook),
+            ""
+        );
         BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
             ""

@@ -3,15 +3,24 @@ pragma solidity 0.8.23;
 
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
+import "../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import {MODULE_TYPE_HOOK} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ICredibleAccountHook} from "../../interfaces/ICredibleAccountHook.sol";
 import {CredibleAccountValidator as CAV} from "../validators/CredibleAccountValidator.sol";
 import {MODE_SELECTOR_CREDIBLE_ACCOUNT} from "../../common/Constants.sol";
 
+import "forge-std/console2.sol";
+
 contract CredibleAccountHook is ICredibleAccountHook {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
+
+    /*//////////////////////////////////////////////////////////////
+                              VARIABLES
+    //////////////////////////////////////////////////////////////*/
+
+    address public immutable validator;
 
     /*//////////////////////////////////////////////////////////////
                                MAPPINGS
@@ -19,21 +28,15 @@ contract CredibleAccountHook is ICredibleAccountHook {
 
     mapping(address => bool) public installed;
     mapping(address => LockedToken[]) public lockedTokens;
-    mapping(address => uint256) public transactionsInProgress;
 
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
 
+    error CredibleAccountHook_MustInstallCredibleAccountValidator();
+    error CredibleAccountHook_MustUninstallCredibleAccountValidator();
     error CredibleAccountHook_TokenIsNotLocked(
         address sessionKey,
-        address token
-    );
-    error CredibleAccountHook_CantUninstallWhileTransactionInProgress(
-        address wallet
-    );
-    error CredibleAccountHook_TransactionInProgress(
-        address wallet,
         address token
     );
     error CredibleAccountHook_InvalidCallType(CallType callType);
@@ -45,6 +48,14 @@ contract CredibleAccountHook is ICredibleAccountHook {
         address wallet,
         address sessionKey
     );
+
+    /*//////////////////////////////////////////////////////////////
+                             CONSTRUCTOR
+    //////////////////////////////////////////////////////////////*/
+
+    constructor(address _validator) {
+        validator = _validator;
+    }
 
     /*//////////////////////////////////////////////////////////////
                            PUBLIC/EXTERNAL
@@ -76,13 +87,6 @@ contract CredibleAccountHook is ICredibleAccountHook {
             }
         }
         return totalLocked;
-    }
-
-    //@inheritdoc ICredibleAccountHook
-    function isTransactionInProgress(
-        address _wallet
-    ) public view returns (bool) {
-        return transactionsInProgress[_wallet] > 0;
     }
 
     //@inheritdoc ICredibleAccountHook
@@ -128,21 +132,21 @@ contract CredibleAccountHook is ICredibleAccountHook {
             }
         }
     }
+
     //@inheritdoc ICredibleAccountHook
     function onInstall(bytes calldata data) external override {
+        if (!IERC7579Account(msg.sender).isModuleInstalled(1, validator, ""))
+            revert CredibleAccountHook_MustInstallCredibleAccountValidator();
         installed[msg.sender] = true;
         emit CredibleAccountHook_ModuleInstalled(msg.sender);
     }
 
     //@inheritdoc ICredibleAccountHook
     function onUninstall(bytes calldata data) external override {
-        if (transactionsInProgress[msg.sender] > 0)
-            revert CredibleAccountHook_CantUninstallWhileTransactionInProgress(
-                msg.sender
-            );
+        if (IERC7579Account(msg.sender).isModuleInstalled(1, validator, ""))
+            revert CredibleAccountHook_MustUninstallCredibleAccountValidator();
         installed[msg.sender] = false;
         delete lockedTokens[msg.sender];
-        delete transactionsInProgress[msg.sender];
         emit CredibleAccountHook_ModuleUninstalled(msg.sender);
     }
 
@@ -391,9 +395,6 @@ contract CredibleAccountHook is ICredibleAccountHook {
                 amount
             );
             userLocks.push(lock);
-            unchecked {
-                ++transactionsInProgress[msg.sender];
-            }
         }
         return true;
     }
@@ -426,7 +427,6 @@ contract CredibleAccountHook is ICredibleAccountHook {
                 if (lock.amount == _amount) {
                     locks[i] = locks[length - 1];
                     locks.pop();
-                    transactionsInProgress[msg.sender] -= 1;
                 } else {
                     lock.amount -= _amount;
                 }

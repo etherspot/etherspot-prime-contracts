@@ -5,6 +5,8 @@ import {CredibleAccountHook} from "../../../src/modular-etherspot-wallet/modules
 import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
 
 contract CredibleAccountHookHarness is CredibleAccountHook {
+    constructor(address _validator) CredibleAccountHook(_validator) {}
+
     function exposed_getTokenBalance(
         address _token
     ) external view returns (uint256) {

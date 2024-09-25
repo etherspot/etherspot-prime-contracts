@@ -60,12 +60,17 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         );
         // Execute user operation
         entrypoint.handleOps(userOps, beneficiary);
-        // Verify transaction in progress and locked token information
-        assertTrue(caHook.isTransactionInProgress(address(mew)));
+        // Verify locked token information
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
-        assertEq(caHook.retrieveLockedBalance(address(token1)), amount1);
-        assertEq(caHook.retrieveLockedBalance(address(token2)), amount2);
+        assertEq(
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
+            amount1
+        );
+        assertEq(
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
+            amount2
+        );
     }
 
     // Test partial unlocking of tokens
@@ -116,18 +121,17 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         (, PackedUserOperation memory userOp) = _createUserOperation(
             address(mew),
             userOpCalldata,
-            address(caValidator),
+            address(credibleAccountValidator),
             sessionKeyPrivateKey
         );
         userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         // Execute user operation
         entrypoint.handleOps(userOps, beneficiary);
-        // Verify transaction in progress and locked token information
-        assertTrue(caHook.isTransactionInProgress(address(mew)));
+        // Verify locked token information
         _verifyTokenLocking(address(token1), true);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             lockAmount - unlockAmount
         );
     }
@@ -182,7 +186,7 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         ) = _createUserOperation(
                 address(mew),
                 userOpCalldata,
-                address(caValidator),
+                address(credibleAccountValidator),
                 sessionKeyPrivateKey
             );
         userOps = new PackedUserOperation[](1);
@@ -201,10 +205,12 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         );
         // Attempt to execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
-        // Enusre the transaction is reverted and initial state is maintained
-        assertTrue(caHook.isTransactionInProgress(address(mew)));
+        // Ensure the transaction is reverted and initial state is maintained
         _verifyTokenLocking(address(token1), true);
-        assertEq(caHook.retrieveLockedBalance(address(token1)), lockAmount);
+        assertEq(
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
+            lockAmount
+        );
     }
 
     // Test batch unlocking tokens
@@ -274,16 +280,16 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         (, PackedUserOperation memory userOp) = _createUserOperation(
             address(mew),
             userOpCalldata,
-            address(caValidator),
+            address(credibleAccountValidator),
             sessionKeyPrivateKey
         );
         userOps = new PackedUserOperation[](1);
         userOps[0] = userOp;
         // Execute user operation
         entrypoint.handleOps(userOps, beneficiary);
-        // Ensure the token is unlocked and there are no transactions in progress
-        assertEq(caHook.retrieveLockedBalance(address(token1)), 0);
-        assertFalse(caHook.isTransactionInProgress(address(mew)));
+        // Ensure the token is unlocked
+        _verifyTokenLocking(address(token1), false);
+        assertEq(credibleAccountHook.retrieveLockedBalance(address(token1)), 0);
     }
 
     // Test unlocking tokens with a different solvers
@@ -336,7 +342,7 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         ) = _createUserOperation(
                 address(mew),
                 userOpCalldata,
-                address(caValidator),
+                address(credibleAccountValidator),
                 sessionKeyPrivateKey
             );
         userOps = new PackedUserOperation[](1);
@@ -357,9 +363,11 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         // Attempt to execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
         // Verify initial state is maintained
-        assertTrue(caHook.isTransactionInProgress(address(mew)));
         _verifyTokenLocking(address(token1), true);
-        assertEq(caHook.retrieveLockedBalance(address(token1)), lockAmount);
+        assertEq(
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
+            lockAmount
+        );
     }
 
     // Test unlocking tokens with a different selector
@@ -415,7 +423,7 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         (, PackedUserOperation memory userOp) = _createUserOperation(
             address(mew),
             userOpCalldata,
-            address(caValidator),
+            address(credibleAccountValidator),
             sessionKeyPrivateKey
         );
         userOps = new PackedUserOperation[](1);
@@ -478,9 +486,11 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         entrypoint.handleOps(userOps, beneficiary);
         // Verify tokens are locked
         for (uint256 i; i < tokens.length; ++i) {
-            assertEq(caHook.retrieveLockedBalance(tokens[i]), amounts[i]);
+            assertEq(
+                credibleAccountHook.retrieveLockedBalance(tokens[i]),
+                amounts[i]
+            );
         }
-        assertTrue(caHook.isTransactionInProgress(address(mew)));
         // Create batch of token transfer executions
         Execution[] memory batch = new Execution[](tokens.length);
         for (uint256 i; i < tokens.length; ++i) {
@@ -506,7 +516,7 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         (, PackedUserOperation memory userOp) = _createUserOperation(
             address(mew),
             userOpCalldata,
-            address(caValidator),
+            address(credibleAccountValidator),
             sessionKeyPrivateKey
         );
         userOps = new PackedUserOperation[](1);
@@ -515,8 +525,7 @@ contract CredibleAccountHook_Fuzz_Test is CredibleAccountHookTestUtils {
         entrypoint.handleOps(userOps, beneficiary);
         // Verify tokens are unlocked
         for (uint256 i; i < tokens.length; ++i) {
-            assertEq(caHook.retrieveLockedBalance(tokens[i]), 0);
+            assertEq(credibleAccountHook.retrieveLockedBalance(tokens[i]), 0);
         }
-        assertFalse(caHook.isTransactionInProgress(address(mew)));
     }
 }

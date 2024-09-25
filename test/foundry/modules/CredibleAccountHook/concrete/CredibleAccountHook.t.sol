@@ -44,13 +44,13 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
     // Test installation of the CredibleAccountHook module
     function test_installModule() public {
         // Initialize the Modular Etherspot Wallet
-        mew = setupMEW();
+        mew = setupMEWWithCredibleAccountValidator();
         vm.startPrank(owner1);
         // Prepare execution data for installing the CredibleAccountHook module
         bytes memory callData = abi.encodeWithSelector(
             IERC7579Account.installModule.selector,
             uint256(4),
-            address(caHook),
+            address(credibleAccountHook),
             hex""
         );
         (, PackedUserOperation memory userOp) = _createUserOperation(
@@ -66,7 +66,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         _executeUserOperation(userOp);
         // Verify that the CredibleAccountHook module is installed
         assertTrue(
-            mew.isModuleInstalled(4, address(caHook), ""),
+            mew.isModuleInstalled(4, address(credibleAccountHook), ""),
             "CredibleAccountHook module should be installed"
         );
     }
@@ -96,14 +96,78 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         );
     }
 
+    // Test that installing the CredibleAccountHook module fails when
+    // CredibleAccountValidator is not already installed by the wallet
+    function test_installModule_revertIf_credibleAccountValidatorIsNotInstalled()
+        public
+    {
+        // Set up wallet without CredibleAccountValidator
+        mew = setupMEW();
+        vm.startPrank(address(mew));
+        bytes memory callData = abi.encodeWithSelector(
+            IERC7579Account.installModule.selector,
+            uint256(4),
+            address(credibleAccountHook),
+            hex""
+        );
+        (
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperation(
+                address(mew),
+                callData,
+                address(ecdsaValidator),
+                owner1Key
+            );
+        // Expect the operation to revert with CredibleAccountHook_InsufficientUnlockedBalance error
+        vm.expectEmit(true, true, true, true);
+        emit IEntryPoint.UserOperationRevertReason(
+            hash,
+            address(mew),
+            userOp.nonce,
+            abi.encodeWithSelector(
+                CredibleAccountHook
+                    .CredibleAccountHook_MustInstallCredibleAccountValidator
+                    .selector
+            )
+        );
+        // Attempt to execute the module installation
+        _executeUserOperation(userOp);
+    }
+
     // Test uninstallation of the CredibleAccountHook module
     function test_uninstallModule() public {
-        // Set up the test environment with CredibleAccountHook installed
-        _testSetup();
+        // Set up the test environment with validator and hook installed
+        mew = setupMEWWithCredibleAccountValidatorAndHook();
         // Verify that the CredibleAccountHook is initially installed
         assertTrue(
-            mew.isModuleInstalled(4, address(caHook), ""),
+            mew.isModuleInstalled(1, address(credibleAccountValidator), ""),
+            "CredibleAccountValidator module should be installed"
+        );
+        assertTrue(
+            mew.isModuleInstalled(4, address(credibleAccountHook), ""),
             "CredibleAccountHook module should be installed"
+        );
+        // Uninstall the CredibleAccountValidator to allow for uninstallation of hook
+        // Get the previous validator for linked list management
+        address prevValidator = _getPrevValidator(
+            address(credibleAccountValidator)
+        );
+        defaultExecutor.executeViaAccount(
+            IERC7579Account(mew),
+            address(mew),
+            0,
+            abi.encodeWithSelector(
+                IERC7579Account.uninstallModule.selector,
+                uint256(1),
+                address(credibleAccountValidator),
+                abi.encode(prevValidator, hex"")
+            )
+        );
+        // Verify that the CredibleAccountValidator is uninstalled
+        assertFalse(
+            mew.isModuleInstalled(1, address(credibleAccountValidator), ""),
+            "credibleAccountValidator module must be uninstalled"
         );
         // Expect the CredibleAccountHook_ModuleUninstalled event to be emitted
         vm.expectEmit(true, false, false, false);
@@ -116,43 +180,31 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             abi.encodeWithSelector(
                 IERC7579Account.uninstallModule.selector,
                 uint256(4),
-                address(caHook),
+                address(credibleAccountHook),
                 ""
             )
         );
         // Verify that the CredibleAccountHook module is uninstalled
         assertFalse(
-            mew.isModuleInstalled(4, address(caHook), ""),
+            mew.isModuleInstalled(4, address(credibleAccountHook), ""),
             "CredibleAccountHook module should be uninstalled"
         );
     }
 
-    // Test that uninstalling the CredibleAccountHook module fails when a transaction is in progress
-    function test_uninstallModule_revertIf_transactionInProgress() public {
+    // Test that uninstalling the CredibleAccountHook module fails when
+    // CredibleAccountValidator is not already uninstalled from wallet
+    function test_uninstallModule_revertIf_credibleAccountValidatorNotUninstalled()
+        public
+    {
         // Set up the test environment and install a MockValidator
         _testSetup();
-        // Set up and execute a user operation to enable a session key
-        bytes memory sessionData = _getDefaultSessionData();
-        (, PackedUserOperation[] memory userOps) = _enableSessionKeyUserOp(
-            address(mew),
-            _getLockingMode(CALLTYPE_SINGLE),
-            sessionData,
-            owner1Key
-        );
-        entrypoint.handleOps(userOps, beneficiary);
-        // Verify that a transaction is in progress
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
-        // Attempt to uninstall the CredibleAccountHook module while a transaction is in progress
-        // Expect the operation to revert with CredibleAccountHook_CantUninstallWhileTransactionInProgress error
+        // Attempt to uninstall the CredibleAccountHook module while CredibleAccountValidator installed
+        // Expect the operation to revert with CredibleAccountHook_MustUninstallCredibleAccountValidator error
         vm.expectRevert(
             abi.encodeWithSelector(
                 CredibleAccountHook
-                    .CredibleAccountHook_CantUninstallWhileTransactionInProgress
-                    .selector,
-                address(mew)
+                    .CredibleAccountHook_MustUninstallCredibleAccountValidator
+                    .selector
             )
         );
         defaultExecutor.executeViaAccount(
@@ -162,7 +214,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             abi.encodeWithSelector(
                 IERC7579Account.uninstallModule.selector,
                 uint256(4),
-                address(caHook),
+                address(credibleAccountHook),
                 ""
             )
         );
@@ -174,7 +226,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         _testSetup();
         // Verify that the CredibleAccountHook is initialized for the wallet
         assertTrue(
-            caHook.isInitialized(address(mew)),
+            credibleAccountHook.isInitialized(address(mew)),
             "CredibleAccountHook should be initialized"
         );
     }
@@ -183,12 +235,12 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
     function test_isModuleType() public {
         // Verify that the CredibleAccountHook is recognized as a hook module (type 4)
         assertTrue(
-            caHook.isModuleType(4),
+            credibleAccountHook.isModuleType(4),
             "CredibleAccountHook should be recognized as a hook module"
         );
         // Verify that the CredibleAccountHook is not recognized as a validator module (type 1)
         assertFalse(
-            caHook.isModuleType(1),
+            credibleAccountHook.isModuleType(1),
             "CredibleAccountHook should not be recognized as a different module"
         );
     }
@@ -206,11 +258,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             owner1Key
         );
         entrypoint.handleOps(userOps, beneficiary);
-        // Verify that tokens are locked and a transaction is in progress
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
+        // Verify that tokens are locked
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
     }
@@ -222,10 +270,10 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Prepare and execute a batch operation to enable a session key
         bytes memory sessionData = _getDefaultSessionData();
         Execution[] memory batchCall = new Execution[](1);
-        batchCall[0].target = address(caValidator);
+        batchCall[0].target = address(credibleAccountValidator);
         batchCall[0].value = 0;
         batchCall[0].callData = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         bytes memory userOpCalldata = abi.encodeCall(
@@ -247,13 +295,9 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         );
         userOp.signature = abi.encodePacked(r, s, v);
         _executeUserOperation(userOp);
-        // Verify that tokens are locked and a transaction is in progress
+        // Verify that tokens are locked
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
     }
 
     // Test locking more of the same token in a different session key
@@ -272,10 +316,6 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         );
         entrypoint.handleOps(userOps, beneficiary);
         // Verify initial token locking
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
         // Lock more of the same token with a different session key
@@ -301,19 +341,15 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         );
         entrypoint.handleOps(userOps, beneficiary);
         // Verify updated token locking
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             14 ether,
             "Token 1 balance should be updated to include cumulative amount"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token2)),
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
             2 ether,
             "Token 2 balance should remain unchanged"
         );
@@ -424,7 +460,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Prepare session data and calldata for enabling a session key
         bytes memory sessionData = _getDefaultSessionData();
         bytes memory callData = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         // Create a user operation without a mode selector
@@ -432,7 +468,11 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             IERC7579Account.execute,
             (
                 ModeLib.encodeSimpleSingle(),
-                ExecutionLib.encodeSingle(address(caValidator), 0, callData)
+                ExecutionLib.encodeSingle(
+                    address(credibleAccountValidator),
+                    0,
+                    callData
+                )
             )
         );
         // Prepare and sign the user operation
@@ -461,11 +501,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         );
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
-        // Verify that no tokens are locked and no transaction is in progress
-        assertFalse(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should not be in progress"
-        );
+        // Verify that no tokens are locked
         _verifyTokenLocking(address(token1), false);
         _verifyTokenLocking(address(token2), false);
     }
@@ -479,7 +515,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Prepare session data and calldata for enabling a session key
         bytes memory sessionData = _getDefaultSessionData();
         bytes memory callData = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         // Create an invalid mode selector
@@ -499,7 +535,14 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Create a user operation with the invalid mode selector
         bytes memory userOpCalldata = abi.encodeCall(
             IERC7579Account.execute,
-            (mode, ExecutionLib.encodeSingle(address(caValidator), 0, callData))
+            (
+                mode,
+                ExecutionLib.encodeSingle(
+                    address(credibleAccountValidator),
+                    0,
+                    callData
+                )
+            )
         );
         // Prepare and sign the user operation
         (
@@ -527,11 +570,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         );
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
-        // Verify that no tokens are locked and no transaction is in progress
-        assertFalse(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should not be in progress"
-        );
+        // Verify that no tokens are locked
         _verifyTokenLocking(address(token1), false);
         _verifyTokenLocking(address(token2), false);
     }
@@ -589,7 +628,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             "Wallet should have 1 ether (3 ether - 2 ether sent to receiver)"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             1 ether,
             "Wallet should have 1 ether still locked"
         );
@@ -725,7 +764,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         (, PackedUserOperation memory userOp) = _createUserOperation(
             address(mew),
             userOpCalldata,
-            address(caValidator),
+            address(credibleAccountValidator),
             sessionKeyPrivateKey
         );
         userOps = new PackedUserOperation[](1);
@@ -733,13 +772,9 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are unlocked
-        assertFalse(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should not be in progress"
-        );
         _verifyTokenLocking(address(token1), false);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             0,
             "Locked balance should be 0"
         );
@@ -775,7 +810,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         (, PackedUserOperation memory userOp) = _createUserOperation(
             address(mew),
             userOpCalldata,
-            address(caValidator),
+            address(credibleAccountValidator),
             sessionKeyPrivateKey
         );
         userOps = new PackedUserOperation[](1);
@@ -783,20 +818,16 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are unlocked
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should still be in progress"
-        );
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
 
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             1 ether,
             "Locked balance for token1 should be 1 ether"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token2)),
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
             1 ether,
             "Locked balance for token2 should be 1 ether"
         );
@@ -839,7 +870,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         ) = _createUserOperation(
                 address(mew),
                 userOpCalldata,
-                address(caValidator),
+                address(credibleAccountValidator),
                 sessionKeyPrivateKey
             );
         userOps = new PackedUserOperation[](1);
@@ -860,19 +891,15 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are still locked and balances remain the same
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             1 ether,
             "Locked balance should remain same"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token2)),
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
             2 ether,
             "Locked balance should remain same"
         );
@@ -926,7 +953,10 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             address(mew),
             userOpCalldata
         );
-        userOp.nonce = getNonce(address(mew), address(caValidator));
+        userOp.nonce = getNonce(
+            address(mew),
+            address(credibleAccountValidator)
+        );
         bytes32 hash = entrypoint.getUserOpHash(userOp);
 
         userOp.signature = _generateUserOpSignatureWithMerkleProof(
@@ -939,14 +969,10 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are unlocked
-        assertFalse(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should not be in progress"
-        );
         _verifyTokenLocking(address(token1), false);
         _verifyTokenLocking(address(token2), false);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             0,
             "Locked balance should be 0"
         );
@@ -1000,7 +1026,10 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             address(mew),
             userOpCalldata
         );
-        userOp.nonce = getNonce(address(mew), address(caValidator));
+        userOp.nonce = getNonce(
+            address(mew),
+            address(credibleAccountValidator)
+        );
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         userOp.signature = _generateUserOpSignatureWithMerkleProof(
             userOp,
@@ -1011,19 +1040,15 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation to partially unlock tokens
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are partially unlocked
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should still be in progress"
-        );
         _verifyTokenLocking(address(token1), false);
         _verifyTokenLocking(address(token2), true);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             0,
             "Locked balance for token1 should be 0"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token2)),
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
             1 ether,
             "Locked balance for token2 should be 1 ether"
         );
@@ -1090,7 +1115,10 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             address(mew),
             userOpCalldata
         );
-        userOp.nonce = getNonce(address(mew), address(caValidator));
+        userOp.nonce = getNonce(
+            address(mew),
+            address(credibleAccountValidator)
+        );
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         userOp.signature = _generateUserOpSignatureWithMerkleProof(
             userOp,
@@ -1101,19 +1129,15 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation to unlock tokens
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are completely unlocked
-        assertFalse(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should not be in progress"
-        );
         _verifyTokenLocking(address(token1), false);
         _verifyTokenLocking(address(token2), false);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             0,
             "Locked balance for token1 should be 0"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token2)),
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
             0,
             "Locked balance for token2 should be 1 ether"
         );
@@ -1161,7 +1185,10 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             address(mew),
             userOpCalldata
         );
-        userOp.nonce = getNonce(address(mew), address(caValidator));
+        userOp.nonce = getNonce(
+            address(mew),
+            address(credibleAccountValidator)
+        );
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         userOp.signature = _generateUserOpSignatureWithMerkleProof(
             userOp,
@@ -1185,19 +1212,15 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are still locked and balances remain the same
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             1 ether,
             "Locked balance should remain the same"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token2)),
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
             2 ether,
             "Locked balance should remain the same"
         );
@@ -1243,7 +1266,10 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             address(mew),
             userOpCalldata
         );
-        userOp.nonce = getNonce(address(mew), address(caValidator));
+        userOp.nonce = getNonce(
+            address(mew),
+            address(credibleAccountValidator)
+        );
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         userOp.signature = _generateUserOpSignatureWithMerkleProof(
             userOp,
@@ -1267,19 +1293,15 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are still locked and balances remain the same
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             1 ether,
             "Locked balance should remain the same"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token2)),
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
             2 ether,
             "Locked balance should remain the same"
         );
@@ -1325,7 +1347,10 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             address(mew),
             userOpCalldata
         );
-        userOp.nonce = getNonce(address(mew), address(caValidator));
+        userOp.nonce = getNonce(
+            address(mew),
+            address(credibleAccountValidator)
+        );
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         userOp.signature = _generateUserOpSignatureWithMerkleProof(
             userOp,
@@ -1349,19 +1374,15 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Execute the user operation
         entrypoint.handleOps(userOps, beneficiary);
         // Check tokens are still locked and balances remain the same
-        assertTrue(
-            caHook.isTransactionInProgress(address(mew)),
-            "Transaction should be in progress"
-        );
         _verifyTokenLocking(address(token1), true);
         _verifyTokenLocking(address(token2), true);
         assertEq(
-            caHook.retrieveLockedBalance(address(token1)),
+            credibleAccountHook.retrieveLockedBalance(address(token1)),
             1 ether,
             "Locked balance should remain the same"
         );
         assertEq(
-            caHook.retrieveLockedBalance(address(token2)),
+            credibleAccountHook.retrieveLockedBalance(address(token2)),
             2 ether,
             "Locked balance should remain the same"
         );
@@ -1390,7 +1411,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Prepare session data and encode it for the validator
         bytes memory sessionData = _getDefaultSessionData();
         bytes memory data = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         // Execute the lockTokens function through the harness
@@ -1416,7 +1437,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Lock initial tokens
         bytes memory sessionData = _getDefaultSessionData();
         bytes memory data = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         bool success = harness.exposed_lockTokens(data);
@@ -1446,7 +1467,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             [13 ether]
         );
         data = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         // Lock additional tokens
@@ -1474,7 +1495,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Lock initial tokens
         bytes memory sessionData = _getDefaultSessionData();
         bytes memory data = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         bool success = harness.exposed_lockTokens(data);
@@ -1504,7 +1525,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
             [13 ether]
         );
         data = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         // Attempt to lock additional tokens
@@ -1530,7 +1551,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Lock tokens first
         bytes memory sessionData = _getDefaultSessionData();
         bytes memory data = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         bool lockSuccess = harness.exposed_lockTokens(data);
@@ -1609,7 +1630,7 @@ contract CredibleAccountHook_Concrete_Test is CredibleAccountHookTestUtils {
         // Lock some tokens
         bytes memory sessionData = _getDefaultSessionData();
         bytes memory data = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             sessionData
         );
         bool lockSuccess = harness.exposed_lockTokens(data);

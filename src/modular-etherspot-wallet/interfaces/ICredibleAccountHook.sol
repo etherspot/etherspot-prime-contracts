@@ -57,13 +57,6 @@ interface ICredibleAccountHook is IHook {
         address _token
     ) external view returns (bool);
 
-    /// @notice Checks if a transaction is in progress for a wallet
-    /// @param _wallet The address of the wallet
-    /// @return bool True if a transaction is in progress, false otherwise
-    function isTransactionInProgress(
-        address _wallet
-    ) external view returns (bool);
-
     /// @notice Retrieves the locked balance of a token
     /// @param _token The address of the token
     /// @return uint256 The total locked balance of the token
