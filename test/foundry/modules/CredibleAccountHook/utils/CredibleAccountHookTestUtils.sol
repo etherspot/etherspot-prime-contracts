@@ -25,7 +25,7 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
     // Contract instances
     ModularEtherspotWallet internal mew;
     CredibleAccountHookHarness internal harness;
-    CredibleAccountValidator internal caValidator;
+    // CredibleAccountValidator internal credibleAccountValidator;
     TestERC20 internal token1;
     TestERC20 internal token2;
 
@@ -64,9 +64,10 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
 
     function _testSetup() internal {
         // Set up contracts and wallet
-        mew = setupMEWWithCredibleAccountHook();
-        harness = new CredibleAccountHookHarness();
-        caValidator = new CredibleAccountValidator(address(credibleAccountProofVerifier));
+        mew = setupMEWWithCredibleAccountValidatorAndHook();
+        harness = new CredibleAccountHookHarness(
+            address(credibleAccountValidator)
+        );
         token1 = new TestERC20();
         token2 = new TestERC20();
         // Set up test addresses and keys
@@ -84,8 +85,6 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
         token1.approve(address(mew), 1 ether);
         token2.mint(address(mew), 2 ether);
         token2.approve(address(mew), 2 ether);
-        // Install CredibleAccountValidator
-        _installCredibleAccountValidator();
     }
 
     function _installCredibleAccountValidator() internal {
@@ -96,7 +95,7 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
             abi.encodeWithSelector(
                 ModularEtherspotWallet.installModule.selector,
                 uint256(1),
-                address(caValidator),
+                address(credibleAccountValidator),
                 ""
             )
         );
@@ -176,7 +175,7 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
     ) internal view returns (bytes32, PackedUserOperation[] memory) {
         // Set up calldata
         bytes memory callData = abi.encodeWithSelector(
-            caValidator.enableSessionKey.selector,
+            credibleAccountValidator.enableSessionKey.selector,
             _sessionData
         );
         // Set up UserOperation
@@ -184,7 +183,11 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
             IERC7579Account.execute,
             (
                 _mode,
-                ExecutionLib.encodeSingle(address(caValidator), 0, callData)
+                ExecutionLib.encodeSingle(
+                    address(credibleAccountValidator),
+                    0,
+                    callData
+                )
             )
         );
         PackedUserOperation memory userOp = entrypoint.fillUserOp(
@@ -219,24 +222,24 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
             _signerKey,
             ECDSA.toEthSignedMessageHash(hash)
         );
-
-        if(_validator == address(caValidator)) {
+        if (_validator == address(credibleAccountValidator)) {
             // append r, s, v of signature followed by Proof to the signature
             userOp.signature = abi.encodePacked(r, s, v, DUMMY_PROOF);
         } else {
             userOp.signature = abi.encodePacked(r, s, v);
         }
-        
         return (hash, userOp);
     }
 
-    function _generateUserOpSignatureWithMerkleProof(PackedUserOperation memory userOp, uint256 signerKey) internal view returns (bytes memory) {
+    function _generateUserOpSignatureWithMerkleProof(
+        PackedUserOperation memory userOp,
+        uint256 signerKey
+    ) internal view returns (bytes memory) {
         bytes32 hash = entrypoint.getUserOpHash(userOp);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(
             signerKey,
             ECDSA.toEthSignedMessageHash(hash)
         );
-        
         // append r, s, v of signature followed by dummy-proof to the signature
         return abi.encodePacked(r, s, v, DUMMY_PROOF);
     }
@@ -254,9 +257,30 @@ contract CredibleAccountHookTestUtils is TestAdvancedUtils {
         bool _expectedLockStatus
     ) internal {
         assertEq(
-            caHook.isTokenLocked(address(mew), _token),
+            credibleAccountHook.isTokenLocked(address(mew), _token),
             _expectedLockStatus,
             "Unexpected token lock status"
         );
+    }
+
+    function _getPrevValidator(
+        address _validator
+    ) internal view returns (address) {
+        // Presuming that wallet won't have more than 20 different validators installed
+        for (uint256 i = 1; i <= 20; i++) {
+            (address[] memory validators, ) = mew.getValidatorPaginated(
+                address(0x1),
+                i
+            );
+            if (validators.length > 0) {
+                if (validators[validators.length - 1] == _validator) {
+                    return
+                        validators.length > 1
+                            ? validators[validators.length - 2]
+                            : address(0x1);
+                }
+            }
+        }
+        revert("Validator not found");
     }
 }

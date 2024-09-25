@@ -12,6 +12,8 @@ import {CredibleAccountHook} from "../src/modular-etherspot-wallet/modules/hooks
  */
 
 contract CredibleAccountHookScript is Script {
+    // TODO: Add CredibleAccountValidator address here (replace address(0).
+    address immutable CREDIBLE_ACCOUNT_VALIDATOR_ADDRESS = address(0);
     bytes32 immutable SALT =
         bytes32(
             abi.encodePacked(
@@ -31,7 +33,7 @@ contract CredibleAccountHookScript is Script {
         // if (EXPECTED_CREDIBLE_ACCOUNT_HOOK.code.length == 0) {
         CredibleAccountHook credibleAccountHook = new CredibleAccountHook{
             salt: SALT
-        }();
+        }(CREDIBLE_ACCOUNT_VALIDATOR_ADDRESS);
         // if (
         //     address(credibleAccountHook) !=
         //     EXPECTED_CREDIBLE_ACCOUNT_HOOK
