@@ -22,9 +22,6 @@ contract CredibleAccountValidatorScript is Script {
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-        address credibleAccountProofVerifier = vm.envAddress(
-            "CREDIBLE_ACCOUNT_PROOF_VERIFIER"
-        );
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -33,9 +30,10 @@ contract CredibleAccountValidatorScript is Script {
         // CreibleAccountValidator
         console2.log("Deploying CredibleAccountValidator...");
         // if (EXPECTED_CREDIBLE_ACCOUNT_VALIDATOR.code.length == 0) {
+        // TODO - update the constructor argument which is the address of the ProofVerifier contract
         CredibleAccountValidator credibleAccountValidator = new CredibleAccountValidator{
                 salt: SALT
-            }(credibleAccountProofVerifier);
+            }(address(0));
         // if (
         //     address(credibleAccountValidator) !=
         //     EXPECTED_CREDIBLE_ACCOUNT_VALIDATOR

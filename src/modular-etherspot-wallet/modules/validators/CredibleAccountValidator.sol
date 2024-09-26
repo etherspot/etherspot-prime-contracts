@@ -10,7 +10,7 @@ import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ICredibleAccountValidator} from "../../interfaces/ICredibleAccountValidator.sol";
-import {ICredibleAccountProofVerifier} from "../../interfaces/ICredibleAccountProofVerifier.sol";
+import {IProofVerifier} from "../../interfaces/IProofVerifier.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
 
 contract CredibleAccountValidator is ICredibleAccountValidator {
@@ -54,17 +54,17 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         public walletSessionKeys;
     mapping(address sessionKey => mapping(address wallet => SessionData))
         public sessionData;
-    ICredibleAccountProofVerifier public immutable credibleAccountProofVerifier;
+    IProofVerifier public immutable proofVerifier;
 
     /*//////////////////////////////////////////////////////////////
                            CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(address _credibleAccountProofVerifier) {
-        if (_credibleAccountProofVerifier == address(0))
+    constructor(address _proofVerifier) {
+        if (_proofVerifier == address(0))
             revert CredibleAccountValidator_InvalidProofVerifier();
 
-        credibleAccountProofVerifier = ICredibleAccountProofVerifier(_credibleAccountProofVerifier);
+        proofVerifier = IProofVerifier(_proofVerifier);
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -260,7 +260,7 @@ contract CredibleAccountValidator is ICredibleAccountValidator {
         }
         // Validate the proof
         // this is only stub method and to be replaced with actual proof validation logic
-        if (!credibleAccountProofVerifier.verifyProof(proof)) {
+        if (!proofVerifier.verifyProof(proof)) {
             return VALIDATION_FAILED;
         }
         SessionData storage sd = sessionData[sessionKeySigner][msg.sender];
