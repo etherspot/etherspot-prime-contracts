@@ -21,6 +21,7 @@ import {CredibleAccountHook} from "../../src/modular-etherspot-wallet/modules/ho
 import {CredibleAccountValidator} from "../../src/modular-etherspot-wallet/modules/validators/CredibleAccountValidator.sol";
 import {ProofVerifier} from "../../src/modular-etherspot-wallet/proof/ProofVerifier.sol";
 import {IProofVerifier} from "../../src/modular-etherspot-wallet/interfaces/IProofVerifier.sol";
+import {CredibleAccountModule} from "../../src/modular-etherspot-wallet/modules/validators/CredibleAccountModule.sol";
 
 contract TestAdvancedUtils is BootstrapUtil, Test {
     // singletons
@@ -36,6 +37,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     ERC20SessionKeyValidator sessionKeyValidator;
     CredibleAccountHook credibleAccountHook;
     CredibleAccountValidator credibleAccountValidator;
+    CredibleAccountModule credibleAccountModule;
     IProofVerifier proofVerifier;
 
     ModularEtherspotWallet mewAccount;
@@ -74,11 +76,18 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         proofVerifier = new ProofVerifier();
 
         // CredibleAccountValidator for MEW
-        credibleAccountValidator = new CredibleAccountValidator(address(proofVerifier));
+        credibleAccountValidator = new CredibleAccountValidator(
+            address(proofVerifier)
+        );
 
         // CredibleAccountHook for MEW
         credibleAccountHook = new CredibleAccountHook(
             address(credibleAccountValidator)
+        );
+
+        // CredibleAccountModule for MEW
+        credibleAccountModule = new CredibleAccountModule(
+            address(proofVerifier)
         );
 
         // Set up Target for testing
@@ -357,6 +366,55 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
             ""
         );
         BootstrapConfig memory hook = _makeBootstrapConfig(address(0), "");
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
+            ""
+        );
+
+        // Create owner
+        (owner1, owner1Key) = makeAddrAndKey("owner1");
+        vm.deal(owner1, 100 ether);
+
+        // Create initcode and salt to be sent to Factory
+        bytes memory _initCode = abi.encode(
+            owner1,
+            address(bootstrapSingleton),
+            abi.encodeCall(
+                bootstrapSingleton.initMSA,
+                (validators, executors, hook, fallbacks)
+            )
+        );
+        bytes32 salt = keccak256("1");
+
+        vm.startPrank(owner1);
+        // create account
+        mewAccount = ModularEtherspotWallet(
+            payable(factory.createAccount({salt: salt, initCode: _initCode}))
+        );
+        vm.deal(address(mewAccount), 100 ether);
+        vm.stopPrank();
+        return mewAccount;
+    }
+
+    function setupMEWWithCredibleAccountModule()
+        public
+        returns (ModularEtherspotWallet)
+    {
+        // Create config for initial modules
+        BootstrapConfig[] memory validators = new BootstrapConfig[](2);
+        validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
+        validators[1] = _makeBootstrapConfig(
+            address(credibleAccountModule),
+            ""
+        );
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
+        BootstrapConfig memory hook = _makeBootstrapConfig(
+            address(credibleAccountModule),
+            ""
+        );
         BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
             address(0),
             ""
