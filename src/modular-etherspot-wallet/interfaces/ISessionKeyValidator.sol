@@ -114,6 +114,18 @@ interface ISessionKeyValidator is IValidator {
         ParamCondition[] paramConditions
     );
 
+    /// @notice Emitted when a permission has been used
+    /// @param sessionKey The address of the session key
+    /// @param permission The permission that was used
+    /// @param oldUses The previous number of uses
+    /// @param newUses The new number of uses
+    event SKV_PermissionUsed(
+        address indexed sessionKey,
+        Permission permission,
+        uint256 oldUses,
+        uint256 newUses
+    );
+
     /*//////////////////////////////////////////////////////////////
                               FUNCTIONS
     //////////////////////////////////////////////////////////////*/

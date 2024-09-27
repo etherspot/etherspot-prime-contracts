@@ -472,25 +472,23 @@ contract SessionKeyValidator is ISessionKeyValidator {
         );
         for (uint256 i; i < batchExecs.length; ++i) {
             bool executionValid = false;
-            for (uint256 j; j < _execVals.length; ++j) {
-                if (
-                    _validatePermission(
-                        _userOp.sender,
-                        _sd,
-                        _execVals[j],
-                        batchExecs[i].target,
-                        batchExecs[i].value,
-                        batchExecs[i].callData
-                    )
-                ) {
-                    executionValid = true;
-                    earliestAfter = _execVals[j].validAfter < earliestAfter
-                        ? _execVals[j].validAfter
-                        : earliestAfter;
-                    latestUntil = _execVals[j].validUntil > latestUntil
-                        ? _execVals[j].validUntil
-                        : latestUntil;
-                }
+            if (
+                _validatePermission(
+                    _userOp.sender,
+                    _sd,
+                    _execVals[i],
+                    batchExecs[i].target,
+                    batchExecs[i].value,
+                    batchExecs[i].callData
+                )
+            ) {
+                executionValid = true;
+                earliestAfter = _execVals[i].validAfter < earliestAfter
+                    ? _execVals[i].validAfter
+                    : earliestAfter;
+                latestUntil = _execVals[i].validUntil > latestUntil
+                    ? _execVals[i].validUntil
+                    : latestUntil;
             }
             if (!executionValid) return (false, 0, 0);
         }
@@ -546,12 +544,17 @@ contract SessionKeyValidator is ISessionKeyValidator {
             }
             if (
                 _sd.validAfter <= _execVal.validAfter &&
-                _sd.validUntil >= _execVal.validUntil
+                _sd.validUntil >= _execVal.validUntil &&
+                permission.uses > 0
             ) {
-                if (permission.uses > 0) {
-                    permissions[_sd.sessionKey][_sender][i].uses--;
-                    return true;
-                }
+                emit SKV_PermissionUsed(
+                    _sd.sessionKey,
+                    permission,
+                    permission.uses,
+                    permission.uses - 1
+                );
+                permissions[_sd.sessionKey][_sender][i].uses--;
+                return true;
             }
         }
         return false;

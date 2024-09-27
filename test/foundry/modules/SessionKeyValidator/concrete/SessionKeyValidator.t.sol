@@ -9,6 +9,9 @@ import {ComparisonRule} from "../../../../../src/modular-etherspot-wallet/common
 import {SessionKeyValidatorHarness} from "../../../harnesses/SessionKeyValidatorHarness.sol";
 import {TestCounter} from "../../../../../src/modular-etherspot-wallet/test/TestCounter.sol";
 import {TestERC20} from "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
+import {TestWETH} from "../../../../../src/modular-etherspot-wallet/test/TestWETH.sol";
+import {TestUniswap} from "../../../../../src/modular-etherspot-wallet/test/TestUniswap.sol";
+import {TestERC721} from "../../../../../src/modular-etherspot-wallet/test/TestERC721.sol";
 import {SessionKeyTestUtils} from "../utils/SessionKeyTestUtils.sol";
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 import {IEntryPoint} from "../../../../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
@@ -28,6 +31,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                               VARIABLES
     //////////////////////////////////////////////////////////////*/
     TestERC20 private erc20;
+    TestUniswap private uniswap;
     // Test addresses and keys
     address payable private receiver;
     address private sessionKeyAddr;
@@ -87,10 +91,31 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         uint256 uses,
         ParamCondition[] paramConditions
     );
+    event SKV_PermissionUsed(
+        address indexed sessionKey,
+        Permission permission,
+        uint256 oldUses,
+        uint256 newUses
+    );
 
     // From TestCounter contract
     event ReceivedPayableCall(uint256 amount, uint256 payment);
     event ReceivedMultiTypeCall(address addr, uint256 num, bool boolVal);
+
+    // From TestUniswap contract
+    event MockUniswapExchangeEvent(
+        uint256 amountIn,
+        uint256 amountOut,
+        address tokenIn,
+        address tokenOut
+    );
+
+    // From TestERC721 contract
+    event TestNFTPuchased(
+        address indexed buyer,
+        address indexed receiver,
+        uint256 tokenId
+    );
 
     /*//////////////////////////////////////////////////////////////
                                 SETUP
@@ -2168,6 +2193,189 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         assertEq(receiver.balance, 13 wei, "Receiver balance should be 13 wei");
     }
 
+    function test_executeBatch_decreasesPermissionUsesSamePermission() public {
+        // Set up the test environment
+        _testSetup();
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](3);
+        // Set up execution validations for changeCount and multiTypeCall functions
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        execValidations[1] = _setupExecutionValidation(uint48(2), uint48(4));
+        execValidations[2] = _setupExecutionValidation(uint48(2), uint48(4));
+        // Encode call data for changeCount and multiTypeCall functions
+        bytes memory multiCallData1 = abi.encodeWithSelector(
+            TestCounter.multiTypeCall.selector,
+            address(alice),
+            uint256(4),
+            true
+        );
+        bytes memory multiCallData2 = abi.encodeWithSelector(
+            TestCounter.multiTypeCall.selector,
+            address(alice),
+            uint256(3),
+            true
+        );
+        bytes memory multiCallData3 = abi.encodeWithSelector(
+            TestCounter.multiTypeCall.selector,
+            address(alice),
+            uint256(2),
+            true
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](3);
+        Execution memory exec1 = Execution({
+            target: address(counter1),
+            value: 0,
+            callData: multiCallData1
+        });
+        Execution memory exec2 = Execution({
+            target: address(counter1),
+            value: 0,
+            callData: multiCallData2
+        });
+        Execution memory exec3 = Execution({
+            target: address(counter1),
+            value: 0,
+            callData: multiCallData3
+        });
+        executions[0] = exec1;
+        executions[1] = exec2;
+        executions[2] = exec3;
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+        // Validate permission uses updates (10 - 3 = 7)
+        assertEq(
+            sessionKeyValidator.getUsesLeft(sessionKeyAddr, 0),
+            7,
+            "Should have decreased by 3"
+        );
+    }
+
+    function test_executeBatch_decreasesPermissionUsesMultiplePermissions()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Create a new permission and add to session key
+        ParamCondition[] memory newConditions = new ParamCondition[](1);
+        newConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(14))
+        });
+        Permission memory newPerm = Permission({
+            target: address(counter2),
+            selector: TestCounter.changeCount.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: newConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, newPerm);
+        // Check session key now has 2 permissions
+        Permission[] memory permissions = sessionKeyValidator
+            .getSessionKeyPermissions(sessionKeyAddr);
+        assertEq(
+            permissions.length,
+            2,
+            "Session key should have 2 permissions"
+        );
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](3);
+        // Set up execution validations for changeCount and multiTypeCall functions
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        execValidations[1] = _setupExecutionValidation(uint48(2), uint48(4));
+        execValidations[2] = _setupExecutionValidation(uint48(2), uint48(3));
+        // Encode call data for changeCount and multiTypeCall functions
+        bytes memory multiCallData1 = abi.encodeWithSelector(
+            TestCounter.multiTypeCall.selector,
+            address(alice),
+            uint256(4),
+            true
+        );
+        bytes memory multiCallData2 = abi.encodeWithSelector(
+            TestCounter.multiTypeCall.selector,
+            address(alice),
+            uint256(2),
+            false
+        );
+        bytes memory countCallData = abi.encodeWithSelector(
+            TestCounter.changeCount.selector,
+            uint256(13)
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](3);
+        Execution memory exec1 = Execution({
+            target: address(counter1),
+            value: 0,
+            callData: multiCallData1
+        });
+        Execution memory exec2 = Execution({
+            target: address(counter1),
+            value: 0,
+            callData: multiCallData2
+        });
+        Execution memory exec3 = Execution({
+            target: address(counter2),
+            value: 0,
+            callData: countCallData
+        });
+        executions[0] = exec1;
+        executions[1] = exec2;
+        executions[2] = exec3;
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect event emit
+        // vm.expectEmit(true, false, false, true);
+        // emit SKV_PermissionUsed(sessionKeyAddr, perms[0], 10, 9);
+        // vm.expectEmit(true, false, false, true);
+        // emit SKV_PermissionUsed(sessionKeyAddr, newPerm, 10, 9);
+        // vm.expectEmit(true, false, false, true);
+        // emit SKV_PermissionUsed(sessionKeyAddr, newPerm, 9, 8);
+        // NOTE: It does emit these events in the stack trace but
+        // due to UserOp its not picking them up in the test correctly
+        // Execute the user operation
+        _executeUserOp(userOp);
+        // Verify that both counters have been updated correctly
+        assertEq(counter2.getCount(), uint256(13), "Counter should be updated");
+        // Validate permission uses updates
+        assertEq(
+            sessionKeyValidator.getUsesLeft(sessionKeyAddr, 0),
+            8,
+            "Should have decreased by 2"
+        );
+        assertEq(
+            sessionKeyValidator.getUsesLeft(sessionKeyAddr, 1),
+            9,
+            "Should have decreased by 1"
+        );
+    }
+
     function test_executeBatch_RevertIf_InvalidTarget() public {
         // Set up the test environment
         _testSetup();
@@ -3011,5 +3219,272 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             mintAmount - transferAmount,
             "Wallet balance should be reduced"
         );
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                         UNISWAP SWAP TESTING
+    //////////////////////////////////////////////////////////////*/
+
+    function test_uniswap_swapExactTokensForTokens() public {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswap = new TestUniswap(weth);
+        // Mint tokens
+        // weth.mint(address(mew), 100 ether);
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswap), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswap), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](5);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 228,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswap),
+            selector: TestUniswap.swapExactTokensForTokens.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(dai);
+        paths[1] = address(link);
+        bytes memory swapData = abi.encodeWithSelector(
+            TestUniswap.swapExactTokensForTokens.selector,
+            10 ether,
+            10 ether,
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswap),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        vm.expectEmit(false, false, false, true);
+        emit MockUniswapExchangeEvent(
+            10 ether,
+            11 ether,
+            address(dai),
+            address(link)
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+        assertEq(
+            dai.balanceOf(address(mew)),
+            90 ether,
+            "Wallet DAI balance should decrease by 10 ether"
+        );
+        assertEq(
+            link.balanceOf(address(mew)),
+            11 ether,
+            "Wallet LINK balance should increase by 11 ether"
+        );
+    }
+
+    function test_uniswap_swapExactETHForTokens() public {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        uniswap = new TestUniswap(weth);
+        // Swap ETH for WETH
+        weth.deposit{value: 10 ether}();
+        // Approve Uniswap to spend tokens
+        weth.approve(address(uniswap), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](4);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(weth))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswap),
+            selector: TestUniswap.swapExactETHForTokens.selector,
+            payableLimit: 10 ether,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(weth);
+        paths[1] = address(dai);
+        bytes memory swapData = abi.encodeWithSelector(
+            TestUniswap.swapExactETHForTokens.selector,
+            10 ether,
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswap),
+            value: 10 ether,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        vm.expectEmit(false, false, false, true);
+        emit MockUniswapExchangeEvent(
+            10 ether,
+            11 ether,
+            address(weth),
+            address(dai)
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+        assertEq(
+            weth.balanceOf(address(mew)),
+            10 ether,
+            "Wallet WETH balance should decrease by 10 ether"
+        );
+        assertEq(
+            dai.balanceOf(address(mew)),
+            11 ether,
+            "Wallet LINK balance should increase by 11 ether"
+        );
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                             NFT PURCHASE
+    //////////////////////////////////////////////////////////////*/
+
+    function test_buyingNFT() public {
+        // Set up the test environment
+        _testSetup();
+        TestERC721 nft = new TestERC721();
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory mintConditions = new ParamCondition[](1);
+        mintConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(alice))))
+        });
+        Permission memory mintPerm = Permission({
+            target: address(nft),
+            selector: TestERC721.purchaseNFTToWallet.selector,
+            payableLimit: 0.05 ether,
+            uses: tenUses,
+            paramConditions: mintConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, mintPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        bytes memory mintData = abi.encodeWithSelector(
+            TestERC721.purchaseNFTToWallet.selector,
+            address(alice)
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(nft),
+            value: 0.05 ether,
+            callData: mintData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Get initial native balance of wallet
+        uint256 balance = address(mew).balance;
+        // Expect the NFT purchased event to be emitted
+        vm.expectEmit(true, true, false, true);
+        emit TestNFTPuchased(address(mew), address(alice), 1);
+        // Execute the user operation
+        _executeUserOp(userOp);
+        // Varify that Alice has been minted NFT and that address(mew) paid for it
+        assertEq(nft.balanceOf(address(alice)), 1, "Alice should have NFT");
+        // Lt as tx cost
+        assertLt(address(mew).balance, balance - 0.05 ether);
     }
 }
