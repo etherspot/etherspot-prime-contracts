@@ -10,7 +10,9 @@ import {SessionKeyValidatorHarness} from "../../../harnesses/SessionKeyValidator
 import {TestCounter} from "../../../../../src/modular-etherspot-wallet/test/TestCounter.sol";
 import {TestERC20} from "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import {TestWETH} from "../../../../../src/modular-etherspot-wallet/test/TestWETH.sol";
-import {TestUniswap} from "../../../../../src/modular-etherspot-wallet/test/TestUniswap.sol";
+import {TestUniswap as UniswapV2} from "../../../../../src/modular-etherspot-wallet/test/TestUniswap.sol";
+import {TestUniswap as UniswapV3} from "../../../../../account-abstraction/contracts/test/TestUniswap.sol";
+import {TestWrappedNativeToken} from "../../../../../account-abstraction/contracts/test/TestWrappedNativeToken.sol";
 import {TestERC721} from "../../../../../src/modular-etherspot-wallet/test/TestERC721.sol";
 import {SessionKeyTestUtils} from "../utils/SessionKeyTestUtils.sol";
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
@@ -21,6 +23,7 @@ import "../../../TestAdvancedUtils.t.sol";
 import "../../../../../src/modular-etherspot-wallet/utils/ERC4337Utils.sol";
 import {SentinelListLib} from "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 using ERC4337Utils for IEntryPoint;
 
@@ -31,7 +34,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                               VARIABLES
     //////////////////////////////////////////////////////////////*/
     TestERC20 private erc20;
-    TestUniswap private uniswap;
+    UniswapV2 private uniswapV2;
+    UniswapV3 private uniswapV3;
     // Test addresses and keys
     address payable private receiver;
     address private sessionKeyAddr;
@@ -102,8 +106,16 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     event ReceivedPayableCall(uint256 amount, uint256 payment);
     event ReceivedMultiTypeCall(address addr, uint256 num, bool boolVal);
 
-    // From TestUniswap contract
+    // From UniswapV2 contract
     event MockUniswapExchangeEvent(
+        uint256 amountIn,
+        uint256 amountOut,
+        address tokenIn,
+        address tokenOut
+    );
+
+    // From UniswapV3 contract
+    event StubUniswapExchangeEvent(
         uint256 amountIn,
         uint256 amountOut,
         address tokenIn,
@@ -3222,22 +3234,22 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     }
 
     /*//////////////////////////////////////////////////////////////
-                         UNISWAP SWAP TESTING
+                         UNISWAP V2 SWAP TESTING
     //////////////////////////////////////////////////////////////*/
 
-    function test_uniswap_swapExactTokensForTokens() public {
+    function test_uniswapV2_swapExactTokensForTokens() public {
         // Set up the test environment
         _testSetup();
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswap = new TestUniswap(weth);
+        uniswapV2 = new UniswapV2(weth);
         // Mint tokens
         // weth.mint(address(mew), 100 ether);
         dai.mint(address(mew), 100 ether);
-        link.mint(address(uniswap), 100 ether);
+        link.mint(address(uniswapV2), 100 ether);
         // Approve Uniswap to spend tokens
-        dai.approve(address(uniswap), type(uint256).max);
+        dai.approve(address(uniswapV2), type(uint256).max);
         // Set up a session key and permissions
         (
             SessionData memory sd,
@@ -3271,8 +3283,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             value: bytes32(uint256(uint160(address(mew))))
         });
         Permission memory swapPerm = Permission({
-            target: address(uniswap),
-            selector: TestUniswap.swapExactTokensForTokens.selector,
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactTokensForTokens.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3287,7 +3299,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(dai);
         paths[1] = address(link);
         bytes memory swapData = abi.encodeWithSelector(
-            TestUniswap.swapExactTokensForTokens.selector,
+            UniswapV2.swapExactTokensForTokens.selector,
             10 ether,
             10 ether,
             paths,
@@ -3297,7 +3309,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         // Create an array of executions
         Execution[] memory executions = new Execution[](1);
         executions[0] = Execution({
-            target: address(uniswap),
+            target: address(uniswapV2),
             value: 0,
             callData: swapData
         });
@@ -3329,16 +3341,514 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         );
     }
 
-    function test_uniswap_swapExactETHForTokens() public {
+    function test_uniswapV2_swapExactTokensForTokens_RevertIf_incorrectAmountIn()
+        public
+    {
         // Set up the test environment
         _testSetup();
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
-        uniswap = new TestUniswap(weth);
+        TestERC20 link = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Mint tokens
+        // weth.mint(address(mew), 100 ether);
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV2), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](5);
+        // Should fail on this condition
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 228,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactTokensForTokens.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(dai);
+        paths[1] = address(link);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactTokensForTokens.selector,
+            // Invalid amountIn value
+            11 ether,
+            10 ether,
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (invalid amountIn)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV2_swapExactTokensForTokens_RevertIf_incorrectAmountOut()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Mint tokens
+        // weth.mint(address(mew), 100 ether);
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV2), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](5);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        // Should fail on this condition
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 228,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactTokensForTokens.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(dai);
+        paths[1] = address(link);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactTokensForTokens.selector,
+            11 ether,
+            // Invalid amountIn value
+            9 ether,
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (invalid amountIn)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV2_swapExactTokensForTokens_RevertIf_incorrectFirstPath()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Mint tokens
+        // weth.mint(address(mew), 100 ether);
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV2), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](5);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        // Should fail on this condition
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 228,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactTokensForTokens.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        // Add invalid first path address
+        paths[0] = address(weth);
+        paths[1] = address(link);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactTokensForTokens.selector,
+            11 ether,
+            9 ether,
+            // Invalid first path address
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (invalid amountIn)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV2_swapExactTokensForTokens_RevertIf_incorrectSecondPath()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Mint tokens
+        // weth.mint(address(mew), 100 ether);
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV2), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](5);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        // Should fail on this condition
+        swapConditions[3] = ParamCondition({
+            offset: 228,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactTokensForTokens.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(dai);
+        // Add invalid second path address
+        paths[1] = address(dai);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactTokensForTokens.selector,
+            11 ether,
+            9 ether,
+            // Invalid second path address
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (invalid amountIn)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV2_swapExactTokensForTokens_RevertIf_incorrectToAddress()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Mint tokens
+        // weth.mint(address(mew), 100 ether);
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV2), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](5);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 228,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        // Should fail on this condition
+        swapConditions[4] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactTokensForTokens.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(dai);
+        // Add invalid second path address
+        paths[1] = address(dai);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactTokensForTokens.selector,
+            11 ether,
+            9 ether,
+            paths,
+            // Invalid to address
+            address(alice),
+            block.timestamp + 1000
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (invalid amountIn)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV2_swapExactETHForTokens() public {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
         // Swap ETH for WETH
         weth.deposit{value: 10 ether}();
         // Approve Uniswap to spend tokens
-        weth.approve(address(uniswap), type(uint256).max);
+        weth.approve(address(uniswapV2), type(uint256).max);
         // Set up a session key and permissions
         (
             SessionData memory sd,
@@ -3367,8 +3877,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             value: bytes32(uint256(uint160(address(mew))))
         });
         Permission memory swapPerm = Permission({
-            target: address(uniswap),
-            selector: TestUniswap.swapExactETHForTokens.selector,
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactETHForTokens.selector,
             payableLimit: 10 ether,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3383,7 +3893,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(weth);
         paths[1] = address(dai);
         bytes memory swapData = abi.encodeWithSelector(
-            TestUniswap.swapExactETHForTokens.selector,
+            UniswapV2.swapExactETHForTokens.selector,
             10 ether,
             paths,
             address(mew),
@@ -3392,7 +3902,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         // Create an array of executions
         Execution[] memory executions = new Execution[](1);
         executions[0] = Execution({
-            target: address(uniswap),
+            target: address(uniswapV2),
             value: 10 ether,
             callData: swapData
         });
@@ -3422,6 +3932,1879 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             11 ether,
             "Wallet LINK balance should increase by 11 ether"
         );
+    }
+
+    function test_uniswapV2_swapExactETHForTokens_RevertIf_exceedsPayableLimit()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Swap ETH for WETH
+        weth.deposit{value: 10 ether}();
+        // Approve Uniswap to spend tokens
+        weth.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](4);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(weth))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactETHForTokens.selector,
+            payableLimit: 10 ether,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(weth);
+        paths[1] = address(dai);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactETHForTokens.selector,
+            10 ether,
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions with payable WETH value over limit set
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 11 ether,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (exceed payable limit)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV2_swapExactETHForTokens_RevertIf_incorrectAmountOut()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Swap ETH for WETH
+        weth.deposit{value: 10 ether}();
+        // Approve Uniswap to spend tokens
+        weth.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](4);
+        // Should fail on this condition
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(weth))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactETHForTokens.selector,
+            payableLimit: 10 ether,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(weth);
+        paths[1] = address(dai);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactETHForTokens.selector,
+            // Incorrect amountOut
+            9 ether,
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions with payable WETH value over limit set
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 10 ether,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (invalid amountOut)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV2_swapExactETHForTokens_RevertIf_incorrectPath()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Swap ETH for WETH
+        weth.deposit{value: 10 ether}();
+        // Approve Uniswap to spend tokens
+        weth.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](4);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(weth))))
+        });
+        // Should fail on this condition
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactETHForTokens.selector,
+            payableLimit: 10 ether,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(weth);
+        // Incorrect value for address path
+        paths[1] = address(weth);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactETHForTokens.selector,
+            10 ether,
+            paths,
+            address(mew),
+            block.timestamp + 1000
+        );
+        // Create an array of executions with payable WETH value over limit set
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 10 ether,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect path)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV2_swapExactETHForTokens_RevertIf_incorrectToAddress()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWETH weth = new TestWETH();
+        TestERC20 dai = new TestERC20();
+        uniswapV2 = new UniswapV2(weth);
+        // Swap ETH for WETH
+        weth.deposit{value: 10 ether}();
+        // Approve Uniswap to spend tokens
+        weth.approve(address(uniswapV2), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        ParamCondition[] memory swapConditions = new ParamCondition[](4);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.GREATER_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(weth))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        // Should fail on this condition
+        swapConditions[3] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV2),
+            selector: UniswapV2.swapExactETHForTokens.selector,
+            payableLimit: 10 ether,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        address[] memory paths = new address[](2);
+        paths[0] = address(weth);
+        paths[1] = address(dai);
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV2.swapExactETHForTokens.selector,
+            10 ether,
+            paths,
+            // Incorrect 'to' used
+            address(alice),
+            block.timestamp + 1000
+        );
+        // Create an array of executions with payable WETH value over limit set
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV2),
+            value: 10 ether,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect to address)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                         UNISWAP V3 SWAP TESTING
+    //////////////////////////////////////////////////////////////*/
+
+    function test_uniswapV3_exactOutputSingle() public {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactOutputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(link),
+                fee: 3000, // 0.3%
+                recipient: address(mew),
+                deadline: block.timestamp + 1000,
+                amountOut: 10 ether,
+                amountInMaximum: 11 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactOutputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        vm.expectEmit(false, false, false, true);
+        emit StubUniswapExchangeEvent(
+            11 ether - 5,
+            10 ether,
+            address(dai),
+            address(link)
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+        assertEq(
+            dai.balanceOf(address(mew)),
+            89 ether + 5,
+            "Wallet DAI balance should decrease by 10 ether + 5"
+        );
+        assertEq(
+            link.balanceOf(address(mew)),
+            10 ether,
+            "Wallet LINK balance should increase by 10 ether"
+        );
+    }
+
+    function test_uniswapV3_exactOutputSingle_RevertIf_incorrectTokenIn()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        // Should fail on this condition
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactOutputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
+                // Invalid tokenIn
+                tokenIn: address(weth),
+                tokenOut: address(link),
+                fee: 3000, // 0.3%
+                recipient: address(mew),
+                deadline: block.timestamp + 1000,
+                amountOut: 10 ether,
+                amountInMaximum: 11 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactOutputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect tokenIn)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactOutputSingle_RevertIf_incorrectTokenOut()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        // Should fail on this condition
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactOutputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
+                tokenIn: address(dai),
+                // Invalid tokenOut
+                tokenOut: address(weth),
+                fee: 3000, // 0.3%
+                recipient: address(mew),
+                deadline: block.timestamp + 1000,
+                amountOut: 10 ether,
+                amountInMaximum: 11 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactOutputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect tokenOut)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactOutputSingle_RevertIf_incorrectFee() public {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        // Should fail on this condition
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactOutputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(weth),
+                fee: 5100, // 0.51%
+                recipient: address(mew),
+                deadline: block.timestamp + 1000,
+                amountOut: 10 ether,
+                amountInMaximum: 11 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactOutputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect fee)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactOutputSingle_RevertIf_incorrectRecipient()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        // Should fail on this condition
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactOutputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(weth),
+                fee: 3000, // 0.3%
+                // Invalid recipient
+                recipient: address(alice),
+                deadline: block.timestamp + 1000,
+                amountOut: 10 ether,
+                amountInMaximum: 11 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactOutputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect recipient)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactOutputSingle_RevertIf_incorrectAmountOut()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        // Should fail on this condition
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactOutputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(weth),
+                fee: 3000, // 0.3%
+                recipient: address(alice),
+                deadline: block.timestamp + 1000,
+                // Invalid amountOut
+                amountOut: 11 ether,
+                amountInMaximum: 11 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactOutputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect amountOut)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactOutputSingle_RevertIf_incorrectAmountInMaximum()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        // Should fail on this condition
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactOutputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+            .ExactOutputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(weth),
+                fee: 3000, // 0.3%
+                recipient: address(alice),
+                deadline: block.timestamp + 1000,
+                amountOut: 10 ether,
+                // Invalid amountInMaximum
+                amountInMaximum: 11 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactOutputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect amountInMaximum)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactInputSingle() public {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactInputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(link),
+                fee: 3000, // 0.3%
+                recipient: address(mew),
+                deadline: block.timestamp + 1000,
+                amountIn: 11 ether,
+                amountOutMinimum: 10 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactInputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        vm.expectEmit(false, false, false, true);
+        emit StubUniswapExchangeEvent(
+            11 ether,
+            10 ether + 5,
+            address(dai),
+            address(link)
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+        assertEq(
+            dai.balanceOf(address(mew)),
+            89 ether,
+            "Wallet DAI balance should decrease by 11 ether"
+        );
+        assertEq(
+            link.balanceOf(address(mew)),
+            10 ether + 5,
+            "Wallet LINK balance should increase by 10 ether + 5 wei"
+        );
+    }
+
+    function test_uniswapV3_exactInputSingle_RevertIf_invalidTokenIn() public {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        // Should fail on this condition
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactInputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                // Invalid tokenIn
+                tokenIn: address(weth),
+                tokenOut: address(link),
+                fee: 3000, // 0.3%
+                recipient: address(mew),
+                deadline: block.timestamp + 1000,
+                amountIn: 11 ether,
+                amountOutMinimum: 10 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactInputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect tokenIn)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactInputSingle_RevertIf_invalidTokenOut() public {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        // Should fail on this condition
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactInputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(dai),
+                // Invalid tokenOut
+                tokenOut: address(dai),
+                fee: 3000, // 0.3%
+                recipient: address(mew),
+                deadline: block.timestamp + 1000,
+                amountIn: 11 ether,
+                amountOutMinimum: 10 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactInputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect tokenOut)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactInputSingle_RevertIf_invalidFee() public {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        // Should fail on this condition
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactInputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(link),
+                // Invalid fee
+                fee: 5100, // 0.51%
+                recipient: address(mew),
+                deadline: block.timestamp + 1000,
+                amountIn: 11 ether,
+                amountOutMinimum: 10 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactInputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect fee)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactInputSingle_RevertIf_invalidRecipient()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        // Should fail on this condition
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactInputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(link),
+                fee: 3000, // 0.3%
+                // Invalid recipient
+                recipient: address(alice),
+                deadline: block.timestamp + 1000,
+                amountIn: 11 ether,
+                amountOutMinimum: 10 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactInputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect recipient)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactInputSingle_RevertIf_invalidAmountIn() public {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        // Should fail on this condition
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactInputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(link),
+                fee: 3000, // 0.3%
+                recipient: address(alice),
+                deadline: block.timestamp + 1000,
+                // Invalid recipient
+                amountIn: 12 ether,
+                amountOutMinimum: 10 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactInputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect amountIn)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
+    }
+
+    function test_uniswapV3_exactInputSingle_RevertIf_invalidAmountOutMinimum()
+        public
+    {
+        // Set up the test environment
+        _testSetup();
+        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestERC20 dai = new TestERC20();
+        TestERC20 link = new TestERC20();
+        uniswapV3 = new UniswapV3(weth);
+        // Mint tokens
+        dai.mint(address(mew), 100 ether);
+        link.mint(address(uniswapV3), 100 ether);
+        // Approve Uniswap to spend tokens
+        dai.approve(address(uniswapV3), type(uint256).max);
+        // Set up a session key and permissions
+        (
+            SessionData memory sd,
+            Permission[] memory perms
+        ) = _getDefaultSessionKeyAndPermissions(sessionKeyAddr);
+        sessionKeyValidator.enableSessionKey(sd, perms);
+        // Set up swap conditions
+        ParamCondition[] memory swapConditions = new ParamCondition[](6);
+        swapConditions[0] = ParamCondition({
+            offset: 4,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(dai))))
+        });
+        swapConditions[1] = ParamCondition({
+            offset: 36,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(link))))
+        });
+        swapConditions[2] = ParamCondition({
+            offset: 68,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(uint160(uint24(5000)))) // 0.5%
+        });
+        swapConditions[3] = ParamCondition({
+            offset: 100,
+            rule: ComparisonRule.EQUAL,
+            value: bytes32(uint256(uint160(address(mew))))
+        });
+        swapConditions[4] = ParamCondition({
+            offset: 164,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(11 ether))
+        });
+        // Should fail on this condition
+        swapConditions[5] = ParamCondition({
+            offset: 196,
+            rule: ComparisonRule.LESS_THAN_OR_EQUAL,
+            value: bytes32(uint256(10 ether))
+        });
+        Permission memory swapPerm = Permission({
+            target: address(uniswapV3),
+            selector: UniswapV3.exactInputSingle.selector,
+            payableLimit: 0,
+            uses: tenUses,
+            paramConditions: swapConditions
+        });
+        sessionKeyValidator.addPermission(sessionKeyAddr, swapPerm);
+        // Create an array of execution validations
+        ExecutionValidation[]
+            memory execValidations = new ExecutionValidation[](1);
+        execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
+        // Encode call data for swap
+        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+            .ExactInputSingleParams({
+                tokenIn: address(dai),
+                tokenOut: address(link),
+                fee: 3000, // 0.3%
+                recipient: address(alice),
+                deadline: block.timestamp + 1000,
+                amountIn: 11 ether,
+                // Invalid amountOutMinimum
+                amountOutMinimum: 11 ether,
+                sqrtPriceLimitX96: 0
+            });
+        bytes memory swapData = abi.encodeWithSelector(
+            UniswapV3.exactInputSingle.selector,
+            params
+        );
+        // Create an array of executions
+        Execution[] memory executions = new Execution[](1);
+        executions[0] = Execution({
+            target: address(uniswapV3),
+            value: 0,
+            callData: swapData
+        });
+        // Set up a batch user operation
+        PackedUserOperation memory userOp = _setupBatchUserOp(
+            address(mew),
+            executions,
+            execValidations,
+            sessionKeyPrivate
+        );
+        // Expect the operation to revert due to signature error (incorrect amountOutMinimum)
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IEntryPoint.FailedOp.selector,
+                0,
+                "AA24 signature error"
+            )
+        );
+        // Execute the user operation
+        _executeUserOp(userOp);
     }
 
     /*//////////////////////////////////////////////////////////////

@@ -42,6 +42,7 @@
     "@types/node": "18.13.0",
     "@typescript-eslint/eslint-plugin": "5.51.0",
     "@typescript-eslint/parser": "5.51.0",
+    "@uniswap/v3-periphery": "^1.4.4",
     "dotenv": "^16.0.3",
     "eslint": "8.33.0",
     "eslint-config-standard": "17.0.0",
