@@ -288,6 +288,24 @@ contract CredibleAccountModule is ICredibleAccountModule {
 
     // @inheritdoc ICredibleAccountModule
     function onUninstall(bytes calldata data) external override {
+        // if data/ModuleType is Hook
+        // check if CredibleValidator exists
+          // If yes, then revert
+          // If no, then move on
+
+        // check if CredibleValidator exists
+          // If No, then revert
+          // If Yes, then perform the uninstallation of validator
+
+
+        // else this is for uninstallation of validator
+        // put all checks for uninstallation of validator here
+
+        // check if Hook is installed
+            // if not installed, revert
+            // if yes, then call removeHook
+
+
         // TODO: need to figure out a way of handling this
         // in a way that it work on uninstall as a validator
         // and uninstall as a hook

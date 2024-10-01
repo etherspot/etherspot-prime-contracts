@@ -117,6 +117,9 @@ contract HookMultiPlexer is IERC7579Hook, ERC7484RegistryAdapter {
         $config.sigHooks[HookType.TARGET_SIG].deleteHooks();
         $config.initialized = false;
 
+        // TODO call remove Hook for each subHook
+        //removeHook(hookAddress, HookType.GLOBAL);
+
         emit AccountUninitialized(msg.sender);
     }
 
@@ -222,7 +225,8 @@ contract HookMultiPlexer is IERC7579Hook, ERC7484RegistryAdapter {
         // cache the storage config
         Config storage $config = $getConfig({ account: msg.sender });
         $config.hooks[hookType].popAddress(hook);
-
+        // TODO call onUnInstall for the hook (data should have ModuleType as Hook set while calling onUnInstall)
+        // TODO in CredibleAccountModule for onUnInstall on moduleType: Hook, check if the CredibleAccountModule-Validator is uninstalled on wallet, if not revert 
         emit HookRemoved(msg.sender, hook, hookType);
     }
 
