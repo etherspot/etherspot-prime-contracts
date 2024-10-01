@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import { BaseTest, console2 } from "./Base.t.sol";
+import { BaseTest, console2 } from "../../Base.t.sol";
 import { Solarray } from "solarray/Solarray.sol";
 import { LibSort } from "@solady/utils/LibSort.sol";
 import {
@@ -10,21 +10,21 @@ import {
     EXECTYPE_DEFAULT,
     MODE_DEFAULT,
     ModePayload
-} from "../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
-import { ExecutionLib, Execution } from "../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
+} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
+import { ExecutionLib, Execution } from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
 import {
     HookMultiPlexer,
     SigHookInit,
     HookMultiPlexerLib,
     HookType,
     HookAndContext
-} from "../../../../src/modular-etherspot-wallet/modules/hooks/multiplexer/HookMultiPlexer.sol";
-import { IERC7579Account } from "../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
-import { IHook as IERC7579Hook, IModule as IERC7579Module, MODULE_TYPE_HOOK } from  "../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
+} from "../../../../../../src/modular-etherspot-wallet/modules/hooks/multiplexer/HookMultiPlexer.sol";
+import { IERC7579Account } from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
+import { IHook as IERC7579Hook, IModule as IERC7579Module, MODULE_TYPE_HOOK } from  "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import { IERC20 } from "forge-std/interfaces/IERC20.sol";
-import { MockRegistry } from "../mocks/MockRegistry.sol";
-import { MockHook } from "../mocks/MockHook.sol";
-import { MockModule } from "../mocks/MockModule.sol";
+import { MockRegistry } from "../../../mocks/MockRegistry.sol";
+import { MockHook } from "../../../mocks/MockHook.sol";
+import { MockModule } from "../../../mocks/MockModule.sol";
 
 
 contract HookMultiPlexerTest is BaseTest {
