@@ -2,10 +2,10 @@
 pragma solidity 0.8.23;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./TestERC20.sol";
-import "./TestWETH.sol";
+import {TestERC20} from "./TestERC20.sol";
+import {TestWETH} from "./TestWETH.sol";
 
-contract TestUniswap {
+contract TestUniswapV2 {
     TestWETH public weth;
 
     constructor(TestWETH _weth) {

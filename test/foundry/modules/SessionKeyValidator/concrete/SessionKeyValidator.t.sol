@@ -6,13 +6,11 @@ import {ModularEtherspotWallet} from "../../../../../src/modular-etherspot-walle
 import {SessionKeyValidator} from "../../../../../src/modular-etherspot-wallet/modules/validators/SessionKeyValidator.sol";
 import {ExecutionValidation, ParamCondition, Permission, SessionData} from "../../../../../src/modular-etherspot-wallet/common/Structs.sol";
 import {ComparisonRule} from "../../../../../src/modular-etherspot-wallet/common/Enums.sol";
-import {SessionKeyValidatorHarness} from "../../../harnesses/SessionKeyValidatorHarness.sol";
 import {TestCounter} from "../../../../../src/modular-etherspot-wallet/test/TestCounter.sol";
 import {TestERC20} from "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import {TestWETH} from "../../../../../src/modular-etherspot-wallet/test/TestWETH.sol";
-import {TestUniswap as UniswapV2} from "../../../../../src/modular-etherspot-wallet/test/TestUniswap.sol";
-import {TestUniswap as UniswapV3} from "../../../../../account-abstraction/contracts/test/TestUniswap.sol";
-import {TestWrappedNativeToken} from "../../../../../account-abstraction/contracts/test/TestWrappedNativeToken.sol";
+import {TestUniswapV2} from "../../../../../src/modular-etherspot-wallet/test/TestUniswapV2.sol";
+import {TestUniswapV3} from "../../../../../src/modular-etherspot-wallet/test/TestUniswapV3.sol";
 import {TestERC721} from "../../../../../src/modular-etherspot-wallet/test/TestERC721.sol";
 import {SessionKeyTestUtils} from "../utils/SessionKeyTestUtils.sol";
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
@@ -23,7 +21,6 @@ import "../../../TestAdvancedUtils.t.sol";
 import "../../../../../src/modular-etherspot-wallet/utils/ERC4337Utils.sol";
 import {SentinelListLib} from "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/SentinelList.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
 using ERC4337Utils for IEntryPoint;
 
@@ -34,8 +31,6 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                               VARIABLES
     //////////////////////////////////////////////////////////////*/
     TestERC20 private erc20;
-    UniswapV2 private uniswapV2;
-    UniswapV3 private uniswapV3;
     // Test addresses and keys
     address payable private receiver;
     address private sessionKeyAddr;
@@ -106,16 +101,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     event ReceivedPayableCall(uint256 amount, uint256 payment);
     event ReceivedMultiTypeCall(address addr, uint256 num, bool boolVal);
 
-    // From UniswapV2 contract
+    // From TestUniswapV2/V3 contracts
     event MockUniswapExchangeEvent(
-        uint256 amountIn,
-        uint256 amountOut,
-        address tokenIn,
-        address tokenOut
-    );
-
-    // From UniswapV3 contract
-    event StubUniswapExchangeEvent(
         uint256 amountIn,
         uint256 amountOut,
         address tokenIn,
@@ -3243,7 +3230,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
         // Mint tokens
         // weth.mint(address(mew), 100 ether);
         dai.mint(address(mew), 100 ether);
@@ -3284,7 +3271,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactTokensForTokens.selector,
+            selector: TestUniswapV2.swapExactTokensForTokens.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3299,7 +3286,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(dai);
         paths[1] = address(link);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactTokensForTokens.selector,
+            TestUniswapV2.swapExactTokensForTokens.selector,
             10 ether,
             10 ether,
             paths,
@@ -3349,7 +3336,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
         // Mint tokens
         // weth.mint(address(mew), 100 ether);
         dai.mint(address(mew), 100 ether);
@@ -3391,7 +3378,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactTokensForTokens.selector,
+            selector: TestUniswapV2.swapExactTokensForTokens.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3406,7 +3393,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(dai);
         paths[1] = address(link);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactTokensForTokens.selector,
+            TestUniswapV2.swapExactTokensForTokens.selector,
             // Invalid amountIn value
             11 ether,
             10 ether,
@@ -3448,7 +3435,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Mint tokens
         // weth.mint(address(mew), 100 ether);
         dai.mint(address(mew), 100 ether);
@@ -3490,7 +3478,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactTokensForTokens.selector,
+            selector: TestUniswapV2.swapExactTokensForTokens.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3505,7 +3493,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(dai);
         paths[1] = address(link);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactTokensForTokens.selector,
+            TestUniswapV2.swapExactTokensForTokens.selector,
             11 ether,
             // Invalid amountIn value
             9 ether,
@@ -3547,7 +3535,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Mint tokens
         // weth.mint(address(mew), 100 ether);
         dai.mint(address(mew), 100 ether);
@@ -3589,7 +3578,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactTokensForTokens.selector,
+            selector: TestUniswapV2.swapExactTokensForTokens.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3605,7 +3594,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(weth);
         paths[1] = address(link);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactTokensForTokens.selector,
+            TestUniswapV2.swapExactTokensForTokens.selector,
             11 ether,
             9 ether,
             // Invalid first path address
@@ -3647,7 +3636,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Mint tokens
         // weth.mint(address(mew), 100 ether);
         dai.mint(address(mew), 100 ether);
@@ -3689,7 +3679,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactTokensForTokens.selector,
+            selector: TestUniswapV2.swapExactTokensForTokens.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3705,7 +3695,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         // Add invalid second path address
         paths[1] = address(dai);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactTokensForTokens.selector,
+            TestUniswapV2.swapExactTokensForTokens.selector,
             11 ether,
             9 ether,
             // Invalid second path address
@@ -3747,7 +3737,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Mint tokens
         // weth.mint(address(mew), 100 ether);
         dai.mint(address(mew), 100 ether);
@@ -3789,7 +3780,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactTokensForTokens.selector,
+            selector: TestUniswapV2.swapExactTokensForTokens.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3805,7 +3796,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         // Add invalid second path address
         paths[1] = address(dai);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactTokensForTokens.selector,
+            TestUniswapV2.swapExactTokensForTokens.selector,
             11 ether,
             9 ether,
             paths,
@@ -3844,7 +3835,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         _testSetup();
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Swap ETH for WETH
         weth.deposit{value: 10 ether}();
         // Approve Uniswap to spend tokens
@@ -3878,7 +3870,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactETHForTokens.selector,
+            selector: TestUniswapV2.swapExactETHForTokens.selector,
             payableLimit: 10 ether,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3893,7 +3885,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(weth);
         paths[1] = address(dai);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactETHForTokens.selector,
+            TestUniswapV2.swapExactETHForTokens.selector,
             10 ether,
             paths,
             address(mew),
@@ -3941,7 +3933,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         _testSetup();
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Swap ETH for WETH
         weth.deposit{value: 10 ether}();
         // Approve Uniswap to spend tokens
@@ -3975,7 +3968,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactETHForTokens.selector,
+            selector: TestUniswapV2.swapExactETHForTokens.selector,
             payableLimit: 10 ether,
             uses: tenUses,
             paramConditions: swapConditions
@@ -3990,7 +3983,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(weth);
         paths[1] = address(dai);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactETHForTokens.selector,
+            TestUniswapV2.swapExactETHForTokens.selector,
             10 ether,
             paths,
             address(mew),
@@ -4029,7 +4022,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         _testSetup();
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Swap ETH for WETH
         weth.deposit{value: 10 ether}();
         // Approve Uniswap to spend tokens
@@ -4064,7 +4058,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactETHForTokens.selector,
+            selector: TestUniswapV2.swapExactETHForTokens.selector,
             payableLimit: 10 ether,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4079,7 +4073,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(weth);
         paths[1] = address(dai);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactETHForTokens.selector,
+            TestUniswapV2.swapExactETHForTokens.selector,
             // Incorrect amountOut
             9 ether,
             paths,
@@ -4119,7 +4113,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         _testSetup();
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Swap ETH for WETH
         weth.deposit{value: 10 ether}();
         // Approve Uniswap to spend tokens
@@ -4154,7 +4149,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactETHForTokens.selector,
+            selector: TestUniswapV2.swapExactETHForTokens.selector,
             payableLimit: 10 ether,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4170,7 +4165,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         // Incorrect value for address path
         paths[1] = address(weth);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactETHForTokens.selector,
+            TestUniswapV2.swapExactETHForTokens.selector,
             10 ether,
             paths,
             address(mew),
@@ -4209,7 +4204,8 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         _testSetup();
         TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
-        uniswapV2 = new UniswapV2(weth);
+        TestUniswapV2 uniswapV2 = new TestUniswapV2(weth);
+
         // Swap ETH for WETH
         weth.deposit{value: 10 ether}();
         // Approve Uniswap to spend tokens
@@ -4244,7 +4240,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV2),
-            selector: UniswapV2.swapExactETHForTokens.selector,
+            selector: TestUniswapV2.swapExactETHForTokens.selector,
             payableLimit: 10 ether,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4259,7 +4255,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         paths[0] = address(weth);
         paths[1] = address(dai);
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV2.swapExactETHForTokens.selector,
+            TestUniswapV2.swapExactETHForTokens.selector,
             10 ether,
             paths,
             // Incorrect 'to' used
@@ -4299,10 +4295,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     function test_uniswapV3_exactOutputSingle() public {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -4348,7 +4344,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactOutputSingle.selector,
+            selector: TestUniswapV3.exactOutputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4359,7 +4355,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactOutputSingleParams memory params = TestUniswapV3
             .ExactOutputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(link),
@@ -4371,7 +4367,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactOutputSingle.selector,
+            TestUniswapV3.exactOutputSingle.selector,
             params
         );
         // Create an array of executions
@@ -4389,7 +4385,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             sessionKeyPrivate
         );
         vm.expectEmit(false, false, false, true);
-        emit StubUniswapExchangeEvent(
+        emit MockUniswapExchangeEvent(
             11 ether - 5,
             10 ether,
             address(dai),
@@ -4414,10 +4410,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -4464,7 +4460,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactOutputSingle.selector,
+            selector: TestUniswapV3.exactOutputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4475,7 +4471,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactOutputSingleParams memory params = TestUniswapV3
             .ExactOutputSingleParams({
                 // Invalid tokenIn
                 tokenIn: address(weth),
@@ -4488,7 +4484,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactOutputSingle.selector,
+            TestUniswapV3.exactOutputSingle.selector,
             params
         );
         // Create an array of executions
@@ -4522,10 +4518,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -4572,7 +4568,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactOutputSingle.selector,
+            selector: TestUniswapV3.exactOutputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4583,7 +4579,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactOutputSingleParams memory params = TestUniswapV3
             .ExactOutputSingleParams({
                 tokenIn: address(dai),
                 // Invalid tokenOut
@@ -4596,7 +4592,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactOutputSingle.selector,
+            TestUniswapV3.exactOutputSingle.selector,
             params
         );
         // Create an array of executions
@@ -4628,10 +4624,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     function test_uniswapV3_exactOutputSingle_RevertIf_incorrectFee() public {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -4678,7 +4674,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactOutputSingle.selector,
+            selector: TestUniswapV3.exactOutputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4689,7 +4685,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactOutputSingleParams memory params = TestUniswapV3
             .ExactOutputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(weth),
@@ -4701,7 +4697,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactOutputSingle.selector,
+            TestUniswapV3.exactOutputSingle.selector,
             params
         );
         // Create an array of executions
@@ -4735,10 +4731,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -4785,7 +4781,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactOutputSingle.selector,
+            selector: TestUniswapV3.exactOutputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4796,7 +4792,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactOutputSingleParams memory params = TestUniswapV3
             .ExactOutputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(weth),
@@ -4809,7 +4805,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactOutputSingle.selector,
+            TestUniswapV3.exactOutputSingle.selector,
             params
         );
         // Create an array of executions
@@ -4843,10 +4839,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -4893,7 +4889,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactOutputSingle.selector,
+            selector: TestUniswapV3.exactOutputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -4904,7 +4900,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactOutputSingleParams memory params = TestUniswapV3
             .ExactOutputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(weth),
@@ -4917,7 +4913,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactOutputSingle.selector,
+            TestUniswapV3.exactOutputSingle.selector,
             params
         );
         // Create an array of executions
@@ -4951,10 +4947,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -5001,7 +4997,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactOutputSingle.selector,
+            selector: TestUniswapV3.exactOutputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -5012,7 +5008,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactOutputSingleParams memory params = TestUniswapV3
             .ExactOutputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(weth),
@@ -5025,7 +5021,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactOutputSingle.selector,
+            TestUniswapV3.exactOutputSingle.selector,
             params
         );
         // Create an array of executions
@@ -5057,10 +5053,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     function test_uniswapV3_exactInputSingle() public {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -5106,7 +5102,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactInputSingle.selector,
+            selector: TestUniswapV3.exactInputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -5117,7 +5113,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactInputSingleParams memory params = TestUniswapV3
             .ExactInputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(link),
@@ -5129,7 +5125,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactInputSingle.selector,
+            TestUniswapV3.exactInputSingle.selector,
             params
         );
         // Create an array of executions
@@ -5147,7 +5143,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             sessionKeyPrivate
         );
         vm.expectEmit(false, false, false, true);
-        emit StubUniswapExchangeEvent(
+        emit MockUniswapExchangeEvent(
             11 ether,
             10 ether + 5,
             address(dai),
@@ -5170,10 +5166,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     function test_uniswapV3_exactInputSingle_RevertIf_invalidTokenIn() public {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -5220,7 +5216,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactInputSingle.selector,
+            selector: TestUniswapV3.exactInputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -5231,7 +5227,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactInputSingleParams memory params = TestUniswapV3
             .ExactInputSingleParams({
                 // Invalid tokenIn
                 tokenIn: address(weth),
@@ -5244,7 +5240,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactInputSingle.selector,
+            TestUniswapV3.exactInputSingle.selector,
             params
         );
         // Create an array of executions
@@ -5276,10 +5272,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     function test_uniswapV3_exactInputSingle_RevertIf_invalidTokenOut() public {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -5326,7 +5322,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactInputSingle.selector,
+            selector: TestUniswapV3.exactInputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -5337,7 +5333,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactInputSingleParams memory params = TestUniswapV3
             .ExactInputSingleParams({
                 tokenIn: address(dai),
                 // Invalid tokenOut
@@ -5350,7 +5346,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactInputSingle.selector,
+            TestUniswapV3.exactInputSingle.selector,
             params
         );
         // Create an array of executions
@@ -5382,10 +5378,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     function test_uniswapV3_exactInputSingle_RevertIf_invalidFee() public {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -5432,7 +5428,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactInputSingle.selector,
+            selector: TestUniswapV3.exactInputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -5443,7 +5439,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactInputSingleParams memory params = TestUniswapV3
             .ExactInputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(link),
@@ -5456,7 +5452,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactInputSingle.selector,
+            TestUniswapV3.exactInputSingle.selector,
             params
         );
         // Create an array of executions
@@ -5490,10 +5486,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -5540,7 +5536,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactInputSingle.selector,
+            selector: TestUniswapV3.exactInputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -5551,7 +5547,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactInputSingleParams memory params = TestUniswapV3
             .ExactInputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(link),
@@ -5564,7 +5560,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactInputSingle.selector,
+            TestUniswapV3.exactInputSingle.selector,
             params
         );
         // Create an array of executions
@@ -5596,10 +5592,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     function test_uniswapV3_exactInputSingle_RevertIf_invalidAmountIn() public {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -5646,7 +5642,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactInputSingle.selector,
+            selector: TestUniswapV3.exactInputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -5657,7 +5653,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactInputSingleParams memory params = TestUniswapV3
             .ExactInputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(link),
@@ -5670,7 +5666,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactInputSingle.selector,
+            TestUniswapV3.exactInputSingle.selector,
             params
         );
         // Create an array of executions
@@ -5704,10 +5700,10 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
     {
         // Set up the test environment
         _testSetup();
-        TestWrappedNativeToken weth = new TestWrappedNativeToken();
+        TestWETH weth = new TestWETH();
         TestERC20 dai = new TestERC20();
         TestERC20 link = new TestERC20();
-        uniswapV3 = new UniswapV3(weth);
+        TestUniswapV3 uniswapV3 = new TestUniswapV3(weth);
         // Mint tokens
         dai.mint(address(mew), 100 ether);
         link.mint(address(uniswapV3), 100 ether);
@@ -5754,7 +5750,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
         });
         Permission memory swapPerm = Permission({
             target: address(uniswapV3),
-            selector: UniswapV3.exactInputSingle.selector,
+            selector: TestUniswapV3.exactInputSingle.selector,
             payableLimit: 0,
             uses: tenUses,
             paramConditions: swapConditions
@@ -5765,7 +5761,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
             memory execValidations = new ExecutionValidation[](1);
         execValidations[0] = _setupExecutionValidation(uint48(1), uint48(3));
         // Encode call data for swap
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
+        TestUniswapV3.ExactInputSingleParams memory params = TestUniswapV3
             .ExactInputSingleParams({
                 tokenIn: address(dai),
                 tokenOut: address(link),
@@ -5778,7 +5774,7 @@ contract SessionKeyValidator_Concrete_Test is SessionKeyTestUtils {
                 sqrtPriceLimitX96: 0
             });
         bytes memory swapData = abi.encodeWithSelector(
-            UniswapV3.exactInputSingle.selector,
+            TestUniswapV3.exactInputSingle.selector,
             params
         );
         // Create an array of executions
