@@ -20,6 +20,7 @@ uint256 constant EXEC_OFFSET = 100;
 /**
  * @title HookMultiPlexerLib
  * @dev Library for multiplexing hooks
+ * @author rhinestone.wtf
  */
 library HookMultiPlexerLib {
     error SubHookPreCheckError(address subHook);

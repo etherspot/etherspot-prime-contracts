@@ -10,7 +10,7 @@ import "../../../../../src/modular-etherspot-wallet/test/TestERC20.sol";
 import "../../../../../src/modular-etherspot-wallet/test/TestUSDC.sol";
 import "../../../../../account-abstraction/contracts/core/Helpers.sol";
 import {PackedUserOperation} from "../../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
-import {VALIDATION_FAILED} from "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {VALIDATION_FAILED, MODULE_TYPE_HOOK, MODULE_TYPE_VALIDATOR} from "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../../../TestAdvancedUtils.t.sol";
 import "../../../../../src/modular-etherspot-wallet/utils/ERC4337Utils.sol";
 
@@ -139,7 +139,7 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
             ModularEtherspotWallet.uninstallModule.selector,
             uint256(1),
             address(credibleAccountModule),
-            abi.encode(prevValidator, hex"")
+            abi.encode(prevValidator, abi.encode(MODULE_TYPE_VALIDATOR))
         );
         // Expect the uninstallation event to be emitted
         vm.expectEmit(false, false, false, true);
@@ -199,7 +199,7 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
             ModularEtherspotWallet.uninstallModule.selector,
             uint256(1),
             address(credibleAccountModule),
-            abi.encode(prevValidator, hex"")
+            abi.encode(prevValidator, abi.encode(MODULE_TYPE_VALIDATOR))
         );
 
         vm.expectRevert(

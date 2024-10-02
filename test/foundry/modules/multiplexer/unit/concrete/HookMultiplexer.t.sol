@@ -125,7 +125,9 @@ contract HookMultiPlexerTest is BaseTest {
         targetSigHooks[0] =
             SigHookInit({ sig: IERC20.transfer.selector, subHooks: _targetSigHooks });
 
-        return abi.encode(globalHooks, valueHooks, delegatecallHooks, sigHooks, targetSigHooks);
+        bytes memory data = abi.encode(globalHooks, valueHooks, delegatecallHooks, sigHooks, targetSigHooks);
+
+        return abi.encodeWithSelector(HookMultiPlexer.onInstall.selector, data);
     }
 
     function getPreCheckHookCallData(
@@ -159,7 +161,6 @@ contract HookMultiPlexerTest is BaseTest {
     function test_OnInstallRevertWhen_ModuleIsIntialized() public {
         // it should revert
         bytes memory data = _getInitData(true);
-
         hook.onInstall(data);
 
         vm.expectRevert(
@@ -174,19 +175,20 @@ contract HookMultiPlexerTest is BaseTest {
     {
         // it should revert
         bytes memory data = _getInitData(false);
-
+        console2.logBytes4(HookMultiPlexer.onInstall.selector);
+        bytes memory installData = abi.encodeWithSelector(HookMultiPlexer.onInstall.selector, address(this));
         vm.expectRevert();
-        hook.onInstall(data);
+        hook.onInstall(installData);
     }
 
     function test_OnInstallWhenAllOfTheHooksAreSortedAndUnique() public whenModuleIsNotIntialized {
         // it should set all the hooks
         bytes memory data = _getInitData(true);
-
+        console2.logBytes(data);
         hook.onInstall(data);
 
-        address[] memory hooks = hook.getHooks(address(this));
-        assertEq(hooks.length, 7);
+        address[] memory memoryhooks = hook.getHooks(address(this));
+        assertEq(memoryhooks.length, 7);
     }
 
     function test_OnUninstallShouldDeleteAllTheHooksAndSigs() public {

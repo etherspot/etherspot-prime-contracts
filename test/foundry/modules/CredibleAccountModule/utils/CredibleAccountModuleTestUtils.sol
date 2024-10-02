@@ -84,12 +84,32 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
         (alice, aliceKey) = makeAddrAndKey("alice");
         (sessionKey, sessionKeyPrivateKey) = makeAddrAndKey("sessionKey");
         vm.deal(beneficiary, 1 ether);
+        _installCredibleAccountModuleAsValidator();
         vm.startPrank(address(mew));
         // Set up test variables
         validAfter = uint48(block.timestamp);
         validUntil = uint48(block.timestamp + 1 days);
         tokens = [address(usdc), address(dai), address(uni)];
         amounts = [(100 * 10 ** 6), (200 * 10 ** 18), (300 * 10 ** 18)];
+    }
+
+    function _installCredibleAccountModuleAsValidator() internal {
+        vm.startPrank(owner1);
+        Execution[] memory batchCall1 = new Execution[](1);
+        batchCall1[0].target = address(mew);
+        batchCall1[0].value = 0;
+        batchCall1[0].callData = abi.encodeWithSelector(
+            ModularEtherspotWallet.installModule.selector,
+            uint256(1),
+            address(credibleAccountModule),
+            abi.encode(MODULE_TYPE_VALIDATOR)
+        );
+        // Check emitted event
+        //vm.expectEmit(false, false, false, true);
+        //emit ERC20SKV_ModuleInstalled(address(mew));
+        defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
+
+        vm.stopPrank();
     }
 
     function _getDefaultSessionData(

@@ -9,9 +9,12 @@ import { Execution } from "../../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import { HookMultiPlexerLib } from "./HookMultiPlexerLib.sol";
 import { LibSort } from "@solady/utils/LibSort.sol";
 import {IHookMultiPlexer} from "./interfaces/IHookMultiplexer.sol";
+import "forge-std/console2.sol";
+
 /**
  * @title HookMultiPlexer
  * @dev A module that allows to add multiple hooks to a smart account
+ * @author rhinestone.wtf
  */
 contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapter {
     using HookMultiPlexerLib for *;
@@ -19,6 +22,7 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
     using LibSort for address[];
 
     error UnsupportedHookType(HookType hookType);
+    error InvalidDataLength(uint256 dataLength);
 
     event HookAdded(address indexed account, address indexed hook, HookType hookType);
     event SigHookAdded(
@@ -70,6 +74,19 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      * @param data encoded data containing the hooks
      */
     function onInstall(bytes calldata data) external override {
+
+       console2.log("HookMultiPlexer.onInstall called with data: ");
+       console2.logBytes(data);
+
+       // validate the minimum length of the data
+        if (data.length < 68) {
+            revert InvalidDataLength(data.length); 
+        }
+
+        // here skip 4 bytes of functionSelector and 32 bytes of offset and 32 bytes of length
+        // the actual data starts from 68th byte
+        bytes calldata actualData = data[68:];
+
         // check if the module is already initialized and revert if it is
         if (isInitialized(msg.sender)) revert AlreadyInitialized(msg.sender);
 
@@ -80,13 +97,28 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
             address[] calldata delegatecallHooks,
             SigHookInit[] calldata sigHooks,
             SigHookInit[] calldata targetSigHooks
-        ) = data.decodeOnInstall();
+        ) = actualData.decodeOnInstall();
+
+        console2.log("HookMultiPlexer.onInstall decoded data: ");
+        console2.log("globalHooks length: ", globalHooks.length);
+        console2.log("valueHooks length: ", valueHooks.length);
+        console2.log("delegatecallHooks length: ", delegatecallHooks.length);
+        console2.log("sigHooks length: ", sigHooks.length);
+        console2.log("targetSigHooks length: ", targetSigHooks.length);
 
         // cache the storage config
         Config storage $config = $getConfig({ account: msg.sender });
 
         globalHooks.requireSortedAndUnique();
         $config.hooks[HookType.GLOBAL] = globalHooks;
+
+        // call remove Hook for each subHook (of HookType GLOBAL) in $config.hooks[HookType.GLOBAL]
+        // loop through all the hooks of type HookType.GLOBAL and call remove Hook on them
+        uint256 length = $config.hooks[HookType.GLOBAL].length;
+        for (uint256 i = 0; i < length; i++) {
+            address hookAddress = $config.hooks[HookType.GLOBAL][i];
+            IERC7579Hook(hookAddress).onInstall(abi.encode(MODULE_TYPE_HOOK));
+        }
 
         valueHooks.requireSortedAndUnique();
         $config.hooks[HookType.VALUE] = valueHooks;
@@ -171,8 +203,8 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
         hooks.uniquifySorted();
     }
 
-    function hasHook(address hookAddress, HookType hookType) external view returns (bool) {
-        Config storage $config = $getConfig({ account: msg.sender });
+    function hasHook(address walletAddress, address hookAddress, HookType hookType) external view returns (bool) {
+        Config storage $config = $getConfig({ account: walletAddress });
         return $config.hooks[hookType].contains(hookAddress);
     }
 

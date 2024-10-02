@@ -13,6 +13,11 @@ interface ICredibleAccountModule is IValidator, IHook {
                             STRUCTS/ENUMS
     //////////////////////////////////////////////////////////////*/
 
+    struct Initialization {
+        bool validatorInitialized;
+        bool hookInitialized;
+    }
+
     /// @notice Struct representing the data associated with a session key.
     struct LockedToken {
         address token;

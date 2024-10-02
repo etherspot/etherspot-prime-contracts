@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity 0.8.23;
+pragma solidity ^0.8.23;
 
 import { HookType } from "../DataTypes.sol";
 
 /**
  * @title IHookMultiPlexer
  * @dev Interface for a module that allows to query SubHooks of a ModularWallet in HookMultiPlexer
+ * @author rhinestone.wtf
  */
 interface IHookMultiPlexer {
 
@@ -17,5 +18,5 @@ interface IHookMultiPlexer {
 
     function version() external returns (string memory);
 
-    function hasHook(address hookAddress, HookType hookType) external returns (bool);
+    function hasHook(address walletAddress, address hookAddress, HookType hookType) external returns (bool);
 }
