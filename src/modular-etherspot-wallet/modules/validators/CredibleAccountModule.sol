@@ -38,6 +38,7 @@ contract CredibleAccountModule is ICredibleAccountModule {
     error CredibleAccountModule_SessionPaused(address sessionKey);
     error CredibleAccountModule_SessionKeyActive(address sessionKey);
     error CredibleAccountModule_LockedTokensNotClaimed(address sessionKey);
+    error CredibleAccountModule_InvalidHookMultiPlexer();
     error NotImplemented();
 
     /*//////////////////////////////////////////////////////////////
@@ -50,15 +51,19 @@ contract CredibleAccountModule is ICredibleAccountModule {
     mapping(address sessionKey => mapping(address wallet => SessionData))
         public sessionData;
     IProofVerifier public immutable proofVerifier;
+    address public hookMultiPlexer;
 
     /*//////////////////////////////////////////////////////////////
                            CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(address _proofVerifier) {
+    constructor(address _proofVerifier, address _hookMultiPlexer) {
         if (_proofVerifier == address(0))
             revert CredibleAccountModule_InvalidProofVerifier();
+        if (_hookMultiPlexer == address(0))
+            revert CredibleAccountModule_InvalidHookMultiPlexer();    
 
+        hookMultiPlexer = _hookMultiPlexer;
         proofVerifier = IProofVerifier(_proofVerifier);
     }
 
@@ -328,6 +333,26 @@ contract CredibleAccountModule is ICredibleAccountModule {
         initialized[msg.sender] = false;
         emit CredibleAccountModule_ModuleUninstalled(msg.sender);
     }
+
+    function onUnInstallHook() internal {
+        // check if CredibleValidator exists
+          // If yes, then revert
+          // If no, then move on
+    }
+
+    function onUnInstallValidator() internal {
+        // check if CredibleValidator exists
+          // If No, then revert
+          // If Yes, then perform the uninstallation of validator
+
+        // put all checks for uninstallation of validator here 
+          // Precense of Unclaimed Active Session will revert uninstallation
+          
+        // check if Hook is installed
+            // if not installed, revert
+            // if yes, then call removeHook
+    }
+
 
     // @inheritdoc ICredibleAccountModule
     function isValidSignatureWithSender(

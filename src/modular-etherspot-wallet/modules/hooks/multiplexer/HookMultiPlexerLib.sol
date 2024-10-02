@@ -193,6 +193,10 @@ library HookMultiPlexerLib {
         return type(uint256).max;
     }
 
+    function contains(address[] storage array, address element) internal view returns (bool) {
+        return indexOf(array, element) != type(uint256).max;
+    }
+
     /**
      * Gets the index of an element in an array
      *

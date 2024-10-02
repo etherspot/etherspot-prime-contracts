@@ -3,16 +3,17 @@ pragma solidity 0.8.23;
 
 import { ERC7484RegistryAdapter } from "../../registry/ERC7484RegistryAdapter.sol";
 import { IERC7484 } from "../../registry/interfaces/IERC7484.sol";
-import { IHook as IERC7579Hook, MODULE_TYPE_HOOK } from  "../../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import { IHook as IERC7579Hook, IModule, MODULE_TYPE_HOOK } from  "../../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import { SigHookInit, SignatureHooks, Config, HookType, HookAndContext } from "./DataTypes.sol";
 import { Execution } from "../../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import { HookMultiPlexerLib } from "./HookMultiPlexerLib.sol";
 import { LibSort } from "@solady/utils/LibSort.sol";
+import {IHookMultiPlexer} from "./interfaces/IHookMultiplexer.sol";
 /**
  * @title HookMultiPlexer
  * @dev A module that allows to add multiple hooks to a smart account
  */
-contract HookMultiPlexer is IERC7579Hook, ERC7484RegistryAdapter {
+contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapter {
     using HookMultiPlexerLib for *;
     using LibSort for uint256[];
     using LibSort for address[];
@@ -111,14 +112,20 @@ contract HookMultiPlexer is IERC7579Hook, ERC7484RegistryAdapter {
         Config storage $config = $getConfig({ account: msg.sender });
 
         delete $config.hooks[HookType.GLOBAL];
+
+        // call remove Hook for each subHook (of HookType GLOBAL) in $config.hooks[HookType.GLOBAL]
+        // loop through all the hooks of type HookType.GLOBAL and call remove Hook on them
+        uint256 length = $config.hooks[HookType.GLOBAL].length;
+        for (uint256 i = 0; i < length; i++) {
+            address hookAddress = $config.hooks[HookType.GLOBAL][i];
+            _removeHook(hookAddress, HookType.GLOBAL);
+        }
+
         delete $config.hooks[HookType.DELEGATECALL];
         delete $config.hooks[HookType.VALUE];
         $config.sigHooks[HookType.SIG].deleteHooks();
         $config.sigHooks[HookType.TARGET_SIG].deleteHooks();
         $config.initialized = false;
-
-        // TODO call remove Hook for each subHook
-        //removeHook(hookAddress, HookType.GLOBAL);
 
         emit AccountUninitialized(msg.sender);
     }
@@ -162,6 +169,11 @@ contract HookMultiPlexer is IERC7579Hook, ERC7484RegistryAdapter {
         hooks.insertionSort();
         // uniquify the hooks
         hooks.uniquifySorted();
+    }
+
+    function hasHook(address hookAddress, HookType hookType) external view returns (bool) {
+        Config storage $config = $getConfig({ account: msg.sender });
+        return $config.hooks[hookType].contains(hookAddress);
     }
 
     /**
@@ -222,11 +234,16 @@ contract HookMultiPlexer is IERC7579Hook, ERC7484RegistryAdapter {
      * @param hookType type of the hook
      */
     function removeHook(address hook, HookType hookType) external {
+        _removeHook(hook, hookType);
+    }
+
+    function _removeHook(address hook, HookType hookType) internal {
+        // call onUnInstall for the hook (data should have ModuleType as Hook set while calling onUnInstall)
+        IERC7579Hook(hook).onUninstall(abi.encode(MODULE_TYPE_HOOK));
+
         // cache the storage config
         Config storage $config = $getConfig({ account: msg.sender });
         $config.hooks[hookType].popAddress(hook);
-        // TODO call onUnInstall for the hook (data should have ModuleType as Hook set while calling onUnInstall)
-        // TODO in CredibleAccountModule for onUnInstall on moduleType: Hook, check if the CredibleAccountModule-Validator is uninstalled on wallet, if not revert 
         emit HookRemoved(msg.sender, hook, hookType);
     }
 
@@ -353,7 +370,7 @@ contract HookMultiPlexer is IERC7579Hook, ERC7484RegistryAdapter {
      *
      * @return true if the type is a module type, false otherwise
      */
-    function isModuleType(uint256 typeID) external pure virtual override returns (bool) {
+    function isModuleType(uint256 typeID) external pure virtual override(IHookMultiPlexer, IModule) returns (bool) {
         return typeID == MODULE_TYPE_HOOK;
     }
 

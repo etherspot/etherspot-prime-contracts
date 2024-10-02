@@ -22,6 +22,8 @@ import {CredibleAccountValidator} from "../../src/modular-etherspot-wallet/modul
 import {ProofVerifier} from "../../src/modular-etherspot-wallet/proof/ProofVerifier.sol";
 import {IProofVerifier} from "../../src/modular-etherspot-wallet/interfaces/IProofVerifier.sol";
 import {CredibleAccountModule} from "../../src/modular-etherspot-wallet/modules/validators/CredibleAccountModule.sol";
+import {HookMultiPlexer} from "../../src/modular-etherspot-wallet/modules/hooks/multiplexer/HookMultiPlexer.sol";
+import { MockRegistry } from "./modules/mocks/MockRegistry.sol";
 
 contract TestAdvancedUtils is BootstrapUtil, Test {
     // singletons
@@ -39,9 +41,11 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
     CredibleAccountValidator credibleAccountValidator;
     CredibleAccountModule credibleAccountModule;
     IProofVerifier proofVerifier;
+    HookMultiPlexer hookMultiPlexer;
 
     ModularEtherspotWallet mewAccount;
     MockTarget target;
+    MockRegistry registry;
 
     address owner1;
     uint256 owner1Key;
@@ -75,6 +79,10 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         // Proof Verifier for CredibleAccountValidator
         proofVerifier = new ProofVerifier();
 
+        registry = new MockRegistry();
+
+        hookMultiPlexer = new HookMultiPlexer(registry);
+
         // CredibleAccountValidator for MEW
         credibleAccountValidator = new CredibleAccountValidator(
             address(proofVerifier)
@@ -87,7 +95,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
 
         // CredibleAccountModule for MEW
         credibleAccountModule = new CredibleAccountModule(
-            address(proofVerifier)
+            address(proofVerifier), address(hookMultiPlexer)
         );
 
         // Set up Target for testing
