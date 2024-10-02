@@ -39,6 +39,7 @@ coverage.json
 
 # Coverage
 coverage
+lcov.info
 
 # Artifacts
 artifacts/
@@ -50,6 +51,9 @@ contracts-exposed/
 broadcast
 forge_cache/
 .gas-snapshot
+
+# Solidity
+soljson*
 
 yarn-error.log
 yarn.lock
