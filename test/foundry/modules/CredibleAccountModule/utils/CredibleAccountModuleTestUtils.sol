@@ -74,7 +74,7 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
 
     function _testSetup() internal {
         // Set up contracts and wallet
-        mew = setupMEWWithCredibleAccountModule();
+        mew = setupMEWWithHookMultiplexerAndCredibleAccountModule();
         harness = new CredibleAccountModuleHarness(address(proofVerifier), address(hookMultiPlexer));
         dai = new TestERC20();
         uni = new TestERC20();

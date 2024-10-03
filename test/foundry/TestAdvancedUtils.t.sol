@@ -429,7 +429,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return mewAccount;
     }
 
-    function setupMEWWithCredibleAccountModule()
+    function setupMEWWithHookMultiplexerAndCredibleAccountModule()
         public
         returns (ModularEtherspotWallet)
     {
@@ -443,6 +443,56 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         );
 
         bytes memory hookMultiplexerInitData = _getHookMultiPlexerInitDataWithCredibleAccountModule();
+
+        BootstrapConfig memory hook = _makeBootstrapConfig(
+            address(hookMultiPlexer),
+            hookMultiplexerInitData
+        );
+
+        BootstrapConfig[] memory fallbacks = makeBootstrapConfig(
+            address(0),
+            ""
+        );
+
+        // Create owner
+        (owner1, owner1Key) = makeAddrAndKey("owner1");
+        vm.deal(owner1, 100 ether);
+
+        // Create initcode and salt to be sent to Factory
+        bytes memory _initCode = abi.encode(
+            owner1,
+            address(bootstrapSingleton),
+            abi.encodeCall(
+                bootstrapSingleton.initMSA,
+                (validators, executors, hook, fallbacks)
+            )
+        );
+        bytes32 salt = keccak256("1");
+
+        vm.startPrank(owner1);
+        // create account
+        mewAccount = ModularEtherspotWallet(
+            payable(factory.createAccount({salt: salt, initCode: _initCode}))
+        );
+        vm.deal(address(mewAccount), 100 ether);
+        vm.stopPrank();
+        return mewAccount;
+    }
+
+    function setupMEWWithEmptyHookMultiplexer()
+        public
+        returns (ModularEtherspotWallet)
+    {
+        // Create config for initial modules
+        BootstrapConfig[] memory validators = new BootstrapConfig[](1);
+        validators[0] = _makeBootstrapConfig(address(ecdsaValidator), "");
+        
+        BootstrapConfig[] memory executors = makeBootstrapConfig(
+            address(defaultExecutor),
+            ""
+        );
+
+        bytes memory hookMultiplexerInitData = _getHookMultiPlexerInitDataWithNoSubHooks();
 
         BootstrapConfig memory hook = _makeBootstrapConfig(
             address(hookMultiPlexer),
