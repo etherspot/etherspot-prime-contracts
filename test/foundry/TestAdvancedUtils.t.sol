@@ -479,21 +479,6 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return mewAccount;
     }
 
-    function _getHookMultiPlexerInitData2() internal returns (bytes memory) {
-        console.log("about to include credibleAccountModule %s as GlobalHook on HookMultiplexer", address(credibleAccountModule));
-        
-        address[] memory globalHooks = new address[](1);
-        globalHooks[0] = address(credibleAccountModule);
-        console.log("credibleAccountModule in globalHooks is: ", address(credibleAccountModule));
-
-        address[] memory valueHooks = new address[](0);
-        address[] memory delegatecallHooks = new address[](0);
-        SigHookInit[] memory sigHooks = new SigHookInit[](0);
-        SigHookInit[] memory targetSigHooks = new SigHookInit[](0);
-
-        return abi.encode(globalHooks, valueHooks, delegatecallHooks, sigHooks, targetSigHooks);
-    }
-
     function _getHookMultiPlexerInitData() internal returns (bytes memory) {        
         address[] memory globalHooks = new address[](1);
         globalHooks[0] = address(credibleAccountModule);
