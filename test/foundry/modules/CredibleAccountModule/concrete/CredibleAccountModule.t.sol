@@ -216,7 +216,7 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
     }
 
     // Test: Verify that a session key can be enabled
-    function test_enableSessionKey() public {
+    function test_CAM_enableSessionKey() public {
         // Set up the test environment and enable a session key
         _testSetup();
         _enableSessionKeyAndValidate(

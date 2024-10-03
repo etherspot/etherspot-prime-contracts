@@ -442,7 +442,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
             ""
         );
 
-        bytes memory hookMultiplexerInitData = _getHookMultiPlexerInitData();
+        bytes memory hookMultiplexerInitData = _getHookMultiPlexerInitDataWithCredibleAccountModule();
 
         BootstrapConfig memory hook = _makeBootstrapConfig(
             address(hookMultiPlexer),
@@ -479,7 +479,7 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return mewAccount;
     }
 
-    function _getHookMultiPlexerInitData() internal returns (bytes memory) {        
+    function _getHookMultiPlexerInitDataWithAllHookTypes() internal returns (bytes memory) {        
         address[] memory globalHooks = new address[](1);
         globalHooks[0] = address(credibleAccountModule);
 
@@ -516,6 +516,24 @@ contract TestAdvancedUtils is BootstrapUtil, Test {
         return abi.encode(globalHooks, valueHooks, delegatecallHooks, sigHooks, targetSigHooks);
     }
 
+    function _getHookMultiPlexerInitDataWithCredibleAccountModule() internal returns (bytes memory) {        
+        address[] memory globalHooks = new address[](1);
+        globalHooks[0] = address(credibleAccountModule);
+        address[] memory valueHooks = new address[](0);
+        address[] memory delegatecallHooks = new address[](0);
+        SigHookInit[] memory sigHooks = new SigHookInit[](0);
+        SigHookInit[] memory targetSigHooks = new SigHookInit[](0);
+        return abi.encode(globalHooks, valueHooks, delegatecallHooks, sigHooks, targetSigHooks);
+    }
+
+    function _getHookMultiPlexerInitDataWithNoSubHooks() internal returns (bytes memory) {        
+        address[] memory globalHooks = new address[](0);
+        address[] memory valueHooks = new address[](0);
+        address[] memory delegatecallHooks = new address[](0);
+        SigHookInit[] memory sigHooks = new SigHookInit[](0);
+        SigHookInit[] memory targetSigHooks = new SigHookInit[](0);
+        return abi.encode(globalHooks, valueHooks, delegatecallHooks, sigHooks, targetSigHooks);
+    }
 
     function _getHooks(bool sort) internal view returns (address[] memory allHooks) {
         allHooks = Solarray.addresses(

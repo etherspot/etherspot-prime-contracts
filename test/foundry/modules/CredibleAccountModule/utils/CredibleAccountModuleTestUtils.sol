@@ -84,6 +84,7 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
         (alice, aliceKey) = makeAddrAndKey("alice");
         (sessionKey, sessionKeyPrivateKey) = makeAddrAndKey("sessionKey");
         vm.deal(beneficiary, 1 ether);
+        //_addCredibleAccountModuleAsSubHook();
         _installCredibleAccountModuleAsValidator();
         vm.startPrank(address(mew));
         // Set up test variables
