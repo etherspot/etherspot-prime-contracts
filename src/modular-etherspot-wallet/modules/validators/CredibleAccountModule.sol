@@ -5,15 +5,17 @@ import {ECDSA} from "solady/src/utils/ECDSA.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {PackedUserOperation} from "../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import "../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
-import {MODULE_TYPE_VALIDATOR, VALIDATION_FAILED, VALIDATION_SUCCESS} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {MODULE_TYPE_VALIDATOR, MODULE_TYPE_HOOK, VALIDATION_FAILED, VALIDATION_SUCCESS} from "../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import "../../../../account-abstraction/contracts/core/Helpers.sol";
 import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ICredibleAccountModule} from "../../interfaces/ICredibleAccountModule.sol";
 import {IProofVerifier} from "../../interfaces/IProofVerifier.sol";
+import {IHookLens} from "../hooks/interfaces/IHookLens.sol";
+import {IHookMultiPlexer} from "../hooks/multiplexer/interfaces/IHookMultiPlexer.sol";
 import {ArrayLib} from "../../libraries/ArrayLib.sol";
+import {HookType} from "../hooks/multiplexer/DataTypes.sol";
 
-import {console2} from "forge-std/console2.sol";
 
 contract CredibleAccountModule is ICredibleAccountModule {
     using ModeLib for ModeCode;
@@ -38,27 +40,37 @@ contract CredibleAccountModule is ICredibleAccountModule {
     error CredibleAccountModule_SessionPaused(address sessionKey);
     error CredibleAccountModule_SessionKeyActive(address sessionKey);
     error CredibleAccountModule_LockedTokensNotClaimed(address sessionKey);
+    error CredibleAccountModule_InvalidHookMultiPlexer();
+    error CredibleAccountModule_HookMultiplexerIsNotInstalled();
+    error CredibleAccountModule_NotAddedToHookMultiplexer();
+    error CredibleAccountModule_InvalidOnInstallData(address wallet);
+    error CredibleAccountModule_InvalidOnUnInstallData(address wallet);
+    error CredibleAccountModule_InvalidModuleType();
+    error CredibleAccountModule_ValidatorExists();
     error NotImplemented();
 
     /*//////////////////////////////////////////////////////////////
                                MAPPINGS
     //////////////////////////////////////////////////////////////*/
 
-    mapping(address => bool) public initialized;
+    mapping(address => Initialization) public moduleInitialized;
     mapping(address wallet => address[] assocSessionKeys)
         public walletSessionKeys;
     mapping(address sessionKey => mapping(address wallet => SessionData))
         public sessionData;
     IProofVerifier public immutable proofVerifier;
+    IHookMultiPlexer public hookMultiPlexer;
 
     /*//////////////////////////////////////////////////////////////
                            CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(address _proofVerifier) {
+    constructor(address _proofVerifier, address _hookMultiPlexerAddress) {
         if (_proofVerifier == address(0))
             revert CredibleAccountModule_InvalidProofVerifier();
-
+        if (_hookMultiPlexerAddress == address(0))
+            revert CredibleAccountModule_InvalidHookMultiPlexer();    
+        hookMultiPlexer = IHookMultiPlexer(_hookMultiPlexerAddress);
         proofVerifier = IProofVerifier(_proofVerifier);
     }
 
@@ -277,39 +289,149 @@ contract CredibleAccountModule is ICredibleAccountModule {
 
     // @inheritdoc ICredibleAccountModule
     function onInstall(bytes calldata data) external override {
-        // TODO: need to figure out a way of handling this
-        // in a way that it work on install as a validator
-        // and install as a hook
-        // if (initialized[msg.sender] == true)
-        //     revert CredibleAccountModule_ModuleAlreadyInstalled();
-        initialized[msg.sender] = true;
-        emit CredibleAccountModule_ModuleInstalled(msg.sender);
+        if (data.length < 32) {
+            revert CredibleAccountModule_InvalidOnInstallData(msg.sender);
+        }
+
+        uint256 moduleType;
+
+        // if dataLength is equal to 32, then it means that the moduleType is passed as argument
+        if (data.length == 32) {
+            // if data is just like  0x0000000000000000000000000000000000000000000000000000000000000001 then take this as moduleType
+            assembly {
+                moduleType := calldataload(data.offset)
+            }
+        } else {
+            assembly {
+                // Load the data after the first 68 bytes (4 bytes function selector + 32 bytes offset + 32 bytes length)
+                moduleType := calldataload(add(data.offset, 68))
+            }
+        }
+
+        if (moduleType == MODULE_TYPE_VALIDATOR) {
+            address activeHook = IHookLens(msg.sender).getActiveHook();
+            if(activeHook == address(0) || activeHook != address(hookMultiPlexer)) {
+                revert CredibleAccountModule_HookMultiplexerIsNotInstalled();
+            }
+
+            // check if CredibleAccountModule exists as subHook on HookMultiplexer
+            bool credibleAccountModuleExistsAsHook = hookMultiPlexer.hasHook(msg.sender, address(this), HookType.GLOBAL);
+
+            if (!credibleAccountModuleExistsAsHook) {
+                revert CredibleAccountModule_NotAddedToHookMultiplexer();
+            }
+
+            moduleInitialized[msg.sender].validatorInitialized = true;
+            
+            emit CredibleAccountModule_ModuleInstalled(msg.sender);
+
+        } else if(moduleType == MODULE_TYPE_HOOK) {        
+            moduleInitialized[msg.sender].hookInitialized = true;
+
+        } else {
+            revert CredibleAccountModule_InvalidModuleType();
+        }
     }
 
     // @inheritdoc ICredibleAccountModule
     function onUninstall(bytes calldata data) external override {
-        // TODO: need to figure out a way of handling this
-        // in a way that it work on uninstall as a validator
-        // and uninstall as a hook
-        // if (initialized[msg.sender] == false)
-        //     revert CredibleAccountModule_ModuleNotInstalled();
-        address[] memory sessionKeys = getAssociatedSessionKeys();
-        uint256 sessionKeysLength = sessionKeys.length;
-        for (uint256 i; i < sessionKeysLength; i++) {
-            if (
-                (sessionData[sessionKeys[i]][msg.sender].validUntil >
-                    block.timestamp) && !isSessionClaimed(sessionKeys[i])
-            ) {
-                revert CredibleAccountModule_LockedTokensNotClaimed(
-                    sessionKeys[i]
-                );
-            }
-            delete sessionData[sessionKeys[i]][msg.sender];
+
+        if (data.length < 32) {
+            revert CredibleAccountModule_InvalidOnUnInstallData(msg.sender);
         }
-        delete walletSessionKeys[msg.sender];
-        initialized[msg.sender] = false;
-        emit CredibleAccountModule_ModuleUninstalled(msg.sender);
+
+        uint256 moduleType;
+        assembly {
+            moduleType := calldataload(data.offset)
+        }
+
+        bytes memory uninstallData = data[32:];
+
+        if (moduleType == MODULE_TYPE_VALIDATOR) {
+
+            address activeHook = IHookLens(msg.sender).getActiveHook();
+
+            if(activeHook == address(0) || activeHook != address(hookMultiPlexer)) {
+                revert CredibleAccountModule_HookMultiplexerIsNotInstalled();
+            }
+
+            // check if CredibleAccountModule exists as subHook on HookMultiplexer
+            bool credibleAccountModuleExistsAsHook = hookMultiPlexer.hasHook(msg.sender, address(this), HookType.GLOBAL);
+
+            if (!credibleAccountModuleExistsAsHook) {
+                revert CredibleAccountModule_NotAddedToHookMultiplexer();
+            }
+
+            address[] memory sessionKeys = getAssociatedSessionKeys();
+            uint256 sessionKeysLength = sessionKeys.length;
+            for (uint256 i; i < sessionKeysLength; i++) {
+                if (
+                    (sessionData[sessionKeys[i]][msg.sender].validUntil >
+                        block.timestamp) && !isSessionClaimed(sessionKeys[i])
+                ) {
+                    revert CredibleAccountModule_LockedTokensNotClaimed(
+                        sessionKeys[i]
+                    );
+                }
+
+                delete sessionData[sessionKeys[i]][msg.sender];
+            }
+
+            delete walletSessionKeys[msg.sender];
+            moduleInitialized[msg.sender].validatorInitialized = false;
+
+            emit CredibleAccountModule_ModuleUninstalled(msg.sender);
+
+        } else if(moduleType == MODULE_TYPE_HOOK) {
+
+            // check if CredibleAccountModule still exists as Validator
+            if(moduleInitialized[msg.sender].validatorInitialized == true) {
+                revert CredibleAccountModule_ValidatorExists();
+            }
+
+            moduleInitialized[msg.sender].hookInitialized = false;
+
+        } else {
+            revert CredibleAccountModule_InvalidModuleType();
+        }
+        // if data/ModuleType is Hook
+        // check if CredibleValidator exists
+          // If yes, then revert
+          // If no, then move on
+
+        // check if CredibleValidator exists
+          // If No, then revert
+          // If Yes, then perform the uninstallation of validator
+
+
+        // else this is for uninstallation of validator
+        // put all checks for uninstallation of validator here
+
+        // check if Hook is installed
+            // if not installed, revert
+            // if yes, then call removeHook
+
     }
+
+    function onUnInstallHook() internal {
+        // check if CredibleValidator exists
+          // If yes, then revert
+          // If no, then move on
+    }
+
+    function onUnInstallValidator() internal {
+        // check if CredibleValidator exists
+          // If No, then revert
+          // If Yes, then perform the uninstallation of validator
+
+        // put all checks for uninstallation of validator here 
+          // Precense of Unclaimed Active Session will revert uninstallation
+          
+        // check if Hook is installed
+            // if not installed, revert
+            // if yes, then call removeHook
+    }
+
 
     // @inheritdoc ICredibleAccountModule
     function isValidSignatureWithSender(
@@ -322,7 +444,7 @@ contract CredibleAccountModule is ICredibleAccountModule {
 
     // @inheritdoc ICredibleAccountModule
     function isInitialized(address smartAccount) external view returns (bool) {
-        return initialized[smartAccount];
+        return moduleInitialized[msg.sender].validatorInitialized;   
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -514,8 +636,6 @@ contract CredibleAccountModule is ICredibleAccountModule {
         uint256 msgValue,
         bytes calldata msgData
     ) external override returns (bytes memory hookData) {
-        console2.log("wallet:", msg.sender);
-        console2.log("check keys for wallet:", getAssociatedSessionKeys()[0]);
         return "";
     }
 

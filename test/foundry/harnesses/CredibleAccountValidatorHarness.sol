@@ -6,7 +6,7 @@ import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol"
 
 contract CredibleAccountValidatorHarness is CredibleAccountValidator {
 
-    constructor(address _credibleAccountProofVerifier) CredibleAccountValidator(_credibleAccountProofVerifier) {}
+    constructor(address _proofVerifier) CredibleAccountValidator(_proofVerifier) {}
 
     function exposed_validateSingleCall(
         bytes calldata _callData,

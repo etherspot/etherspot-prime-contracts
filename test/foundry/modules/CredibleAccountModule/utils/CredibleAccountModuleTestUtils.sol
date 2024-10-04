@@ -12,6 +12,8 @@ import {TestUSDC} from "../../../../../src/modular-etherspot-wallet/test/TestUSD
 import "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/test/dependencies/EntryPoint.sol";
 import {PackedUserOperation} from "../../../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {CALLTYPE_SINGLE} from "../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
+import {HookType} from "../../../../../src/modular-etherspot-wallet/modules/hooks/multiplexer/DataTypes.sol";
+
 import "../../../TestAdvancedUtils.t.sol";
 import "../../../../../src/modular-etherspot-wallet/utils/ERC4337Utils.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -74,8 +76,8 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
 
     function _testSetup() internal {
         // Set up contracts and wallet
-        mew = setupMEWWithCredibleAccountModule();
-        harness = new CredibleAccountModuleHarness(address(proofVerifier));
+        mew = setupMEWWithEmptyHookMultiplexer();
+        harness = new CredibleAccountModuleHarness(address(proofVerifier), address(hookMultiPlexer));
         dai = new TestERC20();
         uni = new TestERC20();
         usdc = new TestUSDC();
@@ -84,12 +86,69 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
         (alice, aliceKey) = makeAddrAndKey("alice");
         (sessionKey, sessionKeyPrivateKey) = makeAddrAndKey("sessionKey");
         vm.deal(beneficiary, 1 ether);
+        _addCredibleAccountModuleAsSubHook();
+        _installCredibleAccountModuleAsValidator();
         vm.startPrank(address(mew));
         // Set up test variables
         validAfter = uint48(block.timestamp);
         validUntil = uint48(block.timestamp + 1 days);
         tokens = [address(usdc), address(dai), address(uni)];
         amounts = [(100 * 10 ** 6), (200 * 10 ** 18), (300 * 10 ** 18)];
+    }
+
+    function _addCredibleAccountModuleAsSubHook() internal  {
+        vm.startPrank(owner1);
+
+        bool isEcdsaValidatorInstalled = mew.isModuleInstalled(MODULE_TYPE_VALIDATOR, address(ecdsaValidator), "");
+
+        bytes memory hookMultiPlexerInitData = _getHookMultiPlexerInitDataWithCredibleAccountModule();
+
+        bytes memory hookMultiPlexerInitDataWithCredibleAccountModule = abi.encodeWithSelector(
+            HookMultiPlexer.addHook.selector,
+            address(credibleAccountModule),
+            HookType.GLOBAL
+        );
+        
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(hookMultiPlexer), uint256(0), hookMultiPlexerInitDataWithCredibleAccountModule)
+            )
+        );
+
+        (
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperationWithOutProof(
+                address(mew),
+                userOpCalldata,
+                owner1Key
+            );
+
+        // Execute the user operation
+        _executeUserOperation(userOp);
+
+        vm.stopPrank();
+    }
+
+    function _installCredibleAccountModuleAsValidator() internal {
+        vm.startPrank(owner1);
+        Execution[] memory batchCall1 = new Execution[](1);
+        batchCall1[0].target = address(mew);
+        batchCall1[0].value = 0;
+        batchCall1[0].callData = abi.encodeWithSelector(
+            ModularEtherspotWallet.installModule.selector,
+            uint256(1),
+            address(credibleAccountModule),
+            abi.encode(MODULE_TYPE_VALIDATOR)
+        );
+        // Check emitted event
+        //vm.expectEmit(false, false, false, true);
+        //emit ERC20SKV_ModuleInstalled(address(mew));
+        defaultExecutor.execBatch(IERC7579Account(mew), batchCall1);
+
+        vm.stopPrank();
     }
 
     function _getDefaultSessionData(
@@ -190,6 +249,30 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
         return (userOp, hash, v, r, s);
     }
 
+    function _createUserOpWithSignatureWithDefaultValidator(
+        address _account,
+        bytes memory _callData,
+        uint256 _signerKey
+    )
+        internal
+        view
+        returns (PackedUserOperation memory, bytes32, uint8, bytes32, bytes32)
+    {
+        PackedUserOperation memory userOp = entrypoint.fillUserOp(
+            _account,
+            _callData
+        );
+        
+        userOp.nonce = getNonce(_account, address(ecdsaValidator));
+        bytes32 hash = entrypoint.getUserOpHash(userOp);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
+            _signerKey,
+            ECDSA.toEthSignedMessageHash(hash)
+        );
+
+        return (userOp, hash, v, r, s);
+    }
+
     function _createUserOperation(
         address _account,
         bytes memory _callData,
@@ -205,6 +288,25 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
 
         // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
         userOp.signature = abi.encodePacked(r, s, v, DUMMY_PROOF);
+
+        return (hash, userOp);
+    }
+
+    function _createUserOperationWithOutProof(
+        address _account,
+        bytes memory _callData,
+        uint256 _signerKey
+    ) internal view returns (bytes32, PackedUserOperation memory) {
+        (
+            PackedUserOperation memory userOp,
+            bytes32 hash,
+            uint8 v,
+            bytes32 r,
+            bytes32 s
+        ) = _createUserOpWithSignatureWithDefaultValidator(_account, _callData, _signerKey);
+
+        // append r, s, v of signature followed by merkleRoot and merkleProof to the signature
+        userOp.signature = abi.encodePacked(r, s, v);
 
         return (hash, userOp);
     }

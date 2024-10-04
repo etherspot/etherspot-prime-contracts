@@ -5,4 +5,5 @@ forge-std/=lib/forge-std/src/
 
 @solady/=node_modules/solady/src/
 sentinellist/=erc7579-ref-impl/lib/sentinellist/src/
+solarray/=node_modules/solarray/src/
 
