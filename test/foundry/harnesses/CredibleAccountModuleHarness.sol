@@ -6,8 +6,8 @@ import "../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol"
 
 contract CredibleAccountModuleHarness is CredibleAccountModule {
     constructor(
-        address _credibleAccountProofVerifier, address _hookMultiPlexer
-    ) CredibleAccountModule(_credibleAccountProofVerifier, _hookMultiPlexer) {}
+        address _proofVerifier, address _hookMultiPlexer
+    ) CredibleAccountModule(_proofVerifier, _hookMultiPlexer) {}
 
     function exposed_validateSingleCall(
         bytes calldata _callData,

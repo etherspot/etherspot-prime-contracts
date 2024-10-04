@@ -9,7 +9,6 @@ import { Execution } from "../../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import { HookMultiPlexerLib } from "./HookMultiPlexerLib.sol";
 import { LibSort } from "@solady/utils/LibSort.sol";
 import {IHookMultiPlexer} from "./interfaces/IHookMultiplexer.sol";
-import "forge-std/console2.sol";
 
 /**
  * @title HookMultiPlexer
@@ -74,10 +73,6 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      * @param data encoded data containing the hooks
      */
     function onInstall(bytes calldata data) external override {
-
-       console2.log("HookMultiPlexer.onInstall called with data: ");
-       console2.logBytes(data);
-
        // validate the minimum length of the data
         if (data.length < 68) {
             revert InvalidDataLength(data.length); 
@@ -98,13 +93,6 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
             SigHookInit[] calldata sigHooks,
             SigHookInit[] calldata targetSigHooks
         ) = actualData.decodeOnInstall();
-
-        console2.log("HookMultiPlexer.onInstall decoded data: ");
-        console2.log("globalHooks length: ", globalHooks.length);
-        console2.log("valueHooks length: ", valueHooks.length);
-        console2.log("delegatecallHooks length: ", delegatecallHooks.length);
-        console2.log("sigHooks length: ", sigHooks.length);
-        console2.log("targetSigHooks length: ", targetSigHooks.length);
 
         // cache the storage config
         Config storage $config = $getConfig({ account: msg.sender });
