@@ -1,31 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import { BaseTest, console2 } from "../../Base.t.sol";
-import { Solarray } from "solarray/Solarray.sol";
-import { LibSort } from "@solady/utils/LibSort.sol";
-import {
-    ModeLib,
-    CALLTYPE_DELEGATECALL,
-    EXECTYPE_DEFAULT,
-    MODE_DEFAULT,
-    ModePayload
-} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
-import { ExecutionLib, Execution } from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
-import {
-    HookMultiPlexer,
-    SigHookInit,
-    HookMultiPlexerLib,
-    HookType,
-    HookAndContext
-} from "../../../../../../src/modular-etherspot-wallet/modules/hooks/multiplexer/HookMultiPlexer.sol";
-import { IERC7579Account } from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
-import { IHook as IERC7579Hook, IModule as IERC7579Module, MODULE_TYPE_HOOK } from  "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
-import { IERC20 } from "forge-std/interfaces/IERC20.sol";
-import { MockRegistry } from "../../../mocks/MockRegistry.sol";
-import { MockHook } from "../../../mocks/MockHook.sol";
-import { MockModule } from "../../../mocks/MockModule.sol";
-
+import {BaseTest, console2} from "../../Base.t.sol";
+import {Solarray} from "solarray/Solarray.sol";
+import {LibSort} from "@solady/utils/LibSort.sol";
+import {ModeLib, CALLTYPE_DELEGATECALL, EXECTYPE_DEFAULT, MODE_DEFAULT, ModePayload} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
+import {ExecutionLib, Execution} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
+import {HookMultiPlexer, SigHookInit, HookMultiPlexerLib, HookType, HookAndContext} from "../../../../../../src/modular-etherspot-wallet/modules/hooks/multiplexer/HookMultiPlexer.sol";
+import {IERC7579Account} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
+import {IHook as IERC7579Hook, IModule as IERC7579Module, MODULE_TYPE_HOOK} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {MockRegistry} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockRegistry.sol";
+import {MockHook} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockHook.sol";
+import {MockModule} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockModule.sol";
 
 contract HookMultiPlexerTest is BaseTest {
     using LibSort for address[];
@@ -76,7 +63,9 @@ contract HookMultiPlexerTest is BaseTest {
                                     INTERNAL
     //////////////////////////////////////////////////////////////////////////*/
 
-    function _getHooks(bool sort) internal view returns (address[] memory allHooks) {
+    function _getHooks(
+        bool sort
+    ) internal view returns (address[] memory allHooks) {
         allHooks = Solarray.addresses(
             address(subHook1),
             address(subHook2),
@@ -112,8 +101,10 @@ contract HookMultiPlexerTest is BaseTest {
         vm.label((allHooks[4]), "sigHooks2 index 4");
 
         SigHookInit[] memory sigHooks = new SigHookInit[](1);
-        sigHooks[0] =
-            SigHookInit({ sig: IERC7579Account.installModule.selector, subHooks: _sigHooks });
+        sigHooks[0] = SigHookInit({
+            sig: IERC7579Account.installModule.selector,
+            subHooks: _sigHooks
+        });
 
         address[] memory _targetSigHooks = new address[](2);
         _targetSigHooks[0] = address(allHooks[5]);
@@ -122,10 +113,18 @@ contract HookMultiPlexerTest is BaseTest {
         vm.label((allHooks[6]), "targetSigHook2 index 6");
 
         SigHookInit[] memory targetSigHooks = new SigHookInit[](1);
-        targetSigHooks[0] =
-            SigHookInit({ sig: IERC20.transfer.selector, subHooks: _targetSigHooks });
+        targetSigHooks[0] = SigHookInit({
+            sig: IERC20.transfer.selector,
+            subHooks: _targetSigHooks
+        });
 
-        bytes memory data = abi.encode(globalHooks, valueHooks, delegatecallHooks, sigHooks, targetSigHooks);
+        bytes memory data = abi.encode(
+            globalHooks,
+            valueHooks,
+            delegatecallHooks,
+            sigHooks,
+            targetSigHooks
+        );
 
         return abi.encodeWithSelector(HookMultiPlexer.onInstall.selector, data);
     }
@@ -134,23 +133,24 @@ contract HookMultiPlexerTest is BaseTest {
         address msgSender,
         uint256 msgValue,
         bytes memory msgData
-    )
-        internal
-        returns (bytes memory hookData)
-    {
+    ) internal returns (bytes memory hookData) {
         hookData = abi.encodePacked(
-            abi.encodeCall(IERC7579Hook.preCheck, (msgSender, msgValue, msgData)),
+            abi.encodeCall(
+                IERC7579Hook.preCheck,
+                (msgSender, msgValue, msgData)
+            ),
             address(hook),
             address(this)
         );
     }
 
-    function getPostCheckHookCallData(bytes memory preCheckContext)
-        internal
-        returns (bytes memory hookData)
-    {
+    function getPostCheckHookCallData(
+        bytes memory preCheckContext
+    ) internal returns (bytes memory hookData) {
         hookData = abi.encodePacked(
-            abi.encodeCall(IERC7579Hook.postCheck, (preCheckContext)), address(hook), address(this)
+            abi.encodeCall(IERC7579Hook.postCheck, (preCheckContext)),
+            address(hook),
+            address(this)
         );
     }
 
@@ -164,7 +164,10 @@ contract HookMultiPlexerTest is BaseTest {
         hook.onInstall(data);
 
         vm.expectRevert(
-            abi.encodeWithSelector(IERC7579Module.AlreadyInitialized.selector, address(this))
+            abi.encodeWithSelector(
+                IERC7579Module.AlreadyInitialized.selector,
+                address(this)
+            )
         );
         hook.onInstall(data);
     }
@@ -176,12 +179,18 @@ contract HookMultiPlexerTest is BaseTest {
         // it should revert
         bytes memory data = _getInitData(false);
         console2.logBytes4(HookMultiPlexer.onInstall.selector);
-        bytes memory installData = abi.encodeWithSelector(HookMultiPlexer.onInstall.selector, address(this));
+        bytes memory installData = abi.encodeWithSelector(
+            HookMultiPlexer.onInstall.selector,
+            address(this)
+        );
         vm.expectRevert();
         hook.onInstall(installData);
     }
 
-    function test_OnInstallWhenAllOfTheHooksAreSortedAndUnique() public whenModuleIsNotIntialized {
+    function test_OnInstallWhenAllOfTheHooksAreSortedAndUnique()
+        public
+        whenModuleIsNotIntialized
+    {
         // it should set all the hooks
         bytes memory data = _getInitData(true);
         console2.logBytes(data);
@@ -226,7 +235,10 @@ contract HookMultiPlexerTest is BaseTest {
     function test_AddHookRevertWhen_ModuleIsNotIntialized() public {
         // it should revert
         vm.expectRevert(
-            abi.encodeWithSelector(IERC7579Module.NotInitialized.selector, address(this))
+            abi.encodeWithSelector(
+                IERC7579Module.NotInitialized.selector,
+                address(this)
+            )
         );
         hook.addHook(address(subHook8), HookType.GLOBAL);
     }
@@ -244,22 +256,39 @@ contract HookMultiPlexerTest is BaseTest {
     function test_AddSigHookRevertWhen_ModuleIsNotIntialized() public {
         // it should revert
         vm.expectRevert(
-            abi.encodeWithSelector(IERC7579Module.NotInitialized.selector, address(this))
+            abi.encodeWithSelector(
+                IERC7579Module.NotInitialized.selector,
+                address(this)
+            )
         );
-        hook.addSigHook(address(subHook8), IERC7579Account.installModule.selector, HookType.SIG);
+        hook.addSigHook(
+            address(subHook8),
+            IERC7579Account.installModule.selector,
+            HookType.SIG
+        );
     }
 
-    function test_AddSigHookWhenModuleIsIntialized() public whenModuleIsIntialized {
+    function test_AddSigHookWhenModuleIsIntialized()
+        public
+        whenModuleIsIntialized
+    {
         // it should add the hook
         test_OnInstallWhenAllOfTheHooksAreSortedAndUnique();
 
-        hook.addSigHook(address(subHook8), IERC7579Account.installModule.selector, HookType.SIG);
+        hook.addSigHook(
+            address(subHook8),
+            IERC7579Account.installModule.selector,
+            HookType.SIG
+        );
 
         address[] memory hooks = hook.getHooks(address(this));
         assertEq(hooks.length, 8);
     }
 
-    function test_AddSigHookWhenSigIsNotAlreadyAdded() public whenModuleIsIntialized {
+    function test_AddSigHookWhenSigIsNotAlreadyAdded()
+        public
+        whenModuleIsIntialized
+    {
         // it should add the sig
         test_AddSigHookWhenModuleIsIntialized();
     }
@@ -285,7 +314,11 @@ contract HookMultiPlexerTest is BaseTest {
 
         address[] memory _hooks = _getHooks(true);
 
-        hook.removeSigHook(address(_hooks[3]), IERC7579Account.installModule.selector, HookType.SIG);
+        hook.removeSigHook(
+            address(_hooks[3]),
+            IERC7579Account.installModule.selector,
+            HookType.SIG
+        );
 
         address[] memory hooks = hook.getHooks(address(this));
         assertEq(hooks.length, 6);
@@ -305,13 +338,32 @@ contract HookMultiPlexerTest is BaseTest {
 
         address msgSender = address(1);
         uint256 msgValue = 0;
-        bytes memory msgData =
-            abi.encodeWithSelector(IERC7579Account.installModule.selector, 1, newModule, "");
+        bytes memory msgData = abi.encodeWithSelector(
+            IERC7579Account.installModule.selector,
+            1,
+            newModule,
+            ""
+        );
 
         address[] memory _hooks = _getHooks(true);
-        vm.expectCall(_hooks[0], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[3], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[4], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
+        vm.expectCall(
+            _hooks[0],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[3],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[4],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
 
         hook.preCheck(msgSender, msgValue, msgData);
     }
@@ -324,11 +376,19 @@ contract HookMultiPlexerTest is BaseTest {
         uint256 msgValue = 0;
         bytes memory msgData = abi.encodeCall(
             IERC7579Account.execute,
-            (ModeLib.encodeSimpleSingle(), ExecutionLib.encodeSingle(address(1), 0, ""))
+            (
+                ModeLib.encodeSimpleSingle(),
+                ExecutionLib.encodeSingle(address(1), 0, "")
+            )
         );
 
         address[] memory _hooks = _getHooks(true);
-        vm.expectCall(_hooks[0], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
+        vm.expectCall(
+            _hooks[0],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
 
         hook.preCheck(msgSender, msgValue, msgData);
     }
@@ -349,7 +409,9 @@ contract HookMultiPlexerTest is BaseTest {
             (
                 ModeLib.encodeSimpleSingle(),
                 ExecutionLib.encodeSingle(
-                    address(1), 1, abi.encodeCall(IERC20.transfer, (address(1), 1))
+                    address(1),
+                    1,
+                    abi.encodeCall(IERC20.transfer, (address(1), 1))
                 )
             )
         );
@@ -358,10 +420,30 @@ contract HookMultiPlexerTest is BaseTest {
         for (uint256 i; i < _hooks.length; i++) {
             console2.log("hook", i, _hooks[i]);
         }
-        vm.expectCall(_hooks[0], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[1], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[5], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[6], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
+        vm.expectCall(
+            _hooks[0],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[1],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[5],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[6],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
 
         hook.preCheck(msgSender, msgValue, msgData);
     }
@@ -381,14 +463,26 @@ contract HookMultiPlexerTest is BaseTest {
             (
                 ModeLib.encodeSimpleSingle(),
                 ExecutionLib.encodeSingle(
-                    address(1), 0, abi.encodeCall(IERC20.transfer, (address(1), 1))
+                    address(1),
+                    0,
+                    abi.encodeCall(IERC20.transfer, (address(1), 1))
                 )
             )
         );
 
         address[] memory _hooks = _getHooks(true);
-        vm.expectCall(_hooks[5], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[6], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
+        vm.expectCall(
+            _hooks[5],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[6],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
 
         hook.preCheck(msgSender, msgValue, msgData);
     }
@@ -403,7 +497,7 @@ contract HookMultiPlexerTest is BaseTest {
         test_OnInstallWhenAllOfTheHooksAreSortedAndUnique();
 
         Execution[] memory executions = new Execution[](2);
-        executions[0] = Execution({ target: address(1), value: 1, callData: "" });
+        executions[0] = Execution({target: address(1), value: 1, callData: ""});
         executions[1] = Execution({
             target: address(1),
             value: 0,
@@ -418,9 +512,24 @@ contract HookMultiPlexerTest is BaseTest {
         );
 
         address[] memory _hooks = _getHooks(true);
-        vm.expectCall(_hooks[0], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[5], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[6], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
+        vm.expectCall(
+            _hooks[0],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[5],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[6],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
 
         hook.preCheck(msgSender, msgValue, msgData);
     }
@@ -437,7 +546,10 @@ contract HookMultiPlexerTest is BaseTest {
         executions[0] = Execution({
             target: address(1),
             value: 0,
-            callData: abi.encodeCall(IERC20.transferFrom, (address(1), address(1), 1))
+            callData: abi.encodeCall(
+                IERC20.transferFrom,
+                (address(1), address(1), 1)
+            )
         });
         executions[1] = Execution({
             target: address(1),
@@ -453,13 +565,26 @@ contract HookMultiPlexerTest is BaseTest {
         );
 
         address[] memory _hooks = _getHooks(true);
-        vm.expectCall(_hooks[5], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
-        vm.expectCall(_hooks[6], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
+        vm.expectCall(
+            _hooks[5],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
+        vm.expectCall(
+            _hooks[6],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
 
         hook.preCheck(msgSender, msgValue, msgData);
     }
 
-    function test_PreCheckWhenExecutionIsDelegatecall() public whenTxIsAnExecution {
+    function test_PreCheckWhenExecutionIsDelegatecall()
+        public
+        whenTxIsAnExecution
+    {
         // it should call the delegatecall hooks
         test_OnInstallWhenAllOfTheHooksAreSortedAndUnique();
 
@@ -469,16 +594,26 @@ contract HookMultiPlexerTest is BaseTest {
             IERC7579Account.execute,
             (
                 ModeLib.encode(
-                    CALLTYPE_DELEGATECALL, EXECTYPE_DEFAULT, MODE_DEFAULT, ModePayload.wrap(0x00)
+                    CALLTYPE_DELEGATECALL,
+                    EXECTYPE_DEFAULT,
+                    MODE_DEFAULT,
+                    ModePayload.wrap(0x00)
                 ),
                 ExecutionLib.encodeSingle(
-                    address(1), 0, abi.encodeCall(IERC20.transfer, (address(1), 1))
+                    address(1),
+                    0,
+                    abi.encodeCall(IERC20.transfer, (address(1), 1))
                 )
             )
         );
 
         address[] memory _hooks = _getHooks(true);
-        vm.expectCall(_hooks[2], 0, getPreCheckHookCallData(msgSender, msgValue, msgData), 1);
+        vm.expectCall(
+            _hooks[2],
+            0,
+            getPreCheckHookCallData(msgSender, msgValue, msgData),
+            1
+        );
 
         hook.preCheck(msgSender, msgValue, msgData);
     }
@@ -486,14 +621,24 @@ contract HookMultiPlexerTest is BaseTest {
     function test_PostCheckShouldCallAllHooksProvidedInHookdata() public {
         // it should call all hooks provided in hookdata
         address[] memory _hooks = _getHooks(true);
-        HookAndContext[] memory hookAndContexts = new HookAndContext[](_hooks.length);
+        HookAndContext[] memory hookAndContexts = new HookAndContext[](
+            _hooks.length
+        );
 
         for (uint256 i; i < _hooks.length; i++) {
             bytes memory context = abi.encode("pass");
-            hookAndContexts[i] = HookAndContext({ hook: _hooks[i], context: context });
+            hookAndContexts[i] = HookAndContext({
+                hook: _hooks[i],
+                context: context
+            });
             // vm.expectCall(_hooks[i], 0, getPostCheckHookCallData(context), 1);
             // todo: is this a bug?
-            vm.expectCall(_hooks[i], 0, bytes(abi.encode(bytes4(0x173bf7da))), 1);
+            vm.expectCall(
+                _hooks[i],
+                0,
+                bytes(abi.encode(bytes4(0x173bf7da))),
+                1
+            );
         }
 
         bytes memory hookData = abi.encode(hookAndContexts);

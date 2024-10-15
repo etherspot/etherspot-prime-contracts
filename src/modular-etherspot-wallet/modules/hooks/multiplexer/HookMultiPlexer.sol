@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.23;
 
-import { ERC7484RegistryAdapter } from "../../registry/ERC7484RegistryAdapter.sol";
-import { IERC7484 } from "../../registry/interfaces/IERC7484.sol";
-import { IHook as IERC7579Hook, IModule, MODULE_TYPE_HOOK } from  "../../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
-import { SigHookInit, SignatureHooks, Config, HookType, HookAndContext } from "./DataTypes.sol";
-import { Execution } from "../../../erc7579-ref-impl/libs/ExecutionLib.sol";
-import { HookMultiPlexerLib } from "./HookMultiPlexerLib.sol";
-import { LibSort } from "@solady/utils/LibSort.sol";
+import {ERC7484RegistryAdapter} from "../../registry/ERC7484RegistryAdapter.sol";
+import {IERC7484} from "../../registry/interfaces/IERC7484.sol";
+import {IHook as IERC7579Hook, IModule, MODULE_TYPE_HOOK} from "../../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {SigHookInit, SignatureHooks, Config, HookType, HookAndContext} from "./DataTypes.sol";
+import {Execution} from "../../../erc7579-ref-impl/libs/ExecutionLib.sol";
+import {HookMultiPlexerLib} from "./HookMultiPlexerLib.sol";
+import {LibSort} from "@solady/utils/LibSort.sol";
 import {IHookMultiPlexer} from "./interfaces/IHookMultiplexer.sol";
 
 /**
@@ -15,7 +15,11 @@ import {IHookMultiPlexer} from "./interfaces/IHookMultiplexer.sol";
  * @dev A module that allows to add multiple hooks to a smart account
  * @author rhinestone.wtf
  */
-contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapter {
+contract HookMultiPlexer is
+    IERC7579Hook,
+    IHookMultiPlexer,
+    ERC7484RegistryAdapter
+{
     using HookMultiPlexerLib for *;
     using LibSort for uint256[];
     using LibSort for address[];
@@ -23,14 +27,28 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
     error UnsupportedHookType(HookType hookType);
     error InvalidDataLength(uint256 dataLength);
 
-    event HookAdded(address indexed account, address indexed hook, HookType hookType);
+    event HookAdded(
+        address indexed account,
+        address indexed hook,
+        HookType hookType
+    );
     event SigHookAdded(
-        address indexed account, address indexed hook, HookType hookType, bytes4 sig
+        address indexed account,
+        address indexed hook,
+        HookType hookType,
+        bytes4 sig
     );
 
-    event HookRemoved(address indexed account, address indexed hook, HookType hookType);
+    event HookRemoved(
+        address indexed account,
+        address indexed hook,
+        HookType hookType
+    );
     event SigHookRemoved(
-        address indexed account, address indexed hook, HookType hookType, bytes4 sig
+        address indexed account,
+        address indexed hook,
+        HookType hookType,
+        bytes4 sig
     );
     event AccountInitialized(address indexed account);
     event AccountUninitialized(address indexed account);
@@ -46,7 +64,7 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      *
      * @param _registry The registry address
      */
-    constructor(IERC7484 _registry) ERC7484RegistryAdapter(_registry) { }
+    constructor(IERC7484 _registry) ERC7484RegistryAdapter(_registry) {}
 
     modifier onlySupportedHookType(HookType hookType) {
         if (uint8(hookType) <= uint8(HookType.TARGET_SIG)) {
@@ -73,9 +91,9 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      * @param data encoded data containing the hooks
      */
     function onInstall(bytes calldata data) external override {
-       // validate the minimum length of the data
+        // validate the minimum length of the data
         if (data.length < 68) {
-            revert InvalidDataLength(data.length); 
+            revert InvalidDataLength(data.length);
         }
 
         // here skip 4 bytes of functionSelector and 32 bytes of offset and 32 bytes of length
@@ -95,7 +113,7 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
         ) = actualData.decodeOnInstall();
 
         // cache the storage config
-        Config storage $config = $getConfig({ account: msg.sender });
+        Config storage $config = $getConfig({account: msg.sender});
 
         globalHooks.requireSortedAndUnique();
         $config.hooks[HookType.GLOBAL] = globalHooks;
@@ -116,7 +134,9 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
 
         // storeSelectorHooks function is used to uniquify and sstore sig specific hooks
         $config.sigHooks[HookType.SIG].storeSelectorHooks(sigHooks);
-        $config.sigHooks[HookType.TARGET_SIG].storeSelectorHooks(targetSigHooks);
+        $config.sigHooks[HookType.TARGET_SIG].storeSelectorHooks(
+            targetSigHooks
+        );
 
         $config.initialized = true;
 
@@ -129,7 +149,7 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      */
     function onUninstall(bytes calldata) external override {
         // cache the storage config
-        Config storage $config = $getConfig({ account: msg.sender });
+        Config storage $config = $getConfig({account: msg.sender});
 
         delete $config.hooks[HookType.GLOBAL];
 
@@ -159,7 +179,7 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      * @return true if the module is initialized, false otherwise
      */
     function isInitialized(address smartAccount) public view returns (bool) {
-        Config storage $config = $getConfig({ account: smartAccount });
+        Config storage $config = $getConfig({account: smartAccount});
         return $config.initialized;
     }
 
@@ -171,9 +191,11 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      *
      * @return hooks array of hooks
      */
-    function getHooks(address smartAccount) external view returns (address[] memory hooks) {
+    function getHooks(
+        address smartAccount
+    ) external view returns (address[] memory hooks) {
         // cache the storage config
-        Config storage $config = $getConfig({ account: smartAccount });
+        Config storage $config = $getConfig({account: smartAccount});
 
         // get the global hooks
         hooks = $config.hooks[HookType.GLOBAL];
@@ -191,8 +213,12 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
         hooks.uniquifySorted();
     }
 
-    function hasHook(address walletAddress, address hookAddress, HookType hookType) external view returns (bool) {
-        Config storage $config = $getConfig({ account: walletAddress });
+    function hasHook(
+        address walletAddress,
+        address hookAddress,
+        HookType hookType
+    ) external view returns (bool) {
+        Config storage $config = $getConfig({account: walletAddress});
         return $config.hooks[hookType].contains(hookAddress);
     }
 
@@ -203,15 +229,25 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      * @param hook address of the hook
      * @param hookType type of the hook
      */
-    function addHook(address hook, HookType hookType) external onlySupportedHookType(hookType) {
+    function addHook(
+        address hook,
+        HookType hookType
+    ) external onlySupportedHookType(hookType) {
         // check if the module is initialized and revert if it is not
         if (!isInitialized(msg.sender)) revert NotInitialized(msg.sender);
 
         // check if the hook is attested to on the registry
-        REGISTRY.checkForAccount({ smartAccount: msg.sender, module: hook, moduleType: MODULE_TYPE_HOOK });
+        REGISTRY.checkForAccount({
+            smartAccount: msg.sender,
+            module: hook,
+            moduleType: MODULE_TYPE_HOOK
+        });
+
+        // call `onInstall` on the hook
+        IERC7579Hook(hook).onInstall(abi.encode(MODULE_TYPE_HOOK));
 
         // store subhook
-        $getConfig({ account: msg.sender }).hooks[hookType].push(hook);
+        $getConfig({account: msg.sender}).hooks[hookType].push(hook);
 
         emit HookAdded(msg.sender, hook, hookType);
     }
@@ -228,18 +264,19 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
         address hook,
         bytes4 sig,
         HookType hookType
-    )
-        external
-        onlySupportedHookType(hookType)
-    {
+    ) external onlySupportedHookType(hookType) {
         // check if the module is initialized and revert if it is not
         if (!isInitialized(msg.sender)) revert NotInitialized(msg.sender);
 
         // check if the hook is attested to on the registry
-        REGISTRY.checkForAccount({ smartAccount: msg.sender, module: hook, moduleType: MODULE_TYPE_HOOK });
+        REGISTRY.checkForAccount({
+            smartAccount: msg.sender,
+            module: hook,
+            moduleType: MODULE_TYPE_HOOK
+        });
 
         // cache the storage config
-        Config storage $config = $getConfig({ account: msg.sender });
+        Config storage $config = $getConfig({account: msg.sender});
 
         $config.sigHooks[hookType].sigHooks[sig].push(hook);
         $config.sigHooks[hookType].allSigs.pushUnique(sig);
@@ -258,11 +295,14 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
     }
 
     function _removeHook(address hook, HookType hookType) internal {
-        // call onUnInstall for the hook (data should have ModuleType as Hook set while calling onUnInstall)
-        IERC7579Hook(hook).onUninstall(abi.encode(MODULE_TYPE_HOOK));
+        // call onUnInstall for the hook (data should have ModuleType as Hook
+        // and msg.sender set while calling onUnInstall as deinitData)
+        IERC7579Hook(hook).onUninstall(
+            abi.encode(MODULE_TYPE_HOOK, msg.sender)
+        );
 
         // cache the storage config
-        Config storage $config = $getConfig({ account: msg.sender });
+        Config storage $config = $getConfig({account: msg.sender});
         $config.hooks[hookType].popAddress(hook);
         emit HookRemoved(msg.sender, hook, hookType);
     }
@@ -274,12 +314,16 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      * @param sig bytes4 of the sig
      * @param hookType type of the hook
      */
-    function removeSigHook(address hook, bytes4 sig, HookType hookType) external {
+    function removeSigHook(
+        address hook,
+        bytes4 sig,
+        HookType hookType
+    ) external {
         // check if the module is initialized and revert if it is not
         if (!isInitialized(msg.sender)) revert NotInitialized(msg.sender);
 
         // cache the storage config
-        Config storage $config = $getConfig({ account: msg.sender });
+        Config storage $config = $getConfig({account: msg.sender});
         SignatureHooks storage $sigHooks = $config.sigHooks[hookType];
 
         uint256 length = $sigHooks.sigHooks[sig].length;
@@ -308,14 +352,9 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
         address msgSender,
         uint256 msgValue,
         bytes calldata msgData
-    )
-        external
-        virtual
-        override
-        returns (bytes memory hookData)
-    {
+    ) external virtual override returns (bytes memory hookData) {
         // cache the storage config
-        Config storage $config = $getConfig({ account: msg.sender });
+        Config storage $config = $getConfig({account: msg.sender});
         // get the call data selector
         bytes4 callDataSelector = bytes4(msgData[:4]);
 
@@ -331,18 +370,22 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
         // should the msgData not be an execution (i.e. IERC7579 installModule() or fallback Module
         // this can be skipped
         if (callDataSelector.isExecution()) {
-            hooks.appendExecutionHook({ $config: $config, msgData: msgData });
+            hooks.appendExecutionHook({$config: $config, msgData: msgData});
         }
 
         // sort the hooks
         hooks.insertionSort();
         // uniquify the hooks
         hooks.uniquifySorted();
-
         // call all subhooks and return the subhooks with their context datas
-        return abi.encode(
-            hooks.preCheckSubHooks({ msgSender: msgSender, msgValue: msgValue, msgData: msgData })
-        );
+        return
+            abi.encode(
+                hooks.preCheckSubHooks({
+                    msgSender: msgSender,
+                    msgValue: msgValue,
+                    msgData: msgData
+                })
+            );
     }
 
     /**
@@ -357,7 +400,10 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
 
         // decode the hookData
         assembly ("memory-safe") {
-            let dataPointer := add(hookData.offset, calldataload(hookData.offset))
+            let dataPointer := add(
+                hookData.offset,
+                calldataload(hookData.offset)
+            )
             hooksAndContexts.offset := add(dataPointer, 0x20)
             hooksAndContexts.length := calldataload(dataPointer)
         }
@@ -368,7 +414,9 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
             // cache the hook and context
             HookAndContext calldata hookAndContext = hooksAndContexts[i];
             // call postCheck on each hook
-            hookAndContext.hook.postCheckSubHook({ preCheckContext: hookAndContext.context });
+            hookAndContext.hook.postCheckSubHook({
+                preCheckContext: hookAndContext.context
+            });
         }
     }
 
@@ -379,7 +427,9 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      *
      * @return config storage config
      */
-    function $getConfig(address account) internal view returns (Config storage) {
+    function $getConfig(
+        address account
+    ) internal view returns (Config storage) {
         return accountConfig[account];
     }
 
@@ -390,7 +440,9 @@ contract HookMultiPlexer is IERC7579Hook, IHookMultiPlexer, ERC7484RegistryAdapt
      *
      * @return true if the type is a module type, false otherwise
      */
-    function isModuleType(uint256 typeID) external pure virtual override(IHookMultiPlexer, IModule) returns (bool) {
+    function isModuleType(
+        uint256 typeID
+    ) external pure virtual override(IHookMultiPlexer, IModule) returns (bool) {
         return typeID == MODULE_TYPE_HOOK;
     }
 

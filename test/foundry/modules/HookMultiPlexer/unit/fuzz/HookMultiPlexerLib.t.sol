@@ -1,30 +1,18 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
-import { BaseTest, console2 } from "../../Base.t.sol";
-import { Solarray } from "solarray/Solarray.sol";
-import { LibSort } from "@solady/utils/LibSort.sol";
-import {
-    ModeLib,
-    CALLTYPE_DELEGATECALL,
-    EXECTYPE_DEFAULT,
-    MODE_DEFAULT,
-    ModePayload
-} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
-import { ExecutionLib, Execution } from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
-import {
-    HookMultiPlexer,
-    SigHookInit,
-    HookMultiPlexerLib,
-    HookType,
-    HookAndContext
-} from "../../../../../../src/modular-etherspot-wallet/modules/hooks/multiplexer/HookMultiPlexer.sol";
-import { IERC7579Account } from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
-import { IHook as IERC7579Hook, IModule as IERC7579Module, MODULE_TYPE_HOOK } from  "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
-import { IERC20 } from "forge-std/interfaces/IERC20.sol";
-import { MockRegistry } from "../../../mocks/MockRegistry.sol";
-import { MockHook } from "../../../mocks/MockHook.sol";
-import { MockModule } from "../../../mocks/MockModule.sol";
+import {BaseTest, console2} from "../../Base.t.sol";
+import {Solarray} from "solarray/Solarray.sol";
+import {LibSort} from "@solady/utils/LibSort.sol";
+import {ModeLib, CALLTYPE_DELEGATECALL, EXECTYPE_DEFAULT, MODE_DEFAULT, ModePayload} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ModeLib.sol";
+import {ExecutionLib, Execution} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/libs/ExecutionLib.sol";
+import {HookMultiPlexer, SigHookInit, HookMultiPlexerLib, HookType, HookAndContext} from "../../../../../../src/modular-etherspot-wallet/modules/hooks/multiplexer/HookMultiPlexer.sol";
+import {IERC7579Account} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
+import {IHook as IERC7579Hook, IModule as IERC7579Module, MODULE_TYPE_HOOK} from "../../../../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {IERC20} from "forge-std/interfaces/IERC20.sol";
+import {MockRegistry} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockRegistry.sol";
+import {MockHook} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockHook.sol";
+import {MockModule} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockModule.sol";
 
 contract HookMultiPlexerLibExternal {
     using HookMultiPlexerLib for *;
@@ -36,12 +24,18 @@ contract HookMultiPlexerLibExternal {
         _array.requireSortedAndUnique();
     }
 
-    function indexOf(address[] calldata _array, address _element) external returns (uint256) {
+    function indexOf(
+        address[] calldata _array,
+        address _element
+    ) external returns (uint256) {
         array = _array;
         return array.indexOf(_element);
     }
 
-    function indexOf(bytes4[] calldata _array, bytes4 _element) external returns (uint256) {
+    function indexOf(
+        bytes4[] calldata _array,
+        bytes4 _element
+    ) external returns (uint256) {
         bytes4Array = _array;
         return bytes4Array.indexOf(_element);
     }
@@ -49,10 +43,7 @@ contract HookMultiPlexerLibExternal {
     function pushUnique(
         bytes4[] calldata _array,
         bytes4 _element
-    )
-        external
-        returns (bytes4[] memory)
-    {
+    ) external returns (bytes4[] memory) {
         bytes4Array = _array;
         bytes4Array.pushUnique(_element);
         return bytes4Array;
@@ -61,10 +52,7 @@ contract HookMultiPlexerLibExternal {
     function popBytes4(
         bytes4[] calldata _array,
         bytes4 _element
-    )
-        external
-        returns (bytes4[] memory)
-    {
+    ) external returns (bytes4[] memory) {
         bytes4Array = _array;
         bytes4Array.popBytes4(_element);
         return bytes4Array;
@@ -73,10 +61,7 @@ contract HookMultiPlexerLibExternal {
     function popAddress(
         address[] calldata _array,
         address _element
-    )
-        external
-        returns (address[] memory)
-    {
+    ) external returns (address[] memory) {
         array = _array;
         array.popAddress(_element);
         return array;
@@ -197,7 +182,10 @@ contract HookMultiPlexerLibFuzzTest is BaseTest {
         }
     }
 
-    function testFuzz_IndexOf_Bytes4(bytes4[] memory array, bytes4 element) public {
+    function testFuzz_IndexOf_Bytes4(
+        bytes4[] memory array,
+        bytes4 element
+    ) public {
         vm.assume(array.length > 0);
 
         uint256 index = libExternal.indexOf(array, element);
@@ -259,7 +247,10 @@ contract HookMultiPlexerLibFuzzTest is BaseTest {
         }
     }
 
-    function testFuzz_PopAddress(address[] memory array, address element) public {
+    function testFuzz_PopAddress(
+        address[] memory array,
+        address element
+    ) public {
         vm.assume(array.length > 0);
         vm.assume(element != address(0));
 

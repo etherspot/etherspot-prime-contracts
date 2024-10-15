@@ -4,6 +4,7 @@ pragma solidity ^0.8.23;
 import {IValidator, IHook} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Module.sol";
 import {IERC7579Account} from "../../../src/modular-etherspot-wallet/erc7579-ref-impl/interfaces/IERC7579Account.sol";
 import {PackedUserOperation} from "../../../account-abstraction/contracts/interfaces/PackedUserOperation.sol";
+import {SessionData, TokenData} from "../common/Structs.sol";
 
 /// @title CredibleAccountModule Interface
 /// @author Etherspot
@@ -24,20 +25,6 @@ interface ICredibleAccountModule is IValidator, IHook {
         uint256 lockedAmount;
         uint256 claimedAmount;
     }
-    struct SessionData {
-        uint48 validAfter;
-        uint48 validUntil;
-        address solver;
-        bytes4 selector;
-        LockedToken[] lockedTokens;
-    }
-
-    struct ExecData {
-        bytes4 selector;
-        address from;
-        address to;
-        uint256 amount;
-    }
 
     /*//////////////////////////////////////////////////////////////
                                 EVENTS
@@ -55,8 +42,8 @@ interface ICredibleAccountModule is IValidator, IHook {
     /// @param sessionKey The address of the session key.
     /// @param wallet The address of the wallet for which the session key is enabled.
     event CredibleAccountModule_SessionKeyEnabled(
-        address sessionKey,
-        address wallet
+        address indexed sessionKey,
+        address indexed wallet
     );
 
     /// @notice Emitted when a session key is disabled for a wallet.
@@ -106,10 +93,16 @@ interface ICredibleAccountModule is IValidator, IHook {
 
     /// @notice Returns the list of associated session keys for the caller's wallet.
     /// @return keys The array of associated session key addresses.
-    function getAssociatedSessionKeys()
+    function getSessionKeysByWallet()
         external
         view
         returns (address[] memory keys);
+
+    /// @notice Returns the list of associated session keys for the provided wallet.
+    /// @return keys The array of associated session key addresses.
+    function getSessionKeysByWallet(
+        address _wallet
+    ) external view returns (address[] memory keys);
 
     /// @notice Returns the session data for a given session key and the caller's wallet.
     /// @param _sessionKey The address of the session key.
@@ -117,6 +110,33 @@ interface ICredibleAccountModule is IValidator, IHook {
     function getSessionKeyData(
         address _sessionKey
     ) external view returns (SessionData memory data);
+
+    /// @notice Retrieves all locked tokens for a specific session key
+    /// @param _sessionKey The address of the session key to query
+    /// @return An array of LockedToken structs associated with the given session key
+    function getLockedTokensForSessionKey(
+        address _sessionKey
+    ) external view returns (LockedToken[] memory);
+
+    /// @notice Retrieves the total locked amount for a specific token across all session keys for the calling wallet
+    /// @param _token The address of the token to check
+    /// @return The total locked amount of the specified token
+    function tokenTotalLockedForWallet(
+        address _token
+    ) external view returns (uint256);
+
+    /// @notice Retrieves the cumulative locked amounts for all unique tokens across all session keys for the calling wallet
+    /// @return An array of TokenData structures containing token addresses and their corresponding locked amounts
+    function cumulativeLockedForWallet()
+        external
+        view
+        returns (TokenData[] memory);
+
+    /// @notice Checks if all tokens for a given session key have been claimed
+    /// @dev Iterates through all locked tokens for the session key
+    /// @param _sessionKey The address of the session key to check
+    /// @return bool True if all tokens are claimed, false otherwise
+    function isSessionClaimed(address _sessionKey) external view returns (bool);
 
     /// @notice Validates a user operation using a session key.
     /// @param userOp The packed user operation.
@@ -155,4 +175,21 @@ interface ICredibleAccountModule is IValidator, IHook {
     /// @param smartAccount The address of the smart account.
     /// @return True if the smart account is initialized, false otherwise.
     function isInitialized(address smartAccount) external view returns (bool);
+
+    /// @notice Performs pre-execution checks and prepares hook data
+    /// @dev This function is called before the main execution
+    /// @param msgSender The address initiating the transaction
+    /// @param msgValue The amount of Ether sent with the transaction
+    /// @param msgData The calldata of the transaction
+    /// @return hookData Encoded data to be used in post-execution checks
+    function preCheck(
+        address msgSender,
+        uint256 msgValue,
+        bytes calldata msgData
+    ) external returns (bytes memory hookData);
+
+    /// @notice Performs post-execution checks using the hook data
+    /// @dev This function is called after the main execution
+    /// @param hookData The data prepared by preCheck function
+    function postCheck(bytes calldata hookData) external;
 }

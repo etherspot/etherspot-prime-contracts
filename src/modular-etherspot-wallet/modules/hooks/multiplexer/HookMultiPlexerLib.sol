@@ -1,19 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.23;
 
-import { IHook as IERC7579Hook } from  "../../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
-import { IERC7579Account } from "../../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
-import { Config, SigHookInit, HookAndContext, HookType, SignatureHooks } from "./DataTypes.sol";
-import { LibSort } from "@solady/utils/LibSort.sol";
-import { ExecutionLib, Execution } from "../../../erc7579-ref-impl/libs/ExecutionLib.sol";
-import {
-    ModeLib,
-    CallType,
-    ModeCode,
-    CALLTYPE_SINGLE,
-    CALLTYPE_BATCH,
-    CALLTYPE_DELEGATECALL
-} from "../../../erc7579-ref-impl/libs/ModeLib.sol";
+import {IHook as IERC7579Hook} from "../../../erc7579-ref-impl/interfaces/IERC7579Module.sol";
+import {IERC7579Account} from "../../../erc7579-ref-impl/interfaces/IERC7579Account.sol";
+import {Config, SigHookInit, HookAndContext, HookType, SignatureHooks} from "./DataTypes.sol";
+import {LibSort} from "@solady/utils/LibSort.sol";
+import {ExecutionLib, Execution} from "../../../erc7579-ref-impl/libs/ExecutionLib.sol";
+import {ModeLib, CallType, ModeCode, CALLTYPE_SINGLE, CALLTYPE_BATCH, CALLTYPE_DELEGATECALL} from "../../../erc7579-ref-impl/libs/ModeLib.sol";
 
 uint256 constant EXEC_OFFSET = 100;
 
@@ -21,6 +14,8 @@ uint256 constant EXEC_OFFSET = 100;
  * @title HookMultiPlexerLib
  * @dev Library for multiplexing hooks
  * @author rhinestone.wtf
+ * @dev minor adjustment to original implementation
+ * now encoding original msg.sender in the msgData for preCheckSubHook
  */
 library HookMultiPlexerLib {
     error SubHookPreCheckError(address subHook);
@@ -45,10 +40,7 @@ library HookMultiPlexerLib {
         address msgSender,
         uint256 msgValue,
         bytes calldata msgData
-    )
-        internal
-        returns (HookAndContext[] memory hookAndContexts)
-    {
+    ) internal returns (HookAndContext[] memory hookAndContexts) {
         // cache the length of the subhooks
         uint256 length = subHooks.length;
         // initialize the contexts array
@@ -79,15 +71,16 @@ library HookMultiPlexerLib {
         address msgSender,
         uint256 msgValue,
         bytes calldata msgData
-    )
-        internal
-        returns (bytes memory preCheckContext)
-    {
+    ) internal returns (bytes memory preCheckContext) {
         // precheck the subhook
+        // encode the original msg.sender with msgData
         bool success;
         (success, preCheckContext) = address(subHook).call(
             abi.encodePacked(
-                abi.encodeCall(IERC7579Hook.preCheck, (msgSender, msgValue, msgData)),
+                abi.encodeCall(
+                    IERC7579Hook.preCheck,
+                    (msgSender, msgValue, abi.encode(msg.sender, msgData))
+                ),
                 address(this),
                 msg.sender
             )
@@ -102,12 +95,18 @@ library HookMultiPlexerLib {
      * @param subHook sub-hook
      * @param preCheckContext pre-check context
      */
-    function postCheckSubHook(address subHook, bytes calldata preCheckContext) internal {
+    function postCheckSubHook(
+        address subHook,
+        bytes calldata preCheckContext
+    ) internal {
         bytes memory data = abi.encodePacked(
-            IERC7579Hook.postCheck.selector, preCheckContext, address(this), msg.sender
+            IERC7579Hook.postCheck.selector,
+            preCheckContext,
+            address(this),
+            msg.sender
         );
         // postcheck the subhook
-        (bool success,) = address(subHook).call(data);
+        (bool success, ) = address(subHook).call(data);
         // revert if the subhook postcheck fails
         if (!success) revert SubHookPostCheckError(subHook);
     }
@@ -148,7 +147,10 @@ library HookMultiPlexerLib {
         }
     }
 
-    function join(address[] memory hooks, SignatureHooks storage $sigHooks) internal view {
+    function join(
+        address[] memory hooks,
+        SignatureHooks storage $sigHooks
+    ) internal view {
         uint256 sigsLength = $sigHooks.allSigs.length;
         // iterate over the sigs
         for (uint256 i; i < sigsLength; i++) {
@@ -181,7 +183,10 @@ library HookMultiPlexerLib {
      *
      * @return index index of the element
      */
-    function indexOf(address[] storage array, address element) internal view returns (uint256) {
+    function indexOf(
+        address[] storage array,
+        address element
+    ) internal view returns (uint256) {
         // cache the length of the array
         uint256 length = array.length;
         for (uint256 i; i < length; i++) {
@@ -194,7 +199,10 @@ library HookMultiPlexerLib {
         return type(uint256).max;
     }
 
-    function contains(address[] storage array, address element) internal view returns (bool) {
+    function contains(
+        address[] storage array,
+        address element
+    ) internal view returns (bool) {
         return indexOf(array, element) != type(uint256).max;
     }
 
@@ -206,7 +214,10 @@ library HookMultiPlexerLib {
      *
      * @return index index of the element
      */
-    function indexOf(bytes4[] storage array, bytes4 element) internal view returns (uint256) {
+    function indexOf(
+        bytes4[] storage array,
+        bytes4 element
+    ) internal view returns (uint256) {
         // cache the length of the array
         uint256 length = array.length;
         for (uint256 i; i < length; i++) {
@@ -274,7 +285,9 @@ library HookMultiPlexerLib {
      * @return sigHooks array of sig hooks
      * @return targetSigHooks array of target sig hooks
      */
-    function decodeOnInstall(bytes calldata onInstallData)
+    function decodeOnInstall(
+        bytes calldata onInstallData
+    )
         internal
         pure
         returns (
@@ -326,9 +339,7 @@ library HookMultiPlexerLib {
     function storeSelectorHooks(
         SignatureHooks storage $sigHooks,
         SigHookInit[] calldata newSigHooks
-    )
-        internal
-    {
+    ) internal {
         // cache the length of the sig hooks
         uint256 length = newSigHooks.length;
         // array to store the sigs
@@ -376,20 +387,20 @@ library HookMultiPlexerLib {
      */
     function isExecution(bytes4 callDataSelector) internal pure returns (bool) {
         // check if the callDataSelector is an execution
-        return callDataSelector == IERC7579Account.execute.selector
-            || callDataSelector == IERC7579Account.executeFromExecutor.selector;
+        return
+            callDataSelector == IERC7579Account.execute.selector ||
+            callDataSelector == IERC7579Account.executeFromExecutor.selector;
     }
 
     function appendExecutionHook(
         address[] memory hooks,
         Config storage $config,
         bytes calldata msgData
-    )
-        internal
-        view
-    {
+    ) internal view {
         // get the length of the execution callData
-        uint256 paramLen = uint256(bytes32(msgData[EXEC_OFFSET - 32:EXEC_OFFSET]));
+        uint256 paramLen = uint256(
+            bytes32(msgData[EXEC_OFFSET - 32:EXEC_OFFSET])
+        );
 
         // get the mode and calltype
         ModeCode mode = ModeCode.wrap(bytes32(msgData[4:36]));
@@ -397,8 +408,8 @@ library HookMultiPlexerLib {
 
         if (calltype == CALLTYPE_SINGLE) {
             // decode the execution
-            (, uint256 value, bytes calldata callData) =
-                ExecutionLib.decodeSingle(msgData[EXEC_OFFSET:EXEC_OFFSET + paramLen]);
+            (, uint256 value, bytes calldata callData) = ExecutionLib
+                .decodeSingle(msgData[EXEC_OFFSET:EXEC_OFFSET + paramLen]);
 
             // if there is a value, we need to check the value hooks
             if (value != 0) {
@@ -407,14 +418,20 @@ library HookMultiPlexerLib {
 
             // if there is callData, we need to check the targetSigHooks
             if (callData.length > 4) {
-                hooks.join($config.sigHooks[HookType.TARGET_SIG].sigHooks[bytes4(callData[:4])]);
+                hooks.join(
+                    $config.sigHooks[HookType.TARGET_SIG].sigHooks[
+                        bytes4(callData[:4])
+                    ]
+                );
             }
         } else if (calltype == CALLTYPE_BATCH) {
             // decode the batch
             hooks.join(
                 _getFromBatch({
                     $config: $config,
-                    executions: ExecutionLib.decodeBatch(msgData[EXEC_OFFSET:EXEC_OFFSET + paramLen])
+                    executions: ExecutionLib.decodeBatch(
+                        msgData[EXEC_OFFSET:EXEC_OFFSET + paramLen]
+                    )
                 })
             );
         } else if (calltype == CALLTYPE_DELEGATECALL) {
@@ -434,13 +451,12 @@ library HookMultiPlexerLib {
     function _getFromBatch(
         Config storage $config,
         Execution[] calldata executions
-    )
-        internal
-        view
-        returns (address[] memory allHooks)
-    {
+    ) internal view returns (address[] memory allHooks) {
         // check if the targetSigHooks are enabled
-        bool targetSigHooksEnabled = $config.sigHooks[HookType.TARGET_SIG].allSigs.length != 0;
+        bool targetSigHooksEnabled = $config
+            .sigHooks[HookType.TARGET_SIG]
+            .allSigs
+            .length != 0;
         // get the length of the executions
         uint256 length = executions.length;
 
@@ -482,8 +498,9 @@ library HookMultiPlexerLib {
             bytes4 targetSelector = bytes4(bytes32(targetSigsInBatch[i]));
 
             // get the targetSigHooks
-            address[] storage _targetHooks =
-                $config.sigHooks[HookType.TARGET_SIG].sigHooks[targetSelector];
+            address[] storage _targetHooks = $config
+                .sigHooks[HookType.TARGET_SIG]
+                .sigHooks[targetSelector];
 
             // if there are none, continue
             if (_targetHooks.length == 0) continue;

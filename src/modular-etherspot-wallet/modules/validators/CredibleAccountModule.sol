@@ -11,11 +11,10 @@ import "../../erc7579-ref-impl/libs/ModeLib.sol";
 import "../../erc7579-ref-impl/libs/ExecutionLib.sol";
 import {ICredibleAccountModule} from "../../interfaces/ICredibleAccountModule.sol";
 import {IProofVerifier} from "../../interfaces/IProofVerifier.sol";
-import {IHookLens} from "../hooks/interfaces/IHookLens.sol";
+import {IHookLens} from "../../interfaces/IHookLens.sol";
 import {IHookMultiPlexer} from "../hooks/multiplexer/interfaces/IHookMultiPlexer.sol";
-import {ArrayLib} from "../../libraries/ArrayLib.sol";
 import {HookType} from "../hooks/multiplexer/DataTypes.sol";
-
+import {SessionData, TokenData} from "../../common/Structs.sol";
 
 contract CredibleAccountModule is ICredibleAccountModule {
     using ModeLib for ModeCode;
@@ -28,17 +27,10 @@ contract CredibleAccountModule is ICredibleAccountModule {
     error CredibleAccountModule_ModuleAlreadyInstalled();
     error CredibleAccountModule_ModuleNotInstalled();
     error CredibleAccountModule_InvalidSessionKey();
-    error CredibleAccountModule_InvalidToken();
     error CredibleAccountModule_InvalidProofVerifier();
-    error CredibleAccountModule_InvalidFunctionSelector();
-    error CredibleAccountModule_InvalidSpendingLimit();
-    error CredibleAccountModule_InvalidValidAfter(uint48 validAfter);
+    error CredibleAccountModule_InvalidValidAfter();
     error CredibleAccountModule_InvalidValidUntil(uint48 validUntil);
-    error CredibleAccountModule_InvalidTokenAmountData(address sessionKey);
-    error CredibleAccountModule_SessionKeyAlreadyExists(address sessionKey);
     error CredibleAccountModule_SessionKeyDoesNotExist(address session);
-    error CredibleAccountModule_SessionPaused(address sessionKey);
-    error CredibleAccountModule_SessionKeyActive(address sessionKey);
     error CredibleAccountModule_LockedTokensNotClaimed(address sessionKey);
     error CredibleAccountModule_InvalidHookMultiPlexer();
     error CredibleAccountModule_HookMultiplexerIsNotInstalled();
@@ -48,119 +40,95 @@ contract CredibleAccountModule is ICredibleAccountModule {
     error CredibleAccountModule_InvalidModuleType();
     error CredibleAccountModule_ValidatorExists();
     error NotImplemented();
+    error CredibleAccountModule_InsufficientUnlockedBalance(address token);
 
     /*//////////////////////////////////////////////////////////////
                                MAPPINGS
     //////////////////////////////////////////////////////////////*/
 
-    mapping(address => Initialization) public moduleInitialized;
-    mapping(address wallet => address[] assocSessionKeys)
-        public walletSessionKeys;
+    mapping(address wallet => Initialization) public moduleInitialized;
+    mapping(address wallet => address[] keys) public walletSessionKeys;
     mapping(address sessionKey => mapping(address wallet => SessionData))
         public sessionData;
+    mapping(address sessionKey => LockedToken[]) public lockedTokens;
+
+    /*//////////////////////////////////////////////////////////////
+                              VARIABLES
+    //////////////////////////////////////////////////////////////*/
+
     IProofVerifier public immutable proofVerifier;
-    IHookMultiPlexer public hookMultiPlexer;
+    IHookMultiPlexer public immutable hookMultiPlexer;
+    uint256 constant EXEC_OFFSET = 100;
 
     /*//////////////////////////////////////////////////////////////
                            CONSTRUCTOR
     //////////////////////////////////////////////////////////////*/
 
-    constructor(address _proofVerifier, address _hookMultiPlexerAddress) {
+    constructor(address _proofVerifier, address _hookMultiPlexer) {
         if (_proofVerifier == address(0))
             revert CredibleAccountModule_InvalidProofVerifier();
-        if (_hookMultiPlexerAddress == address(0))
-            revert CredibleAccountModule_InvalidHookMultiPlexer();    
-        hookMultiPlexer = IHookMultiPlexer(_hookMultiPlexerAddress);
+        if (_hookMultiPlexer == address(0))
+            revert CredibleAccountModule_InvalidHookMultiPlexer();
+        hookMultiPlexer = IHookMultiPlexer(_hookMultiPlexer);
         proofVerifier = IProofVerifier(_proofVerifier);
     }
 
     /*//////////////////////////////////////////////////////////////
-                           PUBLIC/EXTERNAL
+                      VALIDATOR PUBLIC/EXTERNAL
     //////////////////////////////////////////////////////////////*/
 
     // @inheritdoc ICredibleAccountModule
-    function enableSessionKey(bytes calldata _sessionData) public {
-        uint256 offset;
-        address sessionKey = address(bytes20(_sessionData[offset:offset + 20]));
-        offset += 20;
+    function enableSessionKey(bytes calldata _sessionData) external {
+        (
+            address sessionKey,
+            uint48 validAfter,
+            uint48 validUntil,
+            TokenData[] memory tokenAmounts
+        ) = abi.decode(_sessionData, (address, uint48, uint48, TokenData[]));
         if (sessionKey == address(0))
             revert CredibleAccountModule_InvalidSessionKey();
-        address solver = address(bytes20(_sessionData[offset:offset + 20]));
-        offset += 20;
-        bytes4 selector = bytes4(_sessionData[offset:offset + 4]);
-        offset += 4;
-        if (selector == bytes4(0))
-            revert CredibleAccountModule_InvalidFunctionSelector();
-        uint48 validAfter = uint48(bytes6(_sessionData[offset:offset + 6]));
-        offset += 6;
-        if (validAfter == 0)
-            revert CredibleAccountModule_InvalidValidAfter(validAfter);
-        uint48 validUntil = uint48(bytes6(_sessionData[offset:offset + 6]));
-        offset += 6;
-        if (validUntil == 0)
+        if (validAfter == 0) revert CredibleAccountModule_InvalidValidAfter();
+        if (validUntil == 0 || validUntil <= validAfter)
             revert CredibleAccountModule_InvalidValidUntil(validUntil);
-        uint256 tokensLength = uint256(
-            bytes32(_sessionData[offset:offset + 32])
-        );
-        offset += 32;
-        SessionData storage newSessionData = sessionData[sessionKey][
-            msg.sender
-        ];
-        newSessionData.validAfter = validAfter;
-        newSessionData.validUntil = validUntil;
-        newSessionData.solver = solver;
-        newSessionData.selector = selector;
-        for (uint256 i; i < tokensLength; ++i) {
-            address token = address(
-                uint160(uint256(bytes32(_sessionData[offset:offset + 32])))
+        sessionData[sessionKey][msg.sender] = SessionData({
+            sessionKey: sessionKey,
+            validAfter: validAfter,
+            validUntil: validUntil,
+            live: true // unused
+        });
+        for (uint256 i; i < tokenAmounts.length; ++i) {
+            lockedTokens[sessionKey].push(
+                LockedToken({
+                    token: tokenAmounts[i].token,
+                    lockedAmount: tokenAmounts[i].amount,
+                    claimedAmount: 0
+                })
             );
-            offset += 32;
-            newSessionData.lockedTokens.push(
-                LockedToken({token: token, lockedAmount: 0, claimedAmount: 0})
-            );
-        }
-        uint256 amountsLength = uint256(
-            bytes32(_sessionData[offset:offset + 32])
-        );
-        offset += 32;
-        for (uint256 i; i < amountsLength; ++i) {
-            uint256 amount = uint256(bytes32(_sessionData[offset:offset + 32]));
-            offset += 32;
-            newSessionData.lockedTokens[i].lockedAmount = amount;
         }
         walletSessionKeys[msg.sender].push(sessionKey);
         emit CredibleAccountModule_SessionKeyEnabled(sessionKey, msg.sender);
     }
 
     // @inheritdoc ICredibleAccountModule
-    function disableSessionKey(address _session) public {
-        if (sessionData[_session][msg.sender].validUntil == 0) {
-            revert CredibleAccountModule_SessionKeyDoesNotExist(_session);
-        }
-
-        if (sessionData[_session][msg.sender].validUntil > block.timestamp) {
-            uint256 tokenCount = sessionData[_session][msg.sender]
-                .lockedTokens
-                .length;
-            for (uint256 i; i < tokenCount; ++i) {
-                (uint256 lockedAmount, uint256 claimedAmount) = getTokenAmounts(
-                    _session,
-                    sessionData[_session][msg.sender].lockedTokens[i].token
-                );
-                if (lockedAmount != claimedAmount) {
-                    revert CredibleAccountModule_LockedTokensNotClaimed(
-                        _session
-                    );
-                }
+    function disableSessionKey(address _sessionKey) external {
+        if (sessionData[_sessionKey][msg.sender].validUntil == 0)
+            revert CredibleAccountModule_SessionKeyDoesNotExist(_sessionKey);
+        if (
+            sessionData[_sessionKey][msg.sender].validUntil >=
+            block.timestamp &&
+            !isSessionClaimed(_sessionKey)
+        ) revert CredibleAccountModule_LockedTokensNotClaimed(_sessionKey);
+        delete sessionData[_sessionKey][msg.sender];
+        delete lockedTokens[_sessionKey];
+        address[] storage keys = walletSessionKeys[msg.sender];
+        for (uint256 i; i < keys.length; ++i) {
+            if (keys[i] == _sessionKey) {
+                keys[i] = keys[keys.length - 1];
+                keys.pop();
+                break;
             }
         }
-
-        delete sessionData[_session][msg.sender];
-        walletSessionKeys[msg.sender] = ArrayLib._removeElement(
-            getAssociatedSessionKeys(),
-            _session
-        );
-        emit CredibleAccountModule_SessionKeyDisabled(_session, msg.sender);
+        emit CredibleAccountModule_SessionKeyDisabled(_sessionKey, msg.sender);
     }
 
     // @inheritdoc ICredibleAccountModule
@@ -168,91 +136,73 @@ contract CredibleAccountModule is ICredibleAccountModule {
         address _sessionKey,
         PackedUserOperation calldata userOp
     ) public returns (bool) {
-        SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        if (isSessionClaimed(_sessionKey)) {
-            return false;
-        }
+        if (isSessionClaimed(_sessionKey)) return false;
         bytes calldata callData = userOp.callData;
         if (bytes4(callData[:4]) == IERC7579Account.execute.selector) {
             ModeCode mode = ModeCode.wrap(bytes32(callData[4:36]));
             (CallType calltype, , , ) = ModeLib.decode(mode);
             if (calltype == CALLTYPE_SINGLE) {
                 return
-                    _validateSingleCall(
-                        callData,
-                        _sessionKey,
-                        sd,
-                        userOp.sender
-                    );
+                    _validateSingleCall(callData, _sessionKey, userOp.sender);
             } else if (calltype == CALLTYPE_BATCH) {
-                return
-                    _validateBatchCall(
-                        callData,
-                        _sessionKey,
-                        sd,
-                        userOp.sender
-                    );
-            } else {
-                return false;
+                return _validateBatchCall(callData, _sessionKey, userOp.sender);
             }
-        } else {
-            return false;
         }
+        return false;
     }
 
     // @inheritdoc ICredibleAccountModule
-    function getAssociatedSessionKeys() public view returns (address[] memory) {
+    function getSessionKeysByWallet() public view returns (address[] memory) {
         return walletSessionKeys[msg.sender];
+    }
+
+    // @inheritdoc ICredibleAccountModule
+    function getSessionKeysByWallet(
+        address _wallet
+    ) public view returns (address[] memory) {
+        return walletSessionKeys[_wallet];
     }
 
     // @inheritdoc ICredibleAccountModule
     function getSessionKeyData(
         address _sessionKey
-    ) public view returns (SessionData memory) {
+    ) external view returns (SessionData memory) {
         return sessionData[_sessionKey][msg.sender];
     }
 
-    function getTokenAmounts(
-        address _sessionKey,
-        address _token
-    ) public view returns (uint256, uint256) {
-        SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        for (uint256 i; i < sd.lockedTokens.length; ++i) {
-            if (sd.lockedTokens[i].token == _token) {
-                return (
-                    sd.lockedTokens[i].lockedAmount,
-                    sd.lockedTokens[i].claimedAmount
-                );
-            }
-        }
-        return (0, 0);
+    // @inheritdoc ICredibleAccountModule
+    function getLockedTokensForSessionKey(
+        address _sessionKey
+    ) external view returns (LockedToken[] memory) {
+        return lockedTokens[_sessionKey];
     }
 
+    // @inheritdoc ICredibleAccountModule
+    function tokenTotalLockedForWallet(
+        address _token
+    ) external view returns (uint256) {
+        return _retrieveLockedBalance(msg.sender, _token);
+    }
+
+    // @inheritdoc ICredibleAccountModule
+    function cumulativeLockedForWallet()
+        external
+        view
+        returns (TokenData[] memory)
+    {
+        return _cumulativeLockedForWallet(msg.sender);
+    }
+
+    // @inheritdoc ICredibleAccountModule
     function isSessionClaimed(address _sessionKey) public view returns (bool) {
-        SessionData memory sd = sessionData[_sessionKey][msg.sender];
-        for (uint256 i; i < sd.lockedTokens.length; ++i) {
-            if (
-                sd.lockedTokens[i].lockedAmount !=
-                sd.lockedTokens[i].claimedAmount
-            ) {
-                return false;
-            }
+        LockedToken[] memory tokens = lockedTokens[_sessionKey];
+        for (uint256 i; i < tokens.length; ++i) {
+            if (tokens[i].lockedAmount != tokens[i].claimedAmount) return false;
         }
         return true;
     }
 
-    /**
-     * @notice Validates a user operation.
-     * @dev This function checks the length of the signature and extracts the necessary components.
-     *      The signature must be at least 129 bytes long to include the following:
-     *      - 32 bytes for `r`
-     *      - 32 bytes for `s`
-     *      - 1 byte for `v`
-     *      - 32 bytes for at least one entry in the `proof`
-     * @param userOp The packed user operation containing the signature and other data.
-     * @param userOpHash The hash of the user operation.
-     * @return A status code indicating the result of the validation.
-     */
+    // @inheritdoc ICredibleAccountModule
     function validateUserOp(
         PackedUserOperation calldata userOp,
         bytes32 userOpHash
@@ -260,23 +210,20 @@ contract CredibleAccountModule is ICredibleAccountModule {
         if (userOp.signature.length < 65) {
             return VALIDATION_FAILED;
         }
-        (bytes memory signature, bytes memory proof) = _digestSignature(
+        (bytes memory sig, bytes memory proof) = _digestSignature(
             userOp.signature
         );
         address sessionKeySigner = ECDSA.recover(
             ECDSA.toEthSignedMessageHash(userOpHash),
-            signature
+            sig
         );
-        if (!validateSessionKeyParams(sessionKeySigner, userOp)) {
-            return VALIDATION_FAILED;
-        }
-        // Validate the proof
+        // Validate the proof & session key params
         // this is only stub method and to be replaced with actual proof validation logic
-        if (!proofVerifier.verifyProof(proof)) {
-            return VALIDATION_FAILED;
-        }
-        SessionData storage sd = sessionData[sessionKeySigner][msg.sender];
-        // sd.claimed = true;
+        if (
+            !validateSessionKeyParams(sessionKeySigner, userOp) ||
+            !proofVerifier.verifyProof(proof)
+        ) return VALIDATION_FAILED;
+        SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
@@ -284,50 +231,35 @@ contract CredibleAccountModule is ICredibleAccountModule {
     function isModuleType(
         uint256 moduleTypeId
     ) external pure override returns (bool) {
-        return moduleTypeId == MODULE_TYPE_VALIDATOR;
+        return
+            moduleTypeId == MODULE_TYPE_VALIDATOR ||
+            moduleTypeId == MODULE_TYPE_HOOK;
     }
 
     // @inheritdoc ICredibleAccountModule
     function onInstall(bytes calldata data) external override {
-        if (data.length < 32) {
+        if (data.length < 32)
             revert CredibleAccountModule_InvalidOnInstallData(msg.sender);
-        }
-
         uint256 moduleType;
-
-        // if dataLength is equal to 32, then it means that the moduleType is passed as argument
-        if (data.length == 32) {
-            // if data is just like  0x0000000000000000000000000000000000000000000000000000000000000001 then take this as moduleType
-            assembly {
-                moduleType := calldataload(data.offset)
-            }
-        } else {
-            assembly {
-                // Load the data after the first 68 bytes (4 bytes function selector + 32 bytes offset + 32 bytes length)
-                moduleType := calldataload(add(data.offset, 68))
-            }
+        assembly {
+            moduleType := calldataload(data.offset)
         }
-
         if (moduleType == MODULE_TYPE_VALIDATOR) {
-            address activeHook = IHookLens(msg.sender).getActiveHook();
-            if(activeHook == address(0) || activeHook != address(hookMultiPlexer)) {
-                revert CredibleAccountModule_HookMultiplexerIsNotInstalled();
-            }
-
-            // check if CredibleAccountModule exists as subHook on HookMultiplexer
-            bool credibleAccountModuleExistsAsHook = hookMultiPlexer.hasHook(msg.sender, address(this), HookType.GLOBAL);
-
-            if (!credibleAccountModuleExistsAsHook) {
-                revert CredibleAccountModule_NotAddedToHookMultiplexer();
-            }
-
+            if (
+                IHookLens(msg.sender).getActiveHook() !=
+                address(hookMultiPlexer)
+            ) revert CredibleAccountModule_HookMultiplexerIsNotInstalled();
+            if (
+                !hookMultiPlexer.hasHook(
+                    msg.sender,
+                    address(this),
+                    HookType.GLOBAL
+                )
+            ) revert CredibleAccountModule_NotAddedToHookMultiplexer();
             moduleInitialized[msg.sender].validatorInitialized = true;
-            
             emit CredibleAccountModule_ModuleInstalled(msg.sender);
-
-        } else if(moduleType == MODULE_TYPE_HOOK) {        
+        } else if (moduleType == MODULE_TYPE_HOOK) {
             moduleInitialized[msg.sender].hookInitialized = true;
-
         } else {
             revert CredibleAccountModule_InvalidModuleType();
         }
@@ -335,103 +267,44 @@ contract CredibleAccountModule is ICredibleAccountModule {
 
     // @inheritdoc ICredibleAccountModule
     function onUninstall(bytes calldata data) external override {
-
-        if (data.length < 32) {
+        if (data.length < 32)
             revert CredibleAccountModule_InvalidOnUnInstallData(msg.sender);
-        }
-
         uint256 moduleType;
+        address sender;
         assembly {
             moduleType := calldataload(data.offset)
+            sender := calldataload(add(data.offset, 32))
         }
-
         bytes memory uninstallData = data[32:];
-
         if (moduleType == MODULE_TYPE_VALIDATOR) {
-
-            address activeHook = IHookLens(msg.sender).getActiveHook();
-
-            if(activeHook == address(0) || activeHook != address(hookMultiPlexer)) {
+            if (IHookLens(sender).getActiveHook() != address(hookMultiPlexer))
                 revert CredibleAccountModule_HookMultiplexerIsNotInstalled();
-            }
-
-            // check if CredibleAccountModule exists as subHook on HookMultiplexer
-            bool credibleAccountModuleExistsAsHook = hookMultiPlexer.hasHook(msg.sender, address(this), HookType.GLOBAL);
-
-            if (!credibleAccountModuleExistsAsHook) {
-                revert CredibleAccountModule_NotAddedToHookMultiplexer();
-            }
-
-            address[] memory sessionKeys = getAssociatedSessionKeys();
-            uint256 sessionKeysLength = sessionKeys.length;
-            for (uint256 i; i < sessionKeysLength; i++) {
+            if (
+                !hookMultiPlexer.hasHook(sender, address(this), HookType.GLOBAL)
+            ) revert CredibleAccountModule_NotAddedToHookMultiplexer();
+            address[] memory sessionKeys = getSessionKeysByWallet();
+            for (uint256 i; i < sessionKeys.length; i++) {
                 if (
-                    (sessionData[sessionKeys[i]][msg.sender].validUntil >
+                    (sessionData[sessionKeys[i]][sender].validUntil >
                         block.timestamp) && !isSessionClaimed(sessionKeys[i])
-                ) {
+                )
                     revert CredibleAccountModule_LockedTokensNotClaimed(
                         sessionKeys[i]
                     );
-                }
-
-                delete sessionData[sessionKeys[i]][msg.sender];
+                delete sessionData[sessionKeys[i]][sender];
+                delete lockedTokens[sessionKeys[i]];
             }
-
-            delete walletSessionKeys[msg.sender];
-            moduleInitialized[msg.sender].validatorInitialized = false;
-
-            emit CredibleAccountModule_ModuleUninstalled(msg.sender);
-
-        } else if(moduleType == MODULE_TYPE_HOOK) {
-
-            // check if CredibleAccountModule still exists as Validator
-            if(moduleInitialized[msg.sender].validatorInitialized == true) {
+            delete walletSessionKeys[sender];
+            moduleInitialized[sender].validatorInitialized = false;
+            emit CredibleAccountModule_ModuleUninstalled(sender);
+        } else if (moduleType == MODULE_TYPE_HOOK) {
+            if (moduleInitialized[sender].validatorInitialized == true)
                 revert CredibleAccountModule_ValidatorExists();
-            }
-
-            moduleInitialized[msg.sender].hookInitialized = false;
-
+            moduleInitialized[sender].hookInitialized = false;
         } else {
             revert CredibleAccountModule_InvalidModuleType();
         }
-        // if data/ModuleType is Hook
-        // check if CredibleValidator exists
-          // If yes, then revert
-          // If no, then move on
-
-        // check if CredibleValidator exists
-          // If No, then revert
-          // If Yes, then perform the uninstallation of validator
-
-
-        // else this is for uninstallation of validator
-        // put all checks for uninstallation of validator here
-
-        // check if Hook is installed
-            // if not installed, revert
-            // if yes, then call removeHook
-
     }
-
-    function onUnInstallHook() internal {
-        // check if CredibleValidator exists
-          // If yes, then revert
-          // If no, then move on
-    }
-
-    function onUnInstallValidator() internal {
-        // check if CredibleValidator exists
-          // If No, then revert
-          // If Yes, then perform the uninstallation of validator
-
-        // put all checks for uninstallation of validator here 
-          // Precense of Unclaimed Active Session will revert uninstallation
-          
-        // check if Hook is installed
-            // if not installed, revert
-            // if yes, then call removeHook
-    }
-
 
     // @inheritdoc ICredibleAccountModule
     function isValidSignatureWithSender(
@@ -444,200 +317,254 @@ contract CredibleAccountModule is ICredibleAccountModule {
 
     // @inheritdoc ICredibleAccountModule
     function isInitialized(address smartAccount) external view returns (bool) {
-        return moduleInitialized[msg.sender].validatorInitialized;   
+        return moduleInitialized[smartAccount].validatorInitialized;
     }
 
     /*//////////////////////////////////////////////////////////////
-                               INTERNAL
+                          VALIDATOR INTERNAL
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Validates a single call within a user operation against the session data
     /// @dev This function decodes the call data, extracts relevant information, and performs validation checks
     /// @param _callData The encoded call data from the user operation
     /// @param _sessionKey The session key
-    /// @param _sd The session data
-    /// @param _userOpSender The address of the account initiating the user operation
+    /// @param _wallet The address of the account initiating the user operation
     /// @return bool Returns true if the call is valid according to the session data, false otherwise
     function _validateSingleCall(
         bytes calldata _callData,
         address _sessionKey,
-        SessionData memory _sd,
-        address _userOpSender
+        address _wallet
     ) internal returns (bool) {
-        address target;
-        bytes calldata execData;
-        (target, , execData) = ExecutionLib.decodeSingle(_callData[100:]);
-
-        (bytes4 selector, , address to, uint256 amount) = _digest(execData);
-
-        if (selector != _sd.selector) return false;
-        return
-            _validateTokenData(
-                _sessionKey,
-                _sd.lockedTokens,
-                selector,
-                _userOpSender,
-                to,
-                amount,
-                target
-            );
+        (address target, , bytes calldata execData) = ExecutionLib.decodeSingle(
+            _callData[EXEC_OFFSET:]
+        );
+        (bytes4 selector, , , uint256 amount) = _digestClaimTx(execData);
+        if (!_isValidSelector(selector)) return false;
+        return _validateTokenData(_sessionKey, _wallet, amount, target);
     }
 
     /// @notice Validates a batch of calls within a user operation against the session data
     /// @dev This function decodes multiple executions, extracts relevant information, and performs validation checks for each
     /// @param _callData The encoded call data from the user operation containing multiple executions
     /// @param _sessionKey The session key
-    /// @param _sd The session data
-    /// @param _userOpSender The address of the account initiating the user operation
+    /// @param _wallet The address of the account initiating the user operation
     /// @return bool Returns true if all calls in the batch are valid according to the session data, false otherwise
     function _validateBatchCall(
         bytes calldata _callData,
         address _sessionKey,
-        SessionData memory _sd,
-        address _userOpSender
+        address _wallet
     ) internal returns (bool) {
-        Execution[] calldata execs = ExecutionLib.decodeBatch(_callData[100:]);
-        for (uint256 i; i < execs.length; i++) {
-            address target = execs[i].target;
-            (bytes4 selector, , address to, uint256 amount) = _digest(
+        Execution[] calldata execs = ExecutionLib.decodeBatch(
+            _callData[EXEC_OFFSET:]
+        );
+        for (uint256 i; i < execs.length; ++i) {
+            (bytes4 selector, , , uint256 amount) = _digestClaimTx(
                 execs[i].callData
             );
-            if (selector != _sd.selector) return false;
             if (
+                !_isValidSelector(selector) ||
                 !_validateTokenData(
                     _sessionKey,
-                    _sd.lockedTokens,
-                    selector,
-                    _userOpSender,
-                    to,
+                    _wallet,
                     amount,
-                    target
+                    execs[i].target
                 )
-            ) {
-                return false;
-            }
+            ) return false;
         }
         return true;
     }
-
     /**
      * @notice check if the tokenAddress in calldata of userOp is part of the session data and wallet has sufficient token balance
-     * @dev locked tokenBalance check is done in the CredibleAccountHook
+     * @dev locked tokenBalance check is done in the CredibleAccountModule
      * @dev for `transfer` as function-selector, then check for the wallet balance
      * @dev for `transferFrom` as function-selector, then check for the wallet balance and allowance
      */
     function _validateTokenData(
         address _sessionKey,
-        LockedToken[] memory _lockedTokens,
-        bytes4 _selector,
-        address _userOpSender,
-        address _to,
+        address _wallet,
         uint256 _amount,
         address _token
     ) internal returns (bool) {
-        bool tokenFound;
-        uint256 idx;
-        for (uint256 i; i < _lockedTokens.length; ++i) {
-            if (_lockedTokens[i].token == _token) {
-                tokenFound = true;
-                idx = i;
-                break;
+        LockedToken[] storage tokens = lockedTokens[_sessionKey];
+        for (uint256 i; i < tokens.length; ++i) {
+            if (tokens[i].token == _token) {
+                if (
+                    _walletTokenBalance(_wallet, _token) >= _amount &&
+                    _amount == tokens[i].lockedAmount
+                ) {
+                    tokens[i].claimedAmount += _amount;
+                    return true;
+                }
             }
         }
-        if (!tokenFound) return false;
-
-        if (_selector == IERC20.transfer.selector) {
-            if (IERC20(_token).balanceOf(_userOpSender) < _amount) return false;
-        } else if (_selector == IERC20.transferFrom.selector) {
-            if (IERC20(_token).balanceOf(_userOpSender) < _amount) return false;
-        }
-
-        if (
-            (_amount > _lockedTokens[idx].lockedAmount) ||
-            (_amount + _lockedTokens[idx].claimedAmount >
-                _lockedTokens[idx].lockedAmount)
-        ) return false;
-
-        SessionData storage sd = sessionData[_sessionKey][_userOpSender];
-        // incrementing the claimed amount for the token
-        sd.lockedTokens[idx].claimedAmount += _amount;
-        return true;
+        return false;
     }
 
     /// @notice Extracts and decodes relevant information from ERC20 function call data
-    /// @dev Supports approve, transfer, and transferFrom functions of ERC20 tokens
+    /// @dev Supports transferFrom function of ERC20 tokens
     /// @param _data The calldata of the ERC20 function call
-    /// @return selector The function selector (4 bytes)
-    /// @return from The address tokens are transferred from (for transferFrom)
-    /// @return to The address tokens are transferred to or approved for
-    /// @return amount The amount of tokens involved in the transaction
-    function _digest(
+    /// @return The function selector (4 bytes)
+    /// @return The address tokens are transferred from (for transferFrom)
+    /// @return The address tokens are transferred to or approved for
+    /// @return The amount of tokens involved in the transaction
+    function _digestClaimTx(
         bytes calldata _data
-    )
-        internal
-        pure
-        returns (bytes4 selector, address from, address to, uint256 amount)
-    {
-        selector = bytes4(_data[0:4]);
-        if (
-            selector == IERC20.approve.selector ||
-            selector == IERC20.transfer.selector
-        ) {
-            to = address(bytes20(_data[16:36]));
-            amount = uint256(bytes32(_data[36:68]));
-            return (selector, address(0), to, amount);
-        } else if (selector == IERC20.transferFrom.selector) {
-            from = address(bytes20(_data[16:36]));
-            to = address(bytes20(_data[48:68]));
-            amount = uint256(bytes32(_data[68:100]));
-            return (selector, from, to, amount);
-        } else {
+    ) internal pure returns (bytes4, address, address, uint256) {
+        bytes4 selector = bytes4(_data[0:4]);
+        if (!_isValidSelector(selector))
             return (bytes4(0), address(0), address(0), 0);
-        }
+        address from = address(bytes20(_data[16:36]));
+        address to = address(bytes20(_data[48:68]));
+        uint256 amount = uint256(bytes32(_data[68:100]));
+        return (selector, from, to, amount);
     }
 
     /// @notice Extracts signature components and proof from the provided data
     /// @dev Decodes the signature, and proof from a single bytes array
     /// @param _signature The combined signature, proof data
-    /// @return signature The extracted signature (r, s, v)
-    /// @return proof The proof
+    /// @return The extracted signature (r, s, v)
+    /// @return The proof
     function _digestSignature(
         bytes calldata _signature
-    ) internal view returns (bytes memory signature, bytes memory proof) {
+    ) internal pure returns (bytes memory, bytes memory) {
         bytes32 r = bytes32(_signature[0:32]);
         bytes32 s = bytes32(_signature[32:64]);
         uint8 v = uint8(_signature[64]);
-
         bytes memory proof = bytes(_signature[65:]);
-
-        signature = abi.encodePacked(r, s, v);
-
+        bytes memory signature = abi.encodePacked(r, s, v);
         // r (32 bytes) + s (32 bytes) + v (1 byte) = 65 bytes.
         // uint256 proofLength = _signature.length - 65;
-
         // proof = new bytes(proofLength);
-
         // if (proofLength > 0) {
         //     uint256 proofStart = 65; // 32 byte r + 32 byte s + 1 byte v
         //     for (uint256 i; i < proofLength; ++i) {
         //         proof[i] = _signature[proofStart + i];
         //     }
         // }
-
         return (signature, proof);
     }
 
     /*//////////////////////////////////////////////////////////////
-                                 HOOK
+                         HOOK PUBLIC/EXTERNAL
     //////////////////////////////////////////////////////////////*/
 
+    // @inheritdoc ICredibleAccountModule
     function preCheck(
         address msgSender,
         uint256 msgValue,
         bytes calldata msgData
     ) external override returns (bytes memory hookData) {
-        return "";
+        (address sender, ) = abi.decode(msgData, (address, bytes));
+        return abi.encode(sender, _cumulativeLockedForWallet(sender));
     }
 
-    function postCheck(bytes calldata hookData) external {}
+    // @inheritdoc ICredibleAccountModule
+    function postCheck(bytes calldata hookData) external {
+        if (hookData.length == 0) return;
+        (address sender, TokenData[] memory preCheckBalances) = abi.decode(
+            hookData,
+            (address, TokenData[])
+        );
+        for (uint256 i; i < preCheckBalances.length; ) {
+            address token = preCheckBalances[i].token;
+            uint256 preCheckLocked = preCheckBalances[i].amount;
+            uint256 walletBalance = _walletTokenBalance(sender, token);
+            uint256 postCheckLocked = _retrieveLockedBalance(sender, token);
+            if (
+                walletBalance < preCheckLocked &&
+                walletBalance < postCheckLocked
+            ) {
+                revert CredibleAccountModule_InsufficientUnlockedBalance(token);
+            }
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    /*//////////////////////////////////////////////////////////////
+                            HOOK INTERNAL
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Retrieves the total locked balance for a specific token across all session keys
+    /// @dev Iterates through all session keys and their locked tokens to calculate the total locked balance
+    /// @param _wallet The address of the wallet to check the locked balance for
+    /// @param _token The address of the token to check the locked balance for
+    /// @return The total locked balance of the specified token across all session keys
+    function _retrieveLockedBalance(
+        address _wallet,
+        address _token
+    ) internal view returns (uint256) {
+        address[] memory sessionKeys = getSessionKeysByWallet(_wallet);
+        uint256 totalLocked;
+        uint256 sessionKeysLength = sessionKeys.length;
+        for (uint256 i; i < sessionKeysLength; ) {
+            LockedToken[] memory tokens = lockedTokens[sessionKeys[i]];
+            uint256 tokensLength = tokens.length;
+            for (uint256 j; j < tokensLength; ) {
+                LockedToken memory lockedToken = tokens[j];
+                if (lockedToken.token == _token) {
+                    totalLocked += (lockedToken.lockedAmount -
+                        lockedToken.claimedAmount);
+                }
+                unchecked {
+                    ++j;
+                }
+            }
+            unchecked {
+                ++i;
+            }
+        }
+        return totalLocked;
+    }
+
+    /// @notice Gets the cumulative locked state of all tokens across all session keys
+    /// @dev Aggregates locked token balances for all session keys, combining balances for the same token
+    /// @return Array of TokenData structures representing the initial locked state
+    function _cumulativeLockedForWallet(
+        address _wallet
+    ) internal view returns (TokenData[] memory) {
+        address[] memory sessionKeys = getSessionKeysByWallet(_wallet);
+        TokenData[] memory tokenData = new TokenData[](0);
+        uint256 unique;
+        for (uint256 i; i < sessionKeys.length; ++i) {
+            LockedToken[] memory locks = lockedTokens[sessionKeys[i]];
+            for (uint256 j; j < locks.length; ++j) {
+                address token = locks[j].token;
+                bool found = false;
+                for (uint256 k; k < unique; ++k) {
+                    if (tokenData[k].token == token) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    TokenData[] memory newTokenData = new TokenData[](
+                        unique + 1
+                    );
+                    for (uint256 m; m < unique; ++m)
+                        newTokenData[m] = tokenData[m];
+                    uint256 totalLocked = _retrieveLockedBalance(
+                        _wallet,
+                        token
+                    );
+                    newTokenData[unique] = TokenData(token, totalLocked);
+                    tokenData = newTokenData;
+                    unique++;
+                }
+            }
+        }
+        return tokenData;
+    }
+
+    function _walletTokenBalance(
+        address _wallet,
+        address _token
+    ) internal view returns (uint256) {
+        return IERC20(_token).balanceOf(_wallet);
+    }
+
+    function _isValidSelector(bytes4 _selector) internal pure returns (bool) {
+        return _selector == IERC20.transferFrom.selector;
+    }
 }
