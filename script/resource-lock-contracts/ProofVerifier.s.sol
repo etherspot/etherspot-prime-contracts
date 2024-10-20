@@ -23,12 +23,13 @@ contract ProofVeriferScript is Script {
     //address constant EXPECTED_IMPLEMENTATION = 0x58A7BcEe4E314e321029fCFa8155c6C1b9188c2F;
 
     function run() external {
+        console.log("Starting deployment sequence...");
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         console2.log("Starting deployment sequence...");
 
         console2.log("Deploying ProofVerifier...");
-        ProofVerifier proofVerifier = new ProofVerifier();
+        ProofVerifier proofVerifier = new ProofVerifier{salt: SALT}();
         console2.log(
             "ProofVerifier deployed at address",
             address(proofVerifier)
