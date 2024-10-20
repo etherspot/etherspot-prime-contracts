@@ -11,7 +11,7 @@ import {ProofVerifier} from "../../src/modular-etherspot-wallet/proof/ProofVerif
  * @dev Deployment script for ProofVerifier used in CredibleAccountModule during verifyUserOp function to check if the proof of spending is valid
  */
 
-// source .env & forge script script/resource-lock-contracts/ProofVerifier.s.sol:ProofVerifierScript1 --rpc-url "https://polygon-amoy-bor-rpc.publicnode.com" --broadcast -vvvv --ffi
+// source .env & forge script script/resource-lock-contracts/ProofVerifier.s.sol:ProofVerifierScript --rpc-url "https://polygon-amoy-bor-rpc.publicnode.com" --broadcast -vvvv --ffi
 contract ProofVeriferScript is Script {
     bytes32 immutable SALT =
         bytes32(
