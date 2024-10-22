@@ -12,11 +12,10 @@ import {IERC7484} from "../../src/modular-etherspot-wallet/modules/registry/inte
  * @dev Deployment script for HookMultiplexer
  */
 
-// source .env & forge script script/resource-lock-contracts/HookMultiplexer.s.sol:HookMultiplexerScript \n --rpc-url "https://polygon-amoy-bor-rpc.publicnode.com" --broadcast -vvvv --ffi
+// source .env & forge script script/resource-lock-contracts/HookMultiPlexer.s.sol:HookMultiPlexerScript \n --rpc-url "https://polygon-amoy-bor-rpc.publicnode.com" --broadcast -vvvv --ffi
+// source .env & forge script script/resource-lock-contracts/HookMultiPlexer.s.sol:HookMultiPlexerScript \n --rpc-url "https://erpc.apothem.network" --broadcast -vvvv --ffi --legacy --gas-price 4000000
 
-// source .env & forge script script/resource-lock-contracts/HookMultiplexer.s.sol:HookMultiplexerScript \n --rpc-url "https://erpc.apothem.network" --broadcast -vvvv --ffi --legacy --gas-price 4000000
-
-contract HookMultiplexerScript is Script {
+contract HookMultiPlexerScript is Script {
     bytes32 immutable SALT =
         bytes32(
             abi.encodePacked(
