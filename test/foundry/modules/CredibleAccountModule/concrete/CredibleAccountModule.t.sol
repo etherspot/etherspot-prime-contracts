@@ -120,6 +120,24 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
         );
     }
 
+    function test_onInstall_CredibleAccountModuleAsHook() public {
+        mew = setupMEWWithHookMultiplexerAndCredibleAccountModule();
+       
+        // Verify that the module is installed
+        assertTrue(
+            mew.isModuleInstalled(
+                1,
+                address(ecdsaValidator),
+                "CredibleAccountModule module should be installed"
+            )
+        );
+
+        assertEq(
+            hookMultiPlexer.getHooks(address(mew))[0],
+            address(credibleAccountModule)
+        );
+    }
+
     function test_onInstall_validatorAndHook_viaUserOp_batch() public {
         mew = setupMEWWithEmptyHookMultiplexer();
         (alice, aliceKey) = makeAddrAndKey("alice");

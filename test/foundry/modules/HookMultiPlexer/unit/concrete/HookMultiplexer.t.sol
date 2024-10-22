@@ -13,6 +13,8 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {MockRegistry} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockRegistry.sol";
 import {MockHook} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockHook.sol";
 import {MockModule} from "../../../../../../src/modular-etherspot-wallet/test/mocks/MockModule.sol";
+import {ProofVerifier} from "../../../../../../src/modular-etherspot-wallet/proof/ProofVerifier.sol";
+import {CredibleAccountModule} from "../../../../../../src/modular-etherspot-wallet/modules/validators/CredibleAccountModule.sol";
 
 contract HookMultiPlexerTest is BaseTest {
     using LibSort for address[];
@@ -31,6 +33,18 @@ contract HookMultiPlexerTest is BaseTest {
     MockHook internal subHook6;
     MockHook internal subHook7;
     MockHook internal subHook8;
+
+    // Proof Verifier for CredibleAccountValidator
+    ProofVerifier proofVerifier = new ProofVerifier();
+
+    MockRegistry registry = new MockRegistry();
+    HookMultiPlexer hookMultiPlexer = new HookMultiPlexer(registry);
+
+    // CredibleAccountModule for MEW
+    CredibleAccountModule credibleAccountModule = new CredibleAccountModule(
+        address(proofVerifier),
+        address(hookMultiPlexer)
+    );
 
     /*//////////////////////////////////////////////////////////////////////////
                                     VARIABLES
@@ -129,6 +143,27 @@ contract HookMultiPlexerTest is BaseTest {
         return abi.encodeWithSelector(HookMultiPlexer.onInstall.selector, data);
     }
 
+    function _getHookMultiPlexerInitDataWithCredibleAccountModule()
+        internal
+        view
+        returns (bytes memory)
+    {
+        address[] memory globalHooks = new address[](1);
+        globalHooks[0] = address(credibleAccountModule);
+        address[] memory valueHooks = new address[](0);
+        address[] memory delegatecallHooks = new address[](0);
+        SigHookInit[] memory sigHooks = new SigHookInit[](0);
+        SigHookInit[] memory targetSigHooks = new SigHookInit[](0);
+        return
+            abi.encode(
+                globalHooks,
+                valueHooks,
+                delegatecallHooks,
+                sigHooks,
+                targetSigHooks
+            );
+    }
+
     function getPreCheckHookCallData(
         address msgSender,
         uint256 msgValue,
@@ -178,7 +213,6 @@ contract HookMultiPlexerTest is BaseTest {
     {
         // it should revert
         bytes memory data = _getInitData(false);
-        console2.logBytes4(HookMultiPlexer.onInstall.selector);
         bytes memory installData = abi.encodeWithSelector(
             HookMultiPlexer.onInstall.selector,
             address(this)
@@ -193,11 +227,27 @@ contract HookMultiPlexerTest is BaseTest {
     {
         // it should set all the hooks
         bytes memory data = _getInitData(true);
-        console2.logBytes(data);
         hook.onInstall(data);
 
         address[] memory memoryhooks = hook.getHooks(address(this));
         assertEq(memoryhooks.length, 7);
+    }
+
+    function test_OnInstallWithCredibleAccountModuleAsGeneralHook()
+        public
+        whenModuleIsNotIntialized
+    {
+        // it should set all the hooks
+        bytes memory data = _getHookMultiPlexerInitDataWithCredibleAccountModule();
+        bytes memory hooksInstallInitData = abi.encodeWithSelector(
+                hook.onInstall.selector,
+                data
+            );
+        console2.logBytes(hooksInstallInitData);
+        hook.onInstall(hooksInstallInitData);
+
+        address[] memory memoryhooks = hook.getHooks(address(this));
+        assertEq(memoryhooks.length, 1);
     }
 
     function test_OnUninstallShouldDeleteAllTheHooksAndSigs() public {

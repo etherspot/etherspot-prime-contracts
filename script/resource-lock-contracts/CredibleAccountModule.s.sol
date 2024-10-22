@@ -12,6 +12,7 @@ import {CredibleAccountModule} from "../../src/modular-etherspot-wallet/modules/
  * @dev Deployment script for ProofVerifier and CredibleAccountModule.
  */
 
+// source .env & forge script script/resource-lock-contracts/CredibleAccountModule.s.sol:CredibleAccountModuleScript --rpc-url "https://polygon-amoy-bor-rpc.publicnode.com" --broadcast -vvvv --ffi
 contract CredibleAccountModuleScript is Script {
     bytes32 immutable SALT =
         bytes32(
@@ -20,8 +21,7 @@ contract CredibleAccountModuleScript is Script {
             )
         );
     // replace placeholder with actual deployed address
-    address constant HOOK_MULTIPLEXER = address(0);
-    // address constant EXPECTED_CREDIBLE_ACCOUNT_MODULE = ;
+    address constant HOOK_MULTIPLEXER = 0x370e65e9921f4F496e0Cb7c454B24DdC632eC862;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -39,29 +39,12 @@ contract CredibleAccountModuleScript is Script {
         // CreibleAccountModule
         console2.log("Deploying CredibleAccountModule...");
         // if (EXPECTED_CREDIBLE_ACCOUNT_Module.code.length == 0) {
-        CredibleAccountModule credibleAccountModule = new CredibleAccountModule{
-            salt: SALT
-        }(address(proofVerifier), HOOK_MULTIPLEXER);
-        // if (
-        //     address(credibleAccountModule) !=
-        //     EXPECTED_CREDIBLE_ACCOUNT_Module
-        // ) {
-        //     revert("Unexpected contract address!!!");
-        // } else {
+        CredibleAccountModule credibleAccountModule = new CredibleAccountModule(address(proofVerifier), HOOK_MULTIPLEXER);
+
         console2.log(
             "CredibleAccountModule deployed at address",
             address(credibleAccountModule)
         );
-        //     }
-        // } else {
-        //     console2.log(
-        //         "Already deployed at address",
-        //         EXPECTED_CREDIBLE_ACCOUNT_Module
-        //     );
-        // }
-        // bytes memory valCode = address(credibleAccountModule).code;
-        // console2.logBytes(valCode);
-
         console2.log("Finished deployment sequence!");
 
         vm.stopBroadcast();

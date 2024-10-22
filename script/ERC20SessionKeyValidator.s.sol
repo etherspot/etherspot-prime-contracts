@@ -10,7 +10,9 @@ import {ERC20SessionKeyValidator} from "../src/modular-etherspot-wallet/modules/
  * @title  ERC20SessionKeyValidatorScript.
  * @dev Deployment script for ERC20SessionKeyValidator.
  */
-// source .env & forge script script/ERC20SessionKeyValidatorScript.s.sol:ERC20SessionKeyValidatorScript --rpc-url "https://polygon-amoy-bor-rpc.publicnode.com" --broadcast -vvvv --ffi
+// source .env & forge script script/ERC20SessionKeyValidator.s.sol:ERC20SessionKeyValidatorScript --rpc-url "https://polygon-amoy-bor-rpc.publicnode.com" --broadcast -vvvv --ffi
+// source .env & forge script script/ERC20SessionKeyValidator.s.sol:ERC20SessionKeyValidatorScript --rpc-url "https://erpc.apothem.network" --broadcast -vvvv --ffi
+
 contract ERC20SessionKeyValidatorScript is Script {
     bytes32 immutable SALT =
         bytes32(abi.encodePacked("ModularEtherspotWallet:Create2:salt"));
