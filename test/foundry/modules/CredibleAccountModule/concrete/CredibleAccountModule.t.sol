@@ -74,6 +74,53 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
         );
     }
 
+    function test_uninstallCredibleAccountModule_Hook() public {
+        // Set up the test environment with CredibleAccountModule
+        _testSetup();
+        // Verify that the module is installed
+        assertTrue(
+            mew.isModuleInstalled(
+                1,
+                address(credibleAccountModule),
+                "CredibleAccountModule module should be installed"
+            )
+        );
+        assertEq(
+            mew.getActiveHook(),
+            address(hookMultiPlexer),
+            "Active hook should be HookMultiPlexer"
+        );
+        assertEq(
+            hookMultiPlexer.getHooks(address(mew))[0],
+            address(credibleAccountModule)
+        );
+
+        // uninstall the hookMultiplexer
+
+        // Prepare uninstallation call
+        Execution[] memory uninstallHookMultiPlexerCall = new Execution[](1);
+        uninstallHookMultiPlexerCall[0].target = address(mew);
+        uninstallHookMultiPlexerCall[0].value = 0;
+        uninstallHookMultiPlexerCall[0].callData = abi.encodeWithSelector(
+            ModularEtherspotWallet.uninstallModule.selector,
+            uint256(4),
+            address(hookMultiPlexer),
+            abi.encode(hex"")
+        );
+
+        console.log("uninstallHookMultiPlexerCallData is: ");
+        console.logBytes(uninstallHookMultiPlexerCall[0].callData);
+
+        // Execute the uninstallation
+        defaultExecutor.execBatch(IERC7579Account(mew), uninstallHookMultiPlexerCall);
+
+        assertEq(
+            mew.getActiveHook(),
+            address(0),
+            "Active hook should be Zero Address"
+        );
+    }
+
     function test_onInstall_validator_viaUserOp_single() public {
         mew = setupMEWWithEmptyHookMultiplexer();
         (alice, aliceKey) = makeAddrAndKey("alice");
@@ -93,6 +140,8 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
             address(credibleAccountModule),
             abi.encode(MODULE_TYPE_VALIDATOR)
         );
+        console.log("installValidatorData is: ");
+        console.logBytes(installValidatorData);
         bytes memory userOpCalldata = abi.encodeCall(
             IERC7579Account.execute,
             (
@@ -842,6 +891,82 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
             newAmounts[3],
             "Cumulative WETH locked balance does not match expected amount"
         );
+    }
+
+    function test_enableSessionKey_viaUserOp() public {
+        // Set up the test environment and enable a session key
+        _testSetup();
+        vm.deal(beneficiary, 100 ether);
+        vm.deal(address(mew), 100 ether);
+        vm.deal(owner1, 100 ether);
+
+        console.log("mew address is: ", address(mew));
+        console.log("mewAccount address is: ", address(mewAccount));
+        console.log("owner1 address is: ", address(owner1));
+        console.log("beneficiary address is: ", address(beneficiary));
+        console.log("credibleAccountModule is: ", address(credibleAccountModule));
+        
+        TestWETH weth = new TestWETH();
+        _enableDefaultSessionKey();
+        // Enable another session key
+        uint256[4] memory newAmounts = [
+            uint256(10e6),
+            uint256(40e18),
+            uint256(50e18),
+            uint256(113e18)
+        ];
+        usdc.mint(address(mew), newAmounts[0]);
+        dai.mint(address(mew), newAmounts[1]);
+        uni.mint(address(mew), newAmounts[2]);
+        vm.deal(address(mew), newAmounts[3]);
+        weth.deposit{value: newAmounts[3]}();
+        TokenData[] memory newTokenData = new TokenData[](tokens.length + 1);
+        for (uint256 i; i < 3; ++i) {
+            newTokenData[i] = TokenData(tokens[i], newAmounts[i]);
+        }
+        // Append WETH lock onto newTokenData
+        newTokenData[3] = TokenData(address(weth), newAmounts[3]);
+        bytes memory newSessionData = abi.encode(
+            dummySessionKey,
+            validAfter,
+            validUntil,
+            newTokenData
+        );
+
+        console.log("mew address is: ", address(mew));
+        vm.startPrank(address(mew));
+        bytes memory enableSessionKeyData = abi.encodeWithSelector(
+            CAM.enableSessionKey.selector,
+            newSessionData
+        );
+
+        console.log("enableSessionKeyData is: ");
+        console.logBytes(enableSessionKeyData);
+
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (
+                // SimpleSingle Execution
+                ModeLib.encodeSimpleSingle(),
+                // enableSessionKeyData to be operated on CredibleAccountModule (Validator)
+                ExecutionLib.encodeSingle(address(credibleAccountModule), 0, enableSessionKeyData)
+            )
+        );
+
+        (
+            bytes32 hash,
+            PackedUserOperation memory userOp
+        ) = _createUserOperationWithoutProof(
+                address(mew),
+                userOpCalldata,
+                //userOp to be signed by owner1Key
+                owner1Key
+            );
+
+        // Execute the user operation
+        _executeUserOperation(userOp);
+
+
     }
 
     // Test: Claimed session should return true
