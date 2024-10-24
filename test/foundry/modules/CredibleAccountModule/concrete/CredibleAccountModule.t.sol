@@ -899,26 +899,33 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
     function test_enableSessionKey_viaUserOp() public {
         // Set up the test environment and enable a session key
         _testSetup();
-        TestWETH weth = new TestWETH();
         _enableDefaultSessionKey();
         // Enable another session key
-        uint256[4] memory newAmounts = [
+        uint256[2] memory newAmounts = [
             uint256(10e6),
-            uint256(40e18),
-            uint256(50e18),
-            uint256(113e18)
+            uint256(40e18)
         ];
+        
         usdc.mint(address(mew), newAmounts[0]);
         dai.mint(address(mew), newAmounts[1]);
-        uni.mint(address(mew), newAmounts[2]);
-        vm.deal(address(mew), newAmounts[3]);
-        weth.deposit{value: newAmounts[0]}();
+
+        console.log("usdc address is: ", address(usdc));
+        console.log("dai address is: ", address(dai));
+        console.log("newAmounts[0] is: ", newAmounts[0]);
+        console.log("newAmounts[1] is: ", newAmounts[1]);
+        console.log("dummySessionKey is: ", dummySessionKey);
+        console.log("validAfter is: ", validAfter);
+        console.log("validUntil is: ", validUntil);
+
+        //uni.mint(address(mew), newAmounts[2]);
+        vm.deal(address(mew), uint256(113e18));
         TokenData[] memory newTokenData = new TokenData[](tokens.length + 1);
-        for (uint256 i; i < 3; ++i) {
+        for (uint256 i; i < 2; ++i) {
             newTokenData[i] = TokenData(tokens[i], newAmounts[i]);
         }
         // Append WETH lock onto newTokenData
-        newTokenData[3] = TokenData(address(weth), newAmounts[0]);
+        //newTokenData[3] = TokenData(address(weth), newAmounts[0]);
+
         bytes memory newSessionData = abi.encode(
             dummySessionKey,
             validAfter,
@@ -933,6 +940,31 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
         );
         console.log("enableSessionKeyData is: ");
         console.logBytes(enableSessionKeyData);
+
+
+        TokenData[] memory newTokenData2 = new TokenData[](tokens.length + 1);
+
+        newTokenData2[0] = TokenData(0xa0Cb889707d426A7A386870A03bc70d1b0697598, uint256(10000000)); // USDC
+        newTokenData2[1] = TokenData(0x5991A2dF15A8F6A256D3Ec51E99254Cd3fb576A9, uint256(40000000000000000000)); // DAI
+
+        // Solidity code to encode the session data
+        bytes memory newSessionData2 = abi.encode(
+            0xB071527c3721215A46958d172A42E7E3BDd1DF46, // sessionKey
+            uint48(1729743735), // validAfter
+            uint48(1729744025), // validUntil
+            newTokenData2
+        );
+
+        // Encode the function call data with the function selector and the encoded session data
+        bytes memory enableSessionKeyData2 = abi.encodeWithSelector(
+            CAM.enableSessionKey.selector,
+            newSessionData2
+        );
+
+        console.log("enableSessionKeyData2 is: ");
+        console.logBytes(enableSessionKeyData2);
+
+
         bytes memory userOpCalldata = abi.encodeCall(
             IERC7579Account.execute,
             (
@@ -956,6 +988,31 @@ contract CredibleAccountModule_Concrete_Test is LocalTestUtils {
             );
         // Execute the user operation
         _executeUserOperation(userOp);
+         // Get cumulative locked funds for wallet
+        TokenData[] memory data = credibleAccountModule
+            .cumulativeLockedForWallet();
+        // Verify retrieved data matches expected
+        assertEq(
+            data[0].token,
+            address(usdc),
+            "First token address does not match expected (expected USDC)"
+        );
+        assertEq(
+            data[0].amount,
+            amounts[0] + newAmounts[0],
+            "Cumulative USDC locked balance does not match expected amount"
+        );
+        assertEq(
+            data[1].token,
+            address(dai),
+            "Second token address does not match expected (expected DAI)"
+        );
+        assertEq(
+            data[1].amount,
+            amounts[1] + newAmounts[1],
+            "Cumulative DAI locked balance does not match expected amount"
+        );
+
     }
 
     // Test: Claimed session should return true
