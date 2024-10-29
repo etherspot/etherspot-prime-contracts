@@ -270,6 +270,14 @@ const etherscan: HardhatUserConfig['etherscan'] = {
         browserURL: 'https://explorer.apothem.network/',
       },
     },
+    {
+      network: 'odyssey',
+      chainId: 911867,
+      urls: {
+        apiURL: "https://odyssey-explorer.ithaca.xyz/api",
+        browserURL: "https://odyssey-explorer.ithaca.xyz/"
+      }
+    }
   ],
 };
 
