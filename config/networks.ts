@@ -233,6 +233,11 @@ const networks: HardhatUserConfig['networks'] = {
     url: 'https://erpc.xinfin.network',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
+  opBnb: {
+    chainId: 204,
+    url: 'https://opbnb-mainnet-rpc.bnbchain.org',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
   dev: { url: 'http://localhost:8545' },
 };
 export default networks;
