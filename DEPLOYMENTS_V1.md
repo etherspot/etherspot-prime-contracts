@@ -59,7 +59,9 @@
 | `EtherspotWalletFactory` | `ancient8` | [0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E](https://scan.ancient8.gg/address/0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E) | [0x82087ff28ee62c4aa6973297f359efaa8e7f2b4018778c3c9625aa86ee2a5eff](https://scan.ancient8.gg/tx/0x82087ff28ee62c4aa6973297f359efaa8e7f2b4018778c3c9625aa86ee2a5eff) |
 | `EtherspotWallet` | `ancient8` | [0xfB32cef50CfB0A0F9f6d37A05828b2F56EfdfE20](https://scan.ancient8.gg/address/0xfB32cef50CfB0A0F9f6d37A05828b2F56EfdfE20) | [0x40e94d0fa1323a2d7f52327ee71140xe8794c27e8460820816946c0223bfb17b583fd8061b6d222d37e0b59a31580ccb3aa880e0293a3031da53b4811d0e8a4a04](https://scan.ancient8.gg/tx/0xe8794c27e8460820816946c0223bfb17b583fd8061b6d222d37e0b59a31580cc) |
 | `VerifyingPaymaster` | `xdc` | [0xABA00E929d66119A4A7F4B2E27150fC387ee801c](https://observer.xdc.org/address/0xABA00E929d66119A4A7F4B2E27150fC387ee801c#transactions) | [0x0992c38f010b9f4e492b9ebf4b82315f1c6a9038e0cebc7df973d47fb09c6999](https://observer.xdc.org/txs/0x0992c38f010b9f4e492b9ebf4b82315f1c6a9038e0cebc7df973d47fb09c6999#overview) |
-
+| `EtherspotWalletFactory` | `opBnb` | [0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E](https://opbnb.bscscan.com/address/0x7f6d8F107fE8551160BD5351d5F1514A6aD5d40E) | [0x41676a42950c7bce6846920f304262682650cd6f2049ba0dbef2e777feb79a44](https://opbnb.bscscan.com/tx/0x41676a42950c7bce6846920f304262682650cd6f2049ba0dbef2e777feb79a44) |
+| `EtherspotWallet` | `opBnb` | [0xfB32cef50CfB0A0F9f6d37A05828b2F56EfdfE20](https://opbnb.bscscan.com/address/0xfB32cef50CfB0A0F9f6d37A05828b2F56EfdfE20) | [0x822f1b81218c29f628ecd039a23dd50a2b1410e576e34f9c96069c1bfb69229c](https://opbnb.bscscan.com/tx/0x822f1b81218c29f628ecd039a23dd50a2b1410e576e34f9c96069c1bfb69229c) |
+| `VerifyingPaymaster` | `opBnb` | [0x35AfDd0219a5D72f674D728D5544Bc0f838eEFFa](https://opbnb.bscscan.com/address/0x35AfDd0219a5D72f674D728D5544Bc0f838eEFFa) | [0x78625f09a5f99e5e4cd45757ec67ad02a369ecdd30f9b1a65ad0c1f88e185bef](https://opbnb.bscscan.com/tx/0x78625f09a5f99e5e4cd45757ec67ad02a369ecdd30f9b1a65ad0c1f88e185bef) |
 
 ## Testnets
 
