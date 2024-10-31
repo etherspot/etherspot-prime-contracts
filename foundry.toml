@@ -58,7 +58,7 @@ rootstock_testnet = "${ROOTSTOCK_TESTNET_RPC_URL}"
 scroll_sepolia = "${SCROLL_SEPOLIA_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
 xdc_apothem = "${XDC_APOTHEM_RPC_URL}"
-
+odyssey = "${ODYSSEY_RPC_URL}"
 
 [etherscan]
 # mainnets
