@@ -338,7 +338,7 @@ contract CredibleAccountModule is ICredibleAccountModule {
         (address target, , bytes calldata execData) = ExecutionLib.decodeSingle(
             _callData[EXEC_OFFSET:]
         );
-        (bytes4 selector, , , uint256 amount) = _digestClaimTx(execData);
+        (bytes4 selector, , uint256 amount) = _digestClaimTx(execData);
         if (!_isValidSelector(selector)) return false;
         return _validateTokenData(_sessionKey, _wallet, amount, target);
     }
@@ -358,7 +358,7 @@ contract CredibleAccountModule is ICredibleAccountModule {
             _callData[EXEC_OFFSET:]
         );
         for (uint256 i; i < execs.length; ++i) {
-            (bytes4 selector, , , uint256 amount) = _digestClaimTx(
+            (bytes4 selector, , uint256 amount) = _digestClaimTx(
                 execs[i].callData
             );
             if (
@@ -404,19 +404,17 @@ contract CredibleAccountModule is ICredibleAccountModule {
     /// @dev Supports transferFrom function of ERC20 tokens
     /// @param _data The calldata of the ERC20 function call
     /// @return The function selector (4 bytes)
-    /// @return The address tokens are transferred from (for transferFrom)
     /// @return The address tokens are transferred to or approved for
     /// @return The amount of tokens involved in the transaction
     function _digestClaimTx(
         bytes calldata _data
-    ) internal pure returns (bytes4, address, address, uint256) {
+    ) internal returns (bytes4, address, uint256) {
         bytes4 selector = bytes4(_data[0:4]);
         if (!_isValidSelector(selector))
-            return (bytes4(0), address(0), address(0), 0);
-        address from = address(bytes20(_data[16:36]));
-        address to = address(bytes20(_data[48:68]));
-        uint256 amount = uint256(bytes32(_data[68:100]));
-        return (selector, from, to, amount);
+            return (bytes4(0), address(0), 0);
+        address to = address(bytes20(_data[16:36]));
+        uint256 amount = uint256(bytes32(_data[36:68]));
+        return (selector, to, amount);
     }
 
     /// @notice Extracts signature components and proof from the provided data

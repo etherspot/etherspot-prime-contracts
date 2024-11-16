@@ -168,6 +168,8 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
 
     function _enableDefaultSessionKey() internal {
         bytes memory sessionData = _getDefaultSessionData();
+        (address sessionKey, uint256 validAfter, uint256 validUntil, TokenData[] memory tokenAmounts) = abi.decode(sessionData, (address,uint256,uint256, TokenData[]) );
+        console2.log("About to enable session key: %s ", sessionKey);
         credibleAccountModule.enableSessionKey(sessionData);
     }
 
@@ -183,19 +185,19 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
             );
     }
 
-    function _createTokenTransferFromExecution(
-        address _from,
-        address _recipient,
-        uint256 _amount
-    ) internal pure returns (bytes memory) {
-        return
-            abi.encodeWithSelector(
-                IERC20.transferFrom.selector,
-                _from,
-                _recipient,
-                _amount
-            );
-    }
+    // function _createTokenTransferFromExecution(
+    //     address _from,
+    //     address _recipient,
+    //     uint256 _amount
+    // ) internal pure returns (bytes memory) {
+    //     return
+    //         abi.encodeWithSelector(
+    //             IERC20.transferFrom.selector,
+    //             _from,
+    //             _recipient,
+    //             _amount
+    //         );
+    // }
 
     function _createUserOpWithSignature(
         address _account,
@@ -313,26 +315,24 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
     ) internal {
         PackedUserOperation[] memory userOps = new PackedUserOperation[](1);
         userOps[0] = _userOp;
+        console.log("Inside test setup helpers and about to call handleOps on entrypoint");
         entrypoint.handleOps(userOps, beneficiary);
     }
 
-    function _claimTokensBySolver(
+    function _claimTokensBySolverViaTransferFrom(
         uint256 _usdc,
         uint256 _dai,
         uint256 _uni
     ) internal {
-        bytes memory usdcData = _createTokenTransferFromExecution(
-            address(mew),
+        bytes memory usdcData = _createTokenTransferExecution(
             address(solver),
             _usdc
         );
-        bytes memory daiData = _createTokenTransferFromExecution(
-            address(mew),
+        bytes memory daiData = _createTokenTransferExecution(
             address(solver),
             _dai
         );
-        bytes memory uniData = _createTokenTransferFromExecution(
-            address(mew),
+        bytes memory uniData = _createTokenTransferExecution(
             address(solver),
             _uni
         );
@@ -365,6 +365,59 @@ contract CredibleAccountModuleTestUtils is TestAdvancedUtils {
             address(credibleAccountModule),
             sessionKeyPrivateKey
         );
+        // Execute the user operation
+        _executeUserOperation(userOp);
+    }
+
+    function _claimTokensBySolver(
+        uint256 _usdc,
+        uint256 _dai,
+        uint256 _uni
+    ) internal {
+        bytes memory usdcData = _createTokenTransferExecution(
+            address(solver),
+            _usdc
+        );
+        bytes memory daiData = _createTokenTransferExecution(
+            address(solver),
+            _dai
+        );
+        bytes memory uniData = _createTokenTransferExecution(
+            address(solver),
+            _uni
+        );
+        Execution[] memory batch = new Execution[](3);
+        Execution memory usdcExec = Execution({
+            target: address(usdc),
+            value: 0,
+            callData: usdcData
+        });
+        Execution memory daiExec = Execution({
+            target: address(dai),
+            value: 0,
+            callData: daiData
+        });
+        Execution memory uniExec = Execution({
+            target: address(uni),
+            value: 0,
+            callData: uniData
+        });
+        batch[0] = usdcExec;
+        batch[1] = daiExec;
+        batch[2] = uniExec;
+        bytes memory userOpCalldata = abi.encodeCall(
+            IERC7579Account.execute,
+            (ModeLib.encodeSimpleBatch(), ExecutionLib.encodeBatch(batch))
+        );
+        (, PackedUserOperation memory userOp) = _createUserOperation(
+            address(mew),
+            userOpCalldata,
+            address(credibleAccountModule),
+            sessionKeyPrivateKey
+        );
+
+        console.log("claimTokens via transfer is called and about to execute UserOperation");
+
         // Execute the user operation
         _executeUserOperation(userOp);
     }
