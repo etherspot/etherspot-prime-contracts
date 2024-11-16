@@ -565,6 +565,6 @@ contract CredibleAccountModule is ICredibleAccountModule {
     }
 
     function _isValidSelector(bytes4 _selector) internal pure returns (bool) {
-        return _selector == IERC20.transferFrom.selector;
+        return _selector == IERC20.transfer.selector;
     }
 }
