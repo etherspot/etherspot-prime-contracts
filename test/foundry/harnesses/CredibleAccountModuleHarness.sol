@@ -40,8 +40,7 @@ contract CredibleAccountModuleHarness is CredibleAccountModule {
         bytes calldata _data
     )
         external
-        pure
-        returns (bytes4 selector, address from, address to, uint256 amount)
+        returns (bytes4 selector, address to, uint256 amount)
     {
         return _digestClaimTx(_data);
     }

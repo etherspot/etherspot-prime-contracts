@@ -89,19 +89,16 @@ contract CredibleAccountModule_Fuzz_Test is LocalTestUtils {
         );
         credibleAccountModule.enableSessionKey(sessionData);
         // Claim tokens to allow disabling
-        bytes memory usdcData = _createTokenTransferFromExecution(
-            address(mew),
+        bytes memory usdcData = _createTokenTransferExecution(
             address(solver),
             _lockedAmounts[0]
         );
 
-        bytes memory daiData = _createTokenTransferFromExecution(
-            address(mew),
+        bytes memory daiData = _createTokenTransferExecution(
             address(solver),
             _lockedAmounts[1]
         );
-        bytes memory uniData = _createTokenTransferFromExecution(
-            address(mew),
+        bytes memory uniData = _createTokenTransferExecution(
             address(solver),
             _lockedAmounts[2]
         );
