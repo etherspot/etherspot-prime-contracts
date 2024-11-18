@@ -20,6 +20,13 @@ contract CredibleAccountModule is ICredibleAccountModule {
     using ModeLib for ModeCode;
     using ExecutionLib for bytes;
 
+    // TEST: Changed - Only for testing purposes
+    event CredibleAccountModule_Test_ValidateSessionKeyParams(bool valid);
+    event CredibleAccountModule_Test_SessionKeyData(
+        uint48 validUntil,
+        uint48 validAfter
+    );
+
     /*//////////////////////////////////////////////////////////////
                                 ERRORS
     //////////////////////////////////////////////////////////////*/
@@ -163,10 +170,11 @@ contract CredibleAccountModule is ICredibleAccountModule {
         return walletSessionKeys[_wallet];
     }
 
+    // TEST: Changed visibility to public (from external)
     // @inheritdoc ICredibleAccountModule
     function getSessionKeyData(
         address _sessionKey
-    ) external view returns (SessionData memory) {
+    ) public view returns (SessionData memory) {
         return sessionData[_sessionKey][msg.sender];
     }
 
@@ -223,7 +231,20 @@ contract CredibleAccountModule is ICredibleAccountModule {
             !validateSessionKeyParams(sessionKeySigner, userOp) ||
             !proofVerifier.verifyProof(proof)
         ) return VALIDATION_FAILED;
-        SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
+        // TEST: Changed - Only for testing purposes
+        bool valid_sk_params = validateSessionKeyParams(
+            sessionKeySigner,
+            userOp
+        );
+        emit CredibleAccountModule_Test_ValidateSessionKeyParams(
+            valid_sk_params
+        );
+        SessionData memory sd = getSessionKeyData(sessionKeySigner);
+        emit CredibleAccountModule_Test_SessionKeyData(
+            sd.validUntil,
+            sd.validAfter
+        );
+        // SessionData memory sd = sessionData[sessionKeySigner][msg.sender];
         return _packValidationData(false, sd.validUntil, sd.validAfter);
     }
 
@@ -410,8 +431,7 @@ contract CredibleAccountModule is ICredibleAccountModule {
         bytes calldata _data
     ) internal returns (bytes4, address, uint256) {
         bytes4 selector = bytes4(_data[0:4]);
-        if (!_isValidSelector(selector))
-            return (bytes4(0), address(0), 0);
+        if (!_isValidSelector(selector)) return (bytes4(0), address(0), 0);
         address to = address(bytes20(_data[16:36]));
         uint256 amount = uint256(bytes32(_data[36:68]));
         return (selector, to, amount);
