@@ -75,6 +75,12 @@ contract MultipleOwnerECDSAValidator is IValidator {
         bytes32 hash,
         bytes calldata data
     ) external view override returns (bytes4) {
+        address recoveredOwner = ECDSA.recover(hash, data);
+        if (
+            ModularEtherspotWallet(payable(msg.sender)).isOwner(recoveredOwner)
+        ) {
+            return 0x1626ba7e; // ERC1271_MAGICVALUE
+        }
         bytes32 ethHash = ECDSA.toEthSignedMessageHash(hash);
         address owner = ECDSA.recover(ethHash, data);
         if (ModularEtherspotWallet(payable(msg.sender)).isOwner(owner)) {
