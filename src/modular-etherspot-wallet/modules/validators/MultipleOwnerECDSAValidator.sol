@@ -13,7 +13,7 @@ contract MultipleOwnerECDSAValidator is IValidator {
     using ECDSA for bytes32;
 
     string constant NAME = "MultipleOwnerECDSAValidator";
-    string constant VERSION = "1.0.0";
+    string constant VERSION = "1.1.0";
 
     error InvalidExec();
     error RequiredModule();
