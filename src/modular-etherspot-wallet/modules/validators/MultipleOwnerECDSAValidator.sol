@@ -16,7 +16,6 @@ contract MultipleOwnerECDSAValidator is IValidator {
     string constant VERSION = "1.1.0";
 
     error InvalidExec();
-    error RequiredModule();
 
     mapping(address => bool) internal _initialized;
 
@@ -26,7 +25,8 @@ contract MultipleOwnerECDSAValidator is IValidator {
     }
 
     function onUninstall(bytes calldata data) external override {
-        revert RequiredModule();
+        if (!isInitialized(msg.sender)) revert NotInitialized(msg.sender);
+        _initialized[msg.sender] = false;
     }
 
     function isInitialized(
