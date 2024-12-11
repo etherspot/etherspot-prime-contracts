@@ -13,10 +13,9 @@ contract MultipleOwnerECDSAValidator is IValidator {
     using ECDSA for bytes32;
 
     string constant NAME = "MultipleOwnerECDSAValidator";
-    string constant VERSION = "1.0.0";
+    string constant VERSION = "1.1.0";
 
     error InvalidExec();
-    error RequiredModule();
 
     mapping(address => bool) internal _initialized;
 
@@ -26,7 +25,8 @@ contract MultipleOwnerECDSAValidator is IValidator {
     }
 
     function onUninstall(bytes calldata data) external override {
-        revert RequiredModule();
+        if (!isInitialized(msg.sender)) revert NotInitialized(msg.sender);
+        _initialized[msg.sender] = false;
     }
 
     function isInitialized(
@@ -75,6 +75,12 @@ contract MultipleOwnerECDSAValidator is IValidator {
         bytes32 hash,
         bytes calldata data
     ) external view override returns (bytes4) {
+        address recoveredOwner = ECDSA.recover(hash, data);
+        if (
+            ModularEtherspotWallet(payable(msg.sender)).isOwner(recoveredOwner)
+        ) {
+            return 0x1626ba7e; // ERC1271_MAGICVALUE
+        }
         bytes32 ethHash = ECDSA.toEthSignedMessageHash(hash);
         address owner = ECDSA.recover(ethHash, data);
         if (ModularEtherspotWallet(payable(msg.sender)).isOwner(owner)) {

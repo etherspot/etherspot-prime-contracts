@@ -886,20 +886,25 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         mewAccount.discardCurrentProposal();
     }
 
-    function test_PaginateExecutors() public {
+    function test_paginateExecutors() public {
         mew = setupMEW();
 
         // paginate from sentinel (start node) and expect the 1 default executor
-        (address[] memory results, address next) = mew.getExecutorsPaginated(address(0x1), 1);
+        (address[] memory results, address next) = mew.getExecutorsPaginated(
+            address(0x1),
+            1
+        );
         assertTrue(results.length == 1);
         assertEq(results[0], address(defaultExecutor));
         assertEq(next, address(0x1));
 
         // paginate from the default executor and expect no results
-        (address[] memory results2, address next2) = mew.getExecutorsPaginated(address(defaultExecutor), 1);
+        (address[] memory results2, address next2) = mew.getExecutorsPaginated(
+            address(defaultExecutor),
+            1
+        );
         assertTrue(results2.length == 0);
         assertEq(next2, address(0x1));
-
 
         // Correctly encode the selector for the error signature and the argument
         bytes memory encodedRevertReason = abi.encodeWithSelector(
@@ -911,23 +916,5 @@ contract ModularEtherspotWalletTest is TestAdvancedUtils {
         // Expect the revert with the encoded reason
         vm.expectRevert(encodedRevertReason);
         mew.getExecutorsPaginated(address(this), 1);
-    }
-
-    function test_fail_uninstallModule_RequiredModule() public {
-        mew = setupMEW();
-        vm.startPrank(address(mewAccount));
-        assertTrue(mew.isModuleInstalled(1, address(ecdsaValidator), ""));
-        Execution[] memory batchCalls = new Execution[](1);
-        batchCalls[0].target = address(mew);
-        batchCalls[0].value = 0;
-        batchCalls[0].callData = abi.encodeWithSelector(
-            ModularEtherspotWallet.uninstallModule.selector,
-            uint256(1),
-            address(ecdsaValidator),
-            abi.encode(address(0x1), hex"")
-        );
-        vm.expectRevert(RequiredModule.selector);
-        defaultExecutor.execBatch(IERC7579Account(mew), batchCalls);
-        vm.stopPrank();
     }
 }
