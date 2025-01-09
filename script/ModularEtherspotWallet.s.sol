@@ -18,7 +18,7 @@ contract ModularEtherspotWalletScript is Script {
     address public constant DEPLOYER =
         0x09FD4F6088f2025427AB1e89257A44747081Ed59;
     address public constant EXPECTED_IMPLEMENTATION =
-        0x6281a1A0DD1bA6415670F425bfBD78B322113CbB;
+        0x339eAB59e54fE25125AceC3225254a0cBD305A7b;
 
     function run() external {
         ModularEtherspotWallet implementation;

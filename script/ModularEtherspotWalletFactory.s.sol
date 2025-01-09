@@ -17,9 +17,9 @@ contract ModularEtherspotWalletFactoryScript is Script {
     bytes32 public immutable SALT =
         bytes32(abi.encodePacked("ModularEtherspotWallet:Create2:salt"));
     address public constant EXPECTED_FACTORY =
-        0x37f7ca7f9ffD04525a18B9B905088D96D625853a;
+        0x2A40091f044e48DEB5C0FCbc442E443F3341B451;
     address public constant EXPECTED_IMPLEMENTATION =
-        0x6281a1A0DD1bA6415670F425bfBD78B322113CbB;
+        0x339eAB59e54fE25125AceC3225254a0cBD305A7b;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
@@ -32,10 +32,9 @@ contract ModularEtherspotWalletFactoryScript is Script {
         //////////////////////////////////////////////////////////////*/
         console2.log("Deploying ModularEtherspotWalletFactory...");
         if (EXPECTED_FACTORY.code.length == 0) {
-            factory = new ModularEtherspotWalletFactory{salt: SALT}(
-                EXPECTED_IMPLEMENTATION,
-                DEPLOYER
-            );
+            ModularEtherspotWalletFactory factory = new ModularEtherspotWalletFactory{
+                    salt: SALT
+                }(EXPECTED_IMPLEMENTATION, DEPLOYER);
             if (address(factory) != EXPECTED_FACTORY) {
                 revert("Unexpected wallet factory address!!!");
             } else {

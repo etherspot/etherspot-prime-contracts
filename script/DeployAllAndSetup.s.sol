@@ -34,13 +34,13 @@ contract DeployAllAndSetupScript is Script {
     address public constant DEPLOYER =
         0x09FD4F6088f2025427AB1e89257A44747081Ed59;
     address public constant EXPECTED_IMPLEMENTATION =
-        0x6281a1A0DD1bA6415670F425bfBD78B322113CbB;
+        0x339eAB59e54fE25125AceC3225254a0cBD305A7b;
     address public constant EXPECTED_FACTORY =
-        0x37f7ca7f9ffD04525a18B9B905088D96D625853a;
+        0x2A40091f044e48DEB5C0FCbc442E443F3341B451;
     address public constant EXPECTED_BOOTSTRAP =
-        0xbE937d1C58D885B873CA5EACce160301572a75F9;
+        0x0D5154d7751b6e2fDaa06F0cC9B400549394C8AA;
     address public constant EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR =
-        0x7aCEE15c9FFc1e8f287C26E0f4C8244A0729F557;
+        0x0740Ed7c11b9da33d9C80Bd76b826e4E90CC1906;
     uint256 public constant FACTORY_STAKE = 1e16;
 
     function run() external {
@@ -156,7 +156,7 @@ contract DeployAllAndSetupScript is Script {
         console2.log("Factory staked!");
 
         /*//////////////////////////////////////////////////////////////
-                              Finshing Deployment
+                              Finishing Deployment
         //////////////////////////////////////////////////////////////*/
         console2.log("Finished deployment sequence!");
 

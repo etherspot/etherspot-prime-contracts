@@ -15,7 +15,7 @@ contract MultipleOwnerECDSAValidatorScript is Script {
     bytes32 immutable SALT =
         bytes32(abi.encodePacked("ModularEtherspotWallet:Create2:salt"));
     address constant EXPECTED_MULTIPLE_OWNER_ECDSA_VALIDATOR =
-        0x7aCEE15c9FFc1e8f287C26E0f4C8244A0729F557;
+        0x0740Ed7c11b9da33d9C80Bd76b826e4E90CC1906;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");

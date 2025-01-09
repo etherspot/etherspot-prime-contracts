@@ -1,4 +1,5 @@
 [profile.default]
+bytecodeHash = "none"
 src = "src"
 out = "out"
 libs = ["node_modules", "lib"]
@@ -15,7 +16,6 @@ gas_reports = [
   "ModuleIsolationHook",
   "SessionKeyValidator",
 ]
-
 [fuzz]
 runs = 1000
 
