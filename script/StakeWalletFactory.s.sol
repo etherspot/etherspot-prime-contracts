@@ -17,7 +17,7 @@ contract StakeWalletFactoryScript is Script {
     address constant ENTRY_POINT_07 =
         0x0000000071727De22E5E9d8BAf0edAc6f37da032;
     address payable constant EXPECTED_WALLET_FACTORY =
-        payable(0x93FB56A4a0B7160fbf8903d251Cc7A3fb9bA0933);
+        payable(0x2A40091f044e48DEB5C0FCbc442E443F3341B451);
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");

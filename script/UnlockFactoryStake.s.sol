@@ -18,7 +18,7 @@ contract UnlockFactoryStakeScript is Script {
     address constant ENTRY_POINT_07 =
         0x0000000071727De22E5E9d8BAf0edAc6f37da032;
     address payable constant FACTORY =
-        payable(0xf80D543Ca10B48AF07c65Ff508605c1737EFAF3F);
+        payable(0x2A40091f044e48DEB5C0FCbc442E443F3341B451);
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
