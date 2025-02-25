@@ -12,8 +12,7 @@ const verifyVerifyingPaymaster: DeployFunction = async function (
 
   await hre.run('verify:verify', {
     address: PAYMASTER_ADDRESS,
-    contract:
-      'src/etherspot-wallet-v1/paymaster/VerifyingPaymaster.sol:VerifyingPaymaster',
+    contract: 'src/paymaster/VerifyingPaymaster.sol:VerifyingPaymaster',
     constructorArguments: [ENTRY_POINT_ADDRESS, VERIFYING_SIGNER_ADDRESS],
   });
 };

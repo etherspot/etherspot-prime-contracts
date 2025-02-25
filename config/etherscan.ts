@@ -44,6 +44,7 @@ const etherscan: HardhatUserConfig['etherscan'] = {
     amoy: process.env.POLYSCAN_API_KEY!,
     mantleSepolia: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
     xdcApothem: process.env.XDC_API_KEY!,
+    suaveToliman: process.env.BASEGOERLI_BLOCKSCOUT_API_KEY!, // works with same key
   },
   customChains: [
     {
@@ -274,10 +275,18 @@ const etherscan: HardhatUserConfig['etherscan'] = {
       network: 'odyssey',
       chainId: 911867,
       urls: {
-        apiURL: "https://odyssey-explorer.ithaca.xyz/api",
-        browserURL: "https://odyssey-explorer.ithaca.xyz/"
-      }
-    }
+        apiURL: 'https://odyssey-explorer.ithaca.xyz/api',
+        browserURL: 'https://odyssey-explorer.ithaca.xyz/',
+      },
+    },
+    {
+      network: 'suaveToliman',
+      chainId: 33626250,
+      urls: {
+        apiURL: 'https://explorer.toliman.suave.flashbots.net/api',
+        browserURL: 'https://explorer.toliman.suave.flashbots.net/',
+      },
+    },
   ],
 };
 

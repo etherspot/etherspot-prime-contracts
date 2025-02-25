@@ -238,6 +238,11 @@ const networks: HardhatUserConfig['networks'] = {
     url: 'https://odyssey.ithaca.xyz',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
+  suaveToliman: {
+    chainId: 33626250,
+    url: 'https://rpc.toliman.suave.flashbots.net',
+    accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+  },
   dev: { url: 'http://localhost:8545' },
 };
 export default networks;
