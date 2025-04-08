@@ -3,3 +3,4 @@
 /* eslint-disable */
 import type * as universalSignatureValidatorSol from "./UniversalSignatureValidator.sol";
 export type { universalSignatureValidatorSol };
+export type { SafeTransferLib } from "./SafeTransferLib";

@@ -25,6 +25,7 @@ const compilers: HardhatUserConfig['solidity'] = {
     {
       version: '0.8.21',
       settings: {
+        "viaIR": true,
         optimizer: {
           enabled: true,
           runs: 200,
@@ -35,6 +36,7 @@ const compilers: HardhatUserConfig['solidity'] = {
     {
       version: '0.8.23',
       settings: {
+        "viaIR": true,
         optimizer: {
           enabled: true,
           runs: 200,

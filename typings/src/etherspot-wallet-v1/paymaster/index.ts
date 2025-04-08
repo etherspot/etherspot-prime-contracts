@@ -3,5 +3,8 @@
 /* eslint-disable */
 export type { BasePaymaster } from "./BasePaymaster";
 export type { EtherspotPaymaster } from "./EtherspotPaymaster";
+export type { IOracleAggregator } from "./IOracleAggregator";
+export type { MultiTokenPaymaster } from "./MultiTokenPaymaster";
+export type { TokenPaymasterErrors } from "./TokenPaymasterErrors";
 export type { VerifyingPaymaster } from "./VerifyingPaymaster";
 export type { Whitelist } from "./Whitelist";

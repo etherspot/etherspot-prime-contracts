@@ -21,9 +21,10 @@ abstract contract BasePaymaster is IPaymaster, Ownable {
     uint256 internal constant PAYMASTER_POSTOP_GAS_OFFSET = UserOperationLib.PAYMASTER_POSTOP_GAS_OFFSET;
     uint256 internal constant PAYMASTER_DATA_OFFSET = UserOperationLib.PAYMASTER_DATA_OFFSET;
 
-    constructor(IEntryPoint _entryPoint) Ownable(msg.sender) {
+    constructor(address _owner, IEntryPoint _entryPoint) Ownable(_owner) {
         _validateEntryPointInterface(_entryPoint);
         entryPoint = _entryPoint;
+        _transferOwnership(_owner);
     }
 
     //sanity check: make sure this EntryPoint was compiled against the same

@@ -3,5 +3,8 @@
 /* eslint-disable */
 export { BasePaymaster__factory } from "./BasePaymaster__factory";
 export { EtherspotPaymaster__factory } from "./EtherspotPaymaster__factory";
+export { IOracleAggregator__factory } from "./IOracleAggregator__factory";
+export { MultiTokenPaymaster__factory } from "./MultiTokenPaymaster__factory";
+export { TokenPaymasterErrors__factory } from "./TokenPaymasterErrors__factory";
 export { VerifyingPaymaster__factory } from "./VerifyingPaymaster__factory";
 export { Whitelist__factory } from "./Whitelist__factory";

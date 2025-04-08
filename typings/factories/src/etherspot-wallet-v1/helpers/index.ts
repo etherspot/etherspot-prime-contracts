@@ -2,3 +2,4 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as universalSignatureValidatorSol from "./UniversalSignatureValidator.sol";
+export { SafeTransferLib__factory } from "./SafeTransferLib__factory";
