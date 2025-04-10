@@ -3,15 +3,15 @@ pragma solidity ^0.8.19;
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {IEntryPoint} from "../../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
-import "../../../account-abstraction/contracts/core/UserOperationLib.sol";
+import {IEntryPoint} from "../../account-abstraction/contracts/interfaces/IEntryPoint.sol";
+import "../../account-abstraction/contracts/core/UserOperationLib.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {BasePaymaster} from "./BasePaymaster.sol";
 import {IOracleAggregator} from "./IOracleAggregator.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../../account-abstraction/contracts/core/Helpers.sol" as Helpers;
+import "../../account-abstraction/contracts/core/Helpers.sol" as Helpers;
 import {Math} from "@openzeppelin/contracts/utils/math/Math.sol";
-import "../helpers/SafeTransferLib.sol";
+import "../etherspot-wallet-v1/helpers/SafeTransferLib.sol";
 import {TokenPaymasterErrors} from "./TokenPaymasterErrors.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
@@ -430,7 +430,7 @@ contract MultiTokenPaymaster is BasePaymaster, ReentrancyGuard, TokenPaymasterEr
      * @param context payment conditions signed by the paymaster in `validatePaymasterUserOp`
      * @param actualGasCost amount to be paid to the entry point in wei
      */
-    function _postOp(PostOpMode mode, bytes calldata context, uint256 actualGasCost) internal virtual {
+    function _postOp(PostOpMode mode, bytes calldata context, uint256 actualGasCost, uint256 gasPrice) internal virtual override {
         (
             address account,
             IERC20 feeToken,
@@ -455,7 +455,7 @@ contract MultiTokenPaymaster is BasePaymaster, ReentrancyGuard, TokenPaymasterEr
         uint256 charge; // Final amount to be charged from user account
         {
             uint256 actualTokenCost =
-                ((actualGasCost + (UNACCOUNTED_COST * tx.gasprice)) * effectiveExchangeRate) / 1e18;
+                ((actualGasCost + (UNACCOUNTED_COST * gasPrice)) * effectiveExchangeRate) / 1e18;
             charge = ((actualTokenCost * priceMarkup) / PRICE_DENOMINATOR);
         }
 

@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 
-const STAKE_AMOUNT = ethers.utils.parseEther('0.1').toString(); // Stake amount for EntryPoint contract
+const STAKE_AMOUNT = ethers.utils.parseEther('0.001').toString(); // Stake amount for EntryPoint contract
 const DEPOSIT_AMOUNT = ethers.utils.parseEther('0.01').toString(); // Deposit amount to subsidise gas sponsors
 
 const deployTestTokenPaymaster: DeployFunction = async function (
@@ -27,30 +27,30 @@ const deployTestTokenPaymaster: DeployFunction = async function (
   );
 
   // stake
-  // await execute(
-  //   'MultiTokenPaymaster',
-  //   {
-  //     from,
-  //     log: true,
-  //     gasLimit: 6e6,
-  //     value: STAKE_AMOUNT,
-  //   },
-  //   'addStake',
-  //   1
-  // );
+  await execute(
+    'MultiTokenPaymaster',
+    {
+      from,
+      log: true,
+      gasLimit: 6e6,
+      value: STAKE_AMOUNT,
+    },
+    'addStake',
+    1
+  );
 
   // deposit
-  // await execute(
-  //   'MultiTokenPaymaster',
-  //   {
-  //     from,
-  //     log: true,
-  //     gasLimit: 1e6,
-  //     // gasPrice: '100252',
-  //     value: DEPOSIT_AMOUNT,
-  //   },
-  //   'deposit',
-  // );
+  await execute(
+    'MultiTokenPaymaster',
+    {
+      from,
+      log: true,
+      gasLimit: 1e6,
+      // gasPrice: '100252',
+      value: DEPOSIT_AMOUNT,
+    },
+    'deposit',
+  );
 
   // await execute(
   //   'MultiTokenPaymaster',
@@ -79,7 +79,7 @@ const deployTestTokenPaymaster: DeployFunction = async function (
   await hre.run('verify:verify', {
     address: testTokenPaymaster.address,
     contract:
-      'src/etherspot-wallet-v1/paymaster/MultiTokenPaymaster.sol:MultiTokenPaymaster',
+      'src/MultiTokenPaymaster/MultiTokenPaymaster.sol:MultiTokenPaymaster',
     constructorArguments: [
       from,
       EntryPoint_V07,
