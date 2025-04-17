@@ -19,12 +19,12 @@ const networks: HardhatUserConfig['networks'] = {
   },
   optimism: {
     chainId: 10,
-    url: 'https://rpc.ankr.com/optimism',
+    url: 'https://opt-mainnet.g.alchemy.com/v2/CEX55rxC6Rl5hs_J4bfxC4dGeXU_ISnL',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
   polygon: {
     chainId: 137,
-    url: 'https://rpc.ankr.com/polygon',
+    url: 'https://polygon-mainnet.g.alchemy.com/v2/CEX55rxC6Rl5hs_J4bfxC4dGeXU_ISnL',
     accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
   },
   fuse: {

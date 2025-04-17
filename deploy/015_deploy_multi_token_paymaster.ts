@@ -2,8 +2,8 @@ import { ethers } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from 'hardhat-deploy/types';
 
-const STAKE_AMOUNT = ethers.utils.parseEther('0.001').toString(); // Stake amount for EntryPoint contract
-const DEPOSIT_AMOUNT = ethers.utils.parseEther('0.01').toString(); // Deposit amount to subsidise gas sponsors
+const STAKE_AMOUNT = ethers.utils.parseEther('0.009').toString(); // Stake amount for EntryPoint contract
+const DEPOSIT_AMOUNT = ethers.utils.parseEther('0.001').toString(); // Deposit amount to subsidise gas sponsors
 
 const deployTestTokenPaymaster: DeployFunction = async function (
   hre: HardhatRuntimeEnvironment
@@ -13,7 +13,7 @@ const deployTestTokenPaymaster: DeployFunction = async function (
   const { from } = await getNamedAccounts();
   
   const EntryPoint_V07 = "0x0000000071727De22E5E9d8BAf0edAc6f37da032";
-  const VerifyingAddress = "0x80a1874E1046B1cc5deFdf4D3153838B72fF94Ac";
+  const VerifyingAddress = "0x630856be5AC2DFE63b6Ae944226B369Fb1e3b848";
   const testTokenPaymaster = await deploy('MultiTokenPaymaster', {
     from,
     args: [from, EntryPoint_V07, VerifyingAddress],
@@ -40,17 +40,17 @@ const deployTestTokenPaymaster: DeployFunction = async function (
   );
 
   // deposit
-  await execute(
-    'MultiTokenPaymaster',
-    {
-      from,
-      log: true,
-      gasLimit: 1e6,
-      // gasPrice: '100252',
-      value: DEPOSIT_AMOUNT,
-    },
-    'deposit',
-  );
+  // await execute(
+  //   'MultiTokenPaymaster',
+  //   {
+  //     from,
+  //     log: true,
+  //     gasLimit: 1e6,
+  //     // gasPrice: '100252',
+  //     value: DEPOSIT_AMOUNT,
+  //   },
+  //   'deposit',
+  // );
 
   // await execute(
   //   'MultiTokenPaymaster',
@@ -76,16 +76,16 @@ const deployTestTokenPaymaster: DeployFunction = async function (
   //   '0x75A0653458207f0e2183d938a05b239580A0482f'
   // )
 
-  await hre.run('verify:verify', {
-    address: testTokenPaymaster.address,
-    contract:
-      'src/MultiTokenPaymaster/MultiTokenPaymaster.sol:MultiTokenPaymaster',
-    constructorArguments: [
-      from,
-      EntryPoint_V07,
-      VerifyingAddress
-    ],
-  });
+  // await hre.run('verify:verify', {
+  //   address: testTokenPaymaster.address,
+  //   contract:
+  //     'src/MultiTokenPaymaster/MultiTokenPaymaster.sol:MultiTokenPaymaster',
+  //   constructorArguments: [
+  //     from,
+  //     EntryPoint_V07,
+  //     VerifyingAddress
+  //   ],
+  // });
 };
 
 deployTestTokenPaymaster.tags = [

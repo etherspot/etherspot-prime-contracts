@@ -440,6 +440,22 @@ declare module "hardhat/types/runtime" {
       name: "ModularEtherspotWalletFactory",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ModularEtherspotWalletFactory__factory>;
+    getContractFactory(
+      name: "BasePaymaster",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BasePaymaster__factory>;
+    getContractFactory(
+      name: "IOracleAggregator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IOracleAggregator__factory>;
+    getContractFactory(
+      name: "MultiTokenPaymaster",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.MultiTokenPaymaster__factory>;
+    getContractFactory(
+      name: "TokenPaymasterErrors",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TokenPaymasterErrors__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -976,6 +992,26 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.ModularEtherspotWalletFactory>;
+    getContractAt(
+      name: "BasePaymaster",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BasePaymaster>;
+    getContractAt(
+      name: "IOracleAggregator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IOracleAggregator>;
+    getContractAt(
+      name: "MultiTokenPaymaster",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.MultiTokenPaymaster>;
+    getContractAt(
+      name: "TokenPaymasterErrors",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TokenPaymasterErrors>;
 
     // default types
     getContractFactory(
